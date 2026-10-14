@@ -740,7 +740,7 @@ export default function App() {
             <div className="about-grid">
               <div className="about-narrative">
                 <p>
-                  HelzerX is a community-supported cloud hosting platform dedicated to empowering developers, gaming communities, and server administrators. We combine enterprise-grade Proxmox bare-metal virtualization with an attribution-verified rewards ledger.
+                  HelzerX is a community-supported cloud hosting platform dedicated to empowering developers, gaming communities, and server operators. We combine enterprise-grade Proxmox bare-metal virtualization with an attribution-verified rewards ledger.
                 </p>
                 <p>
                   Whether you are launching a high-concurrency Minecraft network or provisioning private Linux containers for automated workloads, our infrastructure delivers true isolated resources without financial barriers.
