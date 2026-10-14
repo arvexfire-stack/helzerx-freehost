@@ -237,7 +237,7 @@ export async function runLxcTerminal({ vmid, command }) {
       host:c.sshHost, port:c.sshPort, username:c.sshUsername,
       privateKey:c.sshPrivateKey, readyTimeout:10000, keepaliveInterval:5000,
       hostHash:'sha256',
-      hostVerifier: hash => crypto.timingSafeEqual(Buffer.from(String(hash)), Buffer.from(expected))
+      hostVerifier: hash => { const actual=Buffer.from(String(hash)), fingerprint=Buffer.from(expected); return actual.length===fingerprint.length && crypto.timingSafeEqual(actual,fingerprint); }
     });
   });
 }
