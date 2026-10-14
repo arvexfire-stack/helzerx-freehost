@@ -428,8 +428,11 @@ app.post('/api/admin/hosting-requests/:id/snapshots',adminOnly,adminMutationOrig
  if(!['create','delete'].includes(action))return res.status(400).json({error:'Snapshot action must be create or delete.'});
  if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide an audit reason (3–300 characters).'});
  if(action==='delete'&&!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(name))return res.status(400).json({error:'Invalid snapshot name.'});
- if(action==='delete'&&!Array.isArray((await inspectLxc({vmid:item.vmid})).snapshots?.filter(x=>x.name===name)))return res.status(404).json({error:'Snapshot not found.'});
  try{
+  if(action==='delete'){
+   const live=await inspectLxc({vmid:item.vmid});
+   if(!(live.snapshots||[]).some(x=>x.name===name))return res.status(404).json({error:'Snapshot not found.'});
+  }
   const result=await manageLxcSnapshot({vmid:item.vmid,action,name});
   auditAdmin(req,'vps_snapshot_'+action,'hosting_request',item.id,{vmid:item.vmid,name,reason});writeData();
   res.json({ok:true,...result});
