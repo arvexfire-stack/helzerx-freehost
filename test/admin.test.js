@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 
 test('private admin page includes secure login and main management sections', () => {
   const html = fs.readFileSync(new URL('../private/admin.html', import.meta.url), 'utf8');
@@ -13,7 +14,7 @@ test('private admin inline JavaScript parses', () => {
   const html = fs.readFileSync(new URL('../private/admin.html', import.meta.url), 'utf8');
   const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/gi)].map(match => match[1]);
   assert.ok(scripts.length > 0, 'expected an inline application script');
-  for (const script of scripts) assert.doesNotThrow(() => new Function(script));
+  for (const [index, script] of scripts.entries()) { try { new vm.Script(script, { filename: 'private/admin.html:inline-script-' + index }); } catch (error) { assert.fail(error.stack || error.message); } }
 });
 
 test('database layer uses native SQLite and transactional writes', () => {
