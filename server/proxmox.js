@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 const env = (key, fallback = '') => String(process.env[key] ?? fallback).trim();
 export function proxmoxConfig() {
   return {
@@ -101,8 +102,23 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey }) 
   if (c.network !== 'dhcp') throw new Error('Only DHCP network mode is currently supported by the provisioner. Configure a verified DHCP service or add static IP allocation before enabling.');
   const next = await allocateVmid(c);
   const hostname = ('hx-' + String(requestId).replace(/[^a-z0-9]/gi, '').slice(0, 10) + '-' + next).toLowerCase().slice(0, 63);
-  const sshKeys = String(sshPublicKey || '').trim();
-  if (sshKeys.length > 2048 || !/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshKeys)) throw new Error('A valid single SSH public key is required for this user. Password-based credential delivery is intentionally disabled.');
+  let sshKeys = String(sshPublicKey || '').trim();
+  let generatedSshPrivateKey = null;
+  if (!sshKeys) {
+    const pair = crypto.generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'der' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+    });
+    const rawPublicKey = pair.publicKey.subarray(-32);
+    const algorithm = Buffer.from('ssh-ed25519');
+    const wire = Buffer.concat([
+      Buffer.from([0, 0, 0, algorithm.length]), algorithm,
+      Buffer.from([0, 0, 0, rawPublicKey.length]), rawPublicKey
+    ]);
+    sshKeys = 'ssh-ed25519 ' + wire.toString('base64') + ' helzerx-auto';
+    generatedSshPrivateKey = pair.privateKey;
+  }
+  if (sshKeys.length > 2048 || !/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshKeys)) throw new Error('Provide a valid single SSH public key.');
   const net0 = 'name=eth0,bridge=' + c.bridge + ',ip=dhcp,ip6=auto';
   const upid = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc', {
     vmid: next,
