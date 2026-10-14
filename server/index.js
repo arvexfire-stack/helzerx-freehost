@@ -17,7 +17,17 @@ app.disable('x-powered-by');app.set('trust proxy',1);app.use(express.json({limit
 app.use(session({name:'hx_freehost_sid',store:new SQLiteStore({dir:path.join(root,'data'),db:'sessions.sqlite'}),secret:process.env.SESSION_SECRET||'development-only-change-me',resave:false,saveUninitialized:false,rolling:true,cookie:{httpOnly:true,secure:prod,sameSite:'lax',maxAge:604800000}}));
 const pendingOAuth=new Map();
 const DATA_FILE=path.join(root,'data','rewards.json');
-function readData(){try{return JSON.parse(fs.readFileSync(DATA_FILE,'utf8'));}catch{return {users:{},claims:[],inviteClaims:[],hostingRequests:[]};}}
+function readData(){
+  let stored={};
+  try{stored=JSON.parse(fs.readFileSync(DATA_FILE,'utf8'));}catch{}
+  // Normalize older data files so newly added features never crash on missing arrays.
+  return {
+    users:stored&&stored.users&&typeof stored.users==='object'&&!Array.isArray(stored.users)?stored.users:{},
+    claims:Array.isArray(stored?.claims)?stored.claims:[],
+    inviteClaims:Array.isArray(stored?.inviteClaims)?stored.inviteClaims:[],
+    hostingRequests:Array.isArray(stored?.hostingRequests)?stored.hostingRequests:[]
+  };
+}
 let data=readData();
 function writeData(){const tmp=DATA_FILE+'.tmp';fs.writeFileSync(tmp,JSON.stringify(data,null,2),{mode:0o600});fs.renameSync(tmp,DATA_FILE);}
 function ensureUser(id){if(!data.users[id])data.users[id]={balance:0,verifiedInvites:0,activeBoosts:0,referrer:null,pendingReferrer:null,creditedMilestones:[],createdAt:Date.now()};if(!Array.isArray(data.inviteClaims))data.inviteClaims=[];if(!Array.isArray(data.hostingRequests))data.hostingRequests=[];return data.users[id];}
