@@ -3,6 +3,7 @@ import express from 'express';
 import session from 'express-session';
 import crypto from 'node:crypto';
 import { provisionLxc, proxmoxReadiness } from './proxmox.js';
+import { applySecurityHeaders, createRateLimiter } from './security.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +13,33 @@ fs.mkdirSync(path.join(root,'data'),{recursive:true});
 const required=['SESSION_SECRET','DISCORD_CLIENT_ID','DISCORD_CLIENT_SECRET','DISCORD_REDIRECT_URI'];
 const missing=required.filter(k=>!process.env[k]);if(prod&&missing.length)console.error('[startup] Missing environment variables:',missing.join(', '));
 if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32))throw new Error('SESSION_SECRET must be at least 32 characters in production.');
-app.disable('x-powered-by');app.set('trust proxy',1);app.use(express.json({limit:'20kb'}));
+app.disable('x-powered-by');
+// Cloudflare Tunnel/Nginx should connect locally. Do not trust arbitrary public X-Forwarded-For headers.
+app.set('trust proxy', 'loopback');
+// Defense in depth. Cloudflare/WAF limits are still required for distributed floods.
+app.use(applySecurityHeaders);
+const apiLimiter = createRateLimiter({
+  windowMs: 60_000,
+  limit: 240,
+  keyPrefix: 'api',
+  message: 'Too many API requests. Please slow down and try again.'
+});
+const authLimiter = createRateLimiter({
+  windowMs: 15 * 60_000,
+  limit: 12,
+  keyPrefix: 'auth',
+  message: 'Too many authentication attempts. Please wait before trying again.'
+});
+const adminEdgeLimiter = createRateLimiter({
+  windowMs: 15 * 60_000,
+  limit: 10,
+  keyPrefix: 'admin-login',
+  message: 'Too many admin sign-in attempts. Please wait before trying again.'
+});
+app.use('/api', (req, res, next) => req.path === '/health' ? next() : apiLimiter(req, res, next));
+app.use(['/api/auth/register', '/api/auth/login'], authLimiter);
+app.use('/api/admin/login', adminEdgeLimiter);
+app.use(express.json({limit:'20kb'}));
 app.use(session({name:'hx_freehost_sid',secret:process.env.SESSION_SECRET||'development-only-change-me',resave:false,saveUninitialized:false,rolling:true,cookie:{httpOnly:true,secure:prod,sameSite:'lax',maxAge:604800000}}));
 
 // Never let a CDN, browser cache, or SPA fallback serve a stale public page for staff-only paths.
@@ -188,7 +215,7 @@ app.post('/api/auth/login', (req, res) => {
   }
 
   const hashToTest = hashPassword(password, foundUser.salt);
-  if (hashToTest !== foundUser.passwordHash) {
+  if (!safeEqual(hashToTest, foundUser.passwordHash)) {
     return res.status(401).json({ error: 'Invalid email or password.' });
   }
 
@@ -259,6 +286,18 @@ app.get('/api/admin/hosting-requests',adminOnly,(_req,res)=>res.json({requests:d
 app.post('/api/admin/hosting-requests/:id/review',adminOnly,adminMutationOrigin,async(req,res)=>{const item=data.hostingRequests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({error:'Hosting request not found'});if(item.status!=='pending')return res.status(409).json({error:'Hosting request has already been reviewed'});const action=req.body?.action;if(!['approve','reject'].includes(action))return res.status(400).json({error:'Action must be approve or reject'});const u=ensureUser(item.userId);if(action==='reject'){item.status='rejected';item.reviewedAt=new Date().toISOString();item.updatedAt=item.reviewedAt;writeData();return res.json({ok:true,request:item})}if(u.balance<item.cost)return res.status(409).json({error:'User balance is no longer sufficient'});let options=[];try{options=JSON.parse(process.env.HOSTING_REDEMPTION_OPTIONS||'[]')}catch{}const plan=options.find(x=>x.id===item.planId&&x.service===item.service&&Number.isSafeInteger(x.cost)&&x.cost===item.cost);if(!plan||!plan.proxmox||plan.service!=='lxc')return res.status(409).json({error:'Only explicitly configured LXC plans can be provisioned. No HZL was deducted.'});const readiness=proxmoxReadiness();if(!readiness.ready)return res.status(503).json({error:'Proxmox provisioning is not ready. No HZL was deducted.',missing:readiness.missing});u.balance-=item.cost;item.status='provisioning';item.provisioningStatus='creating-container';item.reviewedAt=new Date().toISOString();item.updatedAt=item.reviewedAt;item.provisioningAttempts=(item.provisioningAttempts||0)+1;writeData();try{const created=await provisionLxc({requestId:item.id,plan,username:item.username,sshPublicKey:item.sshPublicKey});item.status='provisioned';item.provisioningStatus='container-start-requested';item.vmid=created.vmid;item.hostname=created.hostname;item.proxmoxTask=created.upid;item.updatedAt=new Date().toISOString();writeData();return res.json({ok:true,request:item})}catch(e){item.status='provisioning-error';item.provisioningStatus='needs-admin-reconciliation';item.error=String(e.message||'Provisioning failed').slice(0,500);item.updatedAt=new Date().toISOString();writeData();console.error('[proxmox provisioning]',item.id,item.error);return res.status(502).json({error:'Provisioning did not complete cleanly. The request is locked against duplicate provisioning and requires admin reconciliation; HZL was not automatically refunded to avoid double provisioning.',request:{id:item.id,status:item.status,provisioningStatus:item.provisioningStatus}})}});
 app.post('/api/admin/boost-claims/:id/review',adminOnly,adminMutationOrigin,(req,res)=>{const claim=data.claims.find(c=>c.id===req.params.id);if(!claim)return res.status(404).json({error:'Claim not found'});if(claim.status!=='pending')return res.status(409).json({error:'Claim has already been reviewed'});const action=req.body?.action;if(!['approve','reject'].includes(action))return res.status(400).json({error:'Action must be approve or reject'});claim.status=action==='approve'?'approved':'rejected';claim.reviewedAt=new Date().toISOString();if(action==='approve'){const u=ensureUser(claim.userId);u.balance+=claim.amount;u.activeBoosts=Math.max(u.activeBoosts,claim.boosts);}writeData();res.json({ok:true,claim});});
 app.get('/api/plans',(_q,r)=>r.json({plans:[{id:'minecraft',title:'Minecraft Hosting',description:'Explore eligible Minecraft hosting rewards.',features:['Multiple RAM options','High-performance CPU resources','NVMe storage','Available locations'],command:'.mc-plans'},{id:'vps',title:'KVM VPS',description:'Explore eligible KVM VPS rewards.',features:['Multiple RAM options','Dedicated vCPU resources','NVMe storage','Available locations'],command:'.vps-plans'}]}));
+// Normalize parser and unexpected errors without exposing stack traces or internal details.
+app.use((err, _req, res, next) => {
+  if (res.headersSent) return next(err);
+  if (err && (err.type === 'entity.too.large' || err.status === 413)) {
+    return res.status(413).json({ error: 'Request body is too large.' });
+  }
+  if (err instanceof SyntaxError && err.status === 400 && Object.prototype.hasOwnProperty.call(err, 'body')) {
+    return res.status(400).json({ error: 'Invalid JSON request body.' });
+  }
+  console.error('[http error]', String(err?.message || 'Unknown error').slice(0, 300));
+  return res.status(500).json({ error: 'Internal server error.' });
+});
 app.use(express.static(path.join(root, 'public'), { index: false, maxAge: '1h' }));
 if (prod) {
   app.use(express.static(path.join(root, 'dist'), { index: false, maxAge: '1h' }));

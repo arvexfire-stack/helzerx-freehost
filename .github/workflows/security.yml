@@ -1,0 +1,59 @@
+name: Security checks
+
+on:
+  push:
+    branches: [main, "security/**"]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "23 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-audit:
+    name: Dependency vulnerability audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Check server syntax
+        run: |
+          node --check server/index.js
+          node --check server/proxmox.js
+          node --check server/security.js
+          node --test test/*.test.js
+      - name: Build frontend
+        run: npm run build
+
+  secret-pattern-scan:
+    name: Scan tracked files for common secret patterns
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Scan tracked files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n -I -E '(DISCORD_CLIENT_SECRET|DISCORD_BOT_TOKEN|PROXMOX_TOKEN_SECRET|ADMIN_PASSWORD|SESSION_SECRET)[[:space:]]*=[[:space:]]*[^[:space:]#]{8,}' -- ':!*.lock' ':!SECURITY.md' ':!.env.example'; then
+            echo "::error::Possible hard-coded secret found in tracked files. Remove it and rotate the credential if it was real."
+            exit 1
+          fi
+          echo "No matching hard-coded secret assignments found."
