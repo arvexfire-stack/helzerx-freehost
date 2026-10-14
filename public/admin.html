@@ -79,13 +79,14 @@
       <div>
         <p class="eyebrow">ADMIN AUTHENTICATION</p>
         <h2>Secure Authorization</h2>
-        <p class="warning">Enter your configured <code>ADMIN_REVIEW_KEY</code>. It is retained strictly in volatile browser memory for this session.</p>
+        <p class="warning">Sign in with the administrator email and password configured privately on the server. Credentials are never stored in this browser.</p>
       </div>
       <div>
         <div class="row">
-          <input id="key" type="password" autocomplete="current-password" placeholder="ADMIN_REVIEW_KEY" aria-label="Admin review key">
-          <button id="connect">Authorize</button>
-          <button id="forget">Forget</button>
+          <input id="email" type="email" autocomplete="username" placeholder="Administrator email" aria-label="Administrator email" required>
+          <input id="password" type="password" autocomplete="current-password" placeholder="Administrator password" aria-label="Administrator password" required>
+          <button id="connect">Sign In</button>
+          <button id="forget">Sign Out</button>
         </div>
         <div id="status" class="status" role="status" aria-live="polite"></div>
       </div>
@@ -115,14 +116,14 @@
 
   <script>
     (()=>{
-      let key='', kind='invites', queues={invites:[], boosts:[], hosting:[]};
+      let authenticated=false, kind='invites', queues={invites:[], boosts:[], hosting:[]};
       const $=id=>document.getElementById(id);
       const status=s=>$('status').textContent=s;
       const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       const date=s=>s?new Date(s).toLocaleString():'—';
 
       async function api(url,opts={}){
-        const r=await fetch(url,{...opts,headers:{'Content-Type':'application/json','x-admin-key':key,...opts.headers}});
+        const r=await fetch(url,{...opts,credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json',...opts.headers}});
         let d={};
         try{d=await r.json()}catch{}
         if(!r.ok) throw new Error(d.error||'Request failed ('+r.status+')');
@@ -152,7 +153,7 @@
       }
 
       async function load(){
-        if(!key){status('Enter the admin review key above.');return}
+        if(!authenticated){status('Sign in with the administrator credentials.');return}
         $('refresh').disabled=true;
         status('Loading pending queues…');
         try{
@@ -162,7 +163,7 @@
           queues.boosts=(b.claims||[]).filter(x=>x.status==='pending');
           queues.hosting=(h.requests||[]).filter(x=>x.status==='pending');
           render();
-          status('Authorized. Pending: '+queues.invites.length+' invites · '+queues.boosts.length+' boosts · '+queues.hosting.length+' hosting.');
+          status('Signed in. Pending: '+queues.invites.length+' invites · '+queues.boosts.length+' boosts · '+queues.hosting.length+' hosting.');
         }catch(e){status(e.message)}
         finally{$('refresh').disabled=false}
       }
