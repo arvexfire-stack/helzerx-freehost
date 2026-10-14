@@ -41,6 +41,16 @@ function sendPrivateAdmin(_req, res) {
   });
 }
 app.get(['/admin', '/admin/'], sendPrivateAdmin);
+
+// Customer control panel: private, authenticated and never cached.
+app.use(['/control','/control/','/control.html'],(_req,res,next)=>{
+ res.set({'Cache-Control':'private, no-store, no-cache, must-revalidate, max-age=0','Pragma':'no-cache','Expires':'0','X-Robots-Tag':'noindex, nofollow, noarchive','X-Content-Type-Options':'nosniff'});next();
+});
+app.get(['/control','/control/'],(req,res)=>{
+ if(!req.session.user)return res.redirect('/?login=required&next=%2Fcontrol');
+ res.type('html').sendFile(path.join(root,'private','control.html'),{dotfiles:'deny',cacheControl:false},err=>{if(err&&!res.headersSent)res.status(404).type('text/plain').send('Not found');});
+});
+
 const pendingOAuth=new Map();
 const adminLoginAttempts=new Map();
 const ADMIN_LOCK_WINDOW_MS=15*60*1000, ADMIN_MAX_ATTEMPTS=6;
@@ -240,6 +250,63 @@ app.get('/api/me',auth,async(req,res)=>{res.set('Cache-Control','no-store');res.
 app.get('/api/rewards',auth,async(req,res)=>{res.set('Cache-Control','no-store');res.json(await rewardsFor(req.session.user));});
 app.get('/api/invites',auth,(req,res)=>{const u=ensureUser(req.session.user.id);res.set('Cache-Control','no-store');res.json({referralCode:req.session.user.id,referralUrl:(process.env.APP_URL||'https://free.helzerx.cyou')+'/?ref='+encodeURIComponent(req.session.user.id),verifiedInvites:u.verifiedInvites,pendingInvites:data.inviteClaims.filter(c=>c.referrerId===req.session.user.id&&c.status==='pending').length,creditedMilestones:u.creditedMilestones});});
 app.get('/api/hosting-options',auth,(_req,res)=>{const options=data.plans.filter(x=>x.enabled!==false);const readiness=proxmoxReadiness();res.set('Cache-Control','no-store');res.json({options:options.map(({id,service,name,cost,description})=>({id,service,name,cost,description})),provisioning:{enabled:readiness.enabled,ready:readiness.ready}})});
+
+// User-owned LXC control APIs. Every lookup is scoped to the signed-in account.
+function ownedLxcRequest(req,res,allowedStatuses){
+ const item=data.hostingRequests.find(x=>x.id===req.params.id&&x.userId===req.session.user.id);
+ if(!item){res.status(404).json({error:'Hosting instance not found.'});return null;}
+ if(item.service!=='lxc'||!Number.isInteger(Number(item.vmid))){res.status(409).json({error:'This instance does not support LXC controls.'});return null;}
+ if(allowedStatuses&&!allowedStatuses.includes(item.status)){res.status(409).json({error:'This action is not available for the instance current status.'});return null;}
+ return item;
+}
+function recordUserVpsAction(req,item,action,details={}){
+ data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action,targetType:'hosting_request',targetId:item.id,details,createdAt:new Date().toISOString()});
+ if(data.auditLogs.length>5000)data.auditLogs.length=5000;
+}
+app.get('/api/control/instances/:id/inspect',auth,async(req,res)=>{
+ const item=ownedLxcRequest(req,res,['provisioned','suspended','provisioning-error']);if(!item)return;
+ try{const live=await inspectLxc({vmid:item.vmid});res.set('Cache-Control','no-store');res.json({ok:true,request:{id:item.id,vmid:item.vmid,hostname:item.hostname,planName:item.planName,status:item.status,createdAt:item.createdAt,updatedAt:item.updatedAt},live});}
+ catch(error){res.status(502).json({error:String(error.message||'Could not inspect instance').slice(0,400)});}
+});
+app.post('/api/control/instances/:id/action',auth,adminMutationOrigin,async(req,res)=>{
+ const action=String(req.body?.action||'');
+ if(!['start','stop','reboot','suspend','resume'].includes(action))return res.status(400).json({error:'Unsupported instance action.'});
+ const allowed=action==='start'||action==='resume'?['suspended','provisioned']:['provisioned','suspended'];
+ const item=ownedLxcRequest(req,res,allowed);if(!item)return;
+ if(['start','resume'].includes(action)&&item.status==='provisioned'&&action==='start')return res.status(409).json({error:'Instance is already marked as running.'});
+ try{
+  const result=await manageLxc({vmid:item.vmid,action});
+  item.updatedAt=new Date().toISOString();
+  if(['suspend','stop'].includes(action)){item.status='suspended';item.provisioningStatus='container-stopped';}
+  else {item.status='provisioned';item.provisioningStatus='container-running';}
+  recordUserVpsAction(req,item,'user_vps_'+action,{vmid:item.vmid});writeData();
+  res.json({ok:true,request:{id:item.id,status:item.status,vmid:item.vmid,hostname:item.hostname},proxmox:result});
+ }catch(error){res.status(502).json({error:String(error.message||'Instance action failed').slice(0,400)});}
+});
+app.post('/api/control/instances/:id/terminal',auth,adminMutationOrigin,async(req,res)=>{
+ const item=ownedLxcRequest(req,res,['provisioned']);if(!item)return;
+ const command=String(req.body?.command||'');
+ if(!command.trim()||command.length>4000)return res.status(400).json({error:'Command must be 1–4000 characters.'});
+ try{
+  const live=await inspectLxc({vmid:item.vmid});
+  if(live.status?.status!=='running')return res.status(409).json({error:'Instance is not running. Start it before using the terminal.'});
+  const result=await runLxcTerminal({vmid:item.vmid,command});
+  recordUserVpsAction(req,item,'user_vps_terminal_command',{vmid:item.vmid,commandLength:command.length});writeData();
+  res.json({ok:true,...result});
+ }catch(error){res.status(502).json({error:String(error.message||'Terminal command failed').slice(0,400)});}
+});
+app.post('/api/control/instances/:id/snapshots',auth,adminMutationOrigin,async(req,res)=>{
+ const item=ownedLxcRequest(req,res,['provisioned','suspended']);if(!item)return;
+ const action=String(req.body?.action||''),name=String(req.body?.name||'').trim();
+ if(!['create','delete'].includes(action))return res.status(400).json({error:'Snapshot action must be create or delete.'});
+ if(action==='delete'&&!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(name))return res.status(400).json({error:'Invalid snapshot name.'});
+ try{
+  if(action==='delete'){const live=await inspectLxc({vmid:item.vmid});if(!(live.snapshots||[]).some(x=>x.name===name))return res.status(404).json({error:'Snapshot not found.'});}
+  const result=await manageLxcSnapshot({vmid:item.vmid,action,name});
+  recordUserVpsAction(req,item,'user_vps_snapshot_'+action,{vmid:item.vmid,name});writeData();
+  res.json({ok:true,...result});
+ }catch(error){res.status(502).json({error:String(error.message||'Snapshot operation failed').slice(0,400)});}
+});
 app.get('/api/hosting-requests',auth,(req,res)=>{res.set('Cache-Control','no-store');res.json({requests:data.hostingRequests.filter(x=>x.userId===req.session.user.id).map(({id,service,planName,cost,status,createdAt,updatedAt,vmid,hostname,provisioningStatus,error})=>({id,service,planName,cost,status,createdAt,updatedAt,vmid,hostname,provisioningStatus,error}))})});
 app.post('/api/hosting-requests',auth,(req,res)=>{const service=String(req.body?.service||'');const planId=String(req.body?.planId||'');const sshPublicKey=typeof req.body?.sshPublicKey==='string'?req.body.sshPublicKey.trim():'';const option=data.plans.find(x=>x.enabled!==false&&x.id===planId&&x.service===service&&Number.isSafeInteger(x.cost)&&x.cost>0&&typeof x.name==='string');if(!option)return res.status(400).json({error:'This hosting plan is not currently configured for HZL redemption.'});if(service==='lxc'&&!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048)return res.status(400).json({error:'Provide a valid SSH public key for your LXC account. Never submit a private key or password.'});const u=ensureUser(req.session.user.id);if(u.balance<option.cost)return res.status(400).json({error:'Not enough HZL for this hosting plan.'});if(data.hostingRequests.some(x=>x.userId===req.session.user.id&&x.status==='pending'))return res.status(409).json({error:'You already have a pending hosting request.'});const request={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,service,planId:option.id,planName:option.name,cost:option.cost,planSnapshot:{id:option.id,service:option.service,name:option.name,cost:option.cost,...(option.proxmox?{proxmox:{...option.proxmox}}:{})},status:'pending',...(service==='lxc'?{sshPublicKey}:{}),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.hostingRequests.push(request);writeData();res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status},message:'Hosting request submitted for review. HZL is not deducted until an administrator approves it.'});});
 app.get('/api/boost-rewards',auth,(_req,res)=>res.json({tiers:boostTiers,verification:'Boost rewards are submitted as claims and must be reviewed. Discord OAuth alone cannot verify active server boosts without a privileged integration.'}));
