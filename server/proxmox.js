@@ -42,15 +42,18 @@ async function api(c, method, endpoint, params) {
     Accept: 'application/json'
   };
   const options = { method, headers, signal: AbortSignal.timeout(20000) };
-  if (params) {
+  let target = apiUrl(c, endpoint);
+  if (params && method === 'GET') {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) if (value !== undefined && value !== null && value !== '') query.set(key, String(value));
+    if ([...query].length) target += '?' + query.toString();
+  } else if (params) {
     const body = new URLSearchParams();
-    for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined && value !== null && value !== '') body.set(key, String(value));
-    }
+    for (const [key, value] of Object.entries(params)) if (value !== undefined && value !== null && value !== '') body.set(key, String(value));
     headers['Content-Type'] = 'application/x-www-form-urlencoded';
     options.body = body;
   }
-  const response = await fetch(apiUrl(c, endpoint), options);
+  const response = await fetch(target, options);
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload.errors) {
     const message = payload?.errors ? JSON.stringify(payload.errors) : (payload?.message || 'Proxmox API request failed (' + response.status + ')');
