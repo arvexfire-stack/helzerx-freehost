@@ -16,12 +16,12 @@ app.disable('x-powered-by');app.set('trust proxy',1);app.use(express.json({limit
 app.use(session({name:'hx_freehost_sid',secret:process.env.SESSION_SECRET||'development-only-change-me',resave:false,saveUninitialized:false,rolling:true,cookie:{httpOnly:true,secure:prod,sameSite:'lax',maxAge:604800000}}));
 
 // Keep the staff console on the clean /admin URL and register it before SPA/static fallbacks.
-app.get('/admin.html', (_req,res) => res.redirect(308, '/admin'));
+app.get('/admin.html', (_req,res) => res.status(404).type('text/plain').send('Not found'));
 app.get('/admin/', (_req,res) => res.redirect(308, '/admin'));
 app.get('/admin', (_req,res) => {
   res.status(200);
   res.set({ 'Cache-Control':'no-store, no-cache, must-revalidate, private', 'Pragma':'no-cache', 'X-Robots-Tag':'noindex, nofollow, noarchive' });
-  res.sendFile(path.join(root,'public','admin.html'));
+  res.sendFile(path.join(root,'private','admin.html'));
 });
 const pendingOAuth=new Map();
 const adminLoginAttempts=new Map();
