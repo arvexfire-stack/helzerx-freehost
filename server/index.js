@@ -16,6 +16,66 @@ if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32))thr
 app.disable('x-powered-by');app.set('trust proxy',1);app.use(express.json({limit:'20kb'}));
 app.use(session({name:'hx_freehost_sid',secret:process.env.SESSION_SECRET||'development-only-change-me',resave:false,saveUninitialized:false,rolling:true,cookie:{httpOnly:true,secure:prod,sameSite:'lax',maxAge:604800000}}));
 
+/**
+ * Pre-release access gate: until the public launch date, only the named Discord
+ * account and the configured, authenticated staff admin account may use the app.
+ * Keep this before every route/static handler so direct API calls are gated too.
+ */
+const PRE_RELEASE_ALLOWED_DISCORD_IDS = new Set(['1536553900474114091']);
+const PRE_RELEASE_LAUNCH_DATE = '2026-10-17';
+const PRE_RELEASE_MAINTENANCE_HTML = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#08090d">
+<title>HelzerX FreeHost — Pre-release</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#08090d;color:#f5f5f7}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(244,176,65,.13),transparent 48%),#08090d}
+main{width:min(100%,680px);padding:clamp(28px,6vw,56px);border:1px solid rgba(255,255,255,.1);border-radius:28px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));box-shadow:0 30px 100px rgba(0,0,0,.42);text-align:center}
+.brand{font-size:14px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#f5b94e}.mark{width:62px;height:62px;display:grid;place-items:center;margin:34px auto 24px;border:1px solid rgba(245,185,78,.35);border-radius:20px;color:#f5b94e;background:rgba(245,185,78,.08);font-size:26px}
+.tag{display:inline-flex;padding:7px 11px;border-radius:999px;border:1px solid rgba(245,185,78,.28);background:rgba(245,185,78,.07);color:#f5c46d;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+h1{margin:20px 0 14px;font-size:clamp(30px,6vw,48px);letter-spacing:-.045em;line-height:1.08}p{margin:0 auto;color:#a7a8b2;font-size:15px;line-height:1.8;max-width:490px}.date{margin:28px 0 0;padding:16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.16)}.date small{display:block;color:#858793;font-size:11px;letter-spacing:.12em;text-transform:uppercase}.date strong{display:block;margin-top:7px;color:#f5c46d;font-size:20px}.foot{margin-top:28px;color:#686b76;font-size:12px}
+</style></head><body><main><div class="brand">HelzerX FreeHost</div><div class="mark" aria-hidden="true">HX</div><span class="tag">Private pre-release</span><h1>We’re getting ready for launch.</h1><p>HelzerX FreeHost is currently in a private testing phase while we finish final checks and infrastructure preparation. Public access is temporarily unavailable. Thank you for your patience.</p><div class="date"><small>Planned public release</small><strong>17 October 2026</strong></div><div class="foot">HelzerX Technologies · Built carefully. Launching soon.</div></main></body></html>`;
+function isAllowedPreReleaseSession(req) {
+  const discordId = String(req.session?.user?.id || '');
+  const adminEmail = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+  const sessionAdminEmail = String(req.session?.admin?.email || '').trim().toLowerCase();
+  const validAdmin = Boolean(req.session?.admin?.authenticated === true &&
+    req.session?.admin?.staffSecretVerified === true && adminEmail &&
+    sessionAdminEmail === adminEmail &&
+    Date.now() - Number(req.session?.admin?.loggedAt || 0) <= 2 * 60 * 60 * 1000);
+  return PRE_RELEASE_ALLOWED_DISCORD_IDS.has(discordId) || validAdmin;
+}
+function isPreReleaseGateException(req) {
+  const p = req.path;
+  if (req.method === 'GET' && ['/api/auth/discord','/api/auth/discord/callback'].includes(p)) return true;
+  if (p === '/api/auth/logout' && req.method === 'POST') return true;
+  if (p === '/api/admin/login' && req.method === 'POST') return true;
+  if (p === '/api/admin/logout' && req.method === 'POST') return true;
+  // The admin sign-in screen is intentionally reachable; its protected APIs still require adminOnly.
+  if (req.method === 'GET' && ['/admin','/admin/','/admin.html'].includes(p)) return true;
+  return false;
+}
+app.use((req, res, next) => {
+  if (isAllowedPreReleaseSession(req) || isPreReleaseGateException(req)) return next();
+  res.set({
+    'Cache-Control': 'private, no-store, no-cache, must-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'CDN-Cache-Control': 'no-store',
+    'Cloudflare-CDN-Cache-Control': 'no-store',
+    'X-Robots-Tag': 'noindex, nofollow',
+    'Retry-After': '259200'
+  });
+  if (req.path.startsWith('/api/')) {
+    return res.status(503).json({
+      error: 'PRE_RELEASE_MAINTENANCE',
+      message: 'HelzerX FreeHost is in private testing until 17 October 2026.',
+      releaseDate: PRE_RELEASE_LAUNCH_DATE
+    });
+  }
+  return res.status(503).type('html').send(PRE_RELEASE_MAINTENANCE_HTML);
+});
+
 // Never let a CDN, browser cache, or SPA fallback serve a stale public page for staff-only paths.
 app.use(['/admin', '/admin/', '/admin.html'], (_req, res, next) => {
   res.set({
