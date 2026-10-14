@@ -79,7 +79,22 @@ async function waitTask(c, upid) {
   while (Date.now() < deadline) {
     const status = await api(c, 'GET', '/nodes/' + enc(c.node) + '/tasks/' + enc(upid) + '/status');
     if (status.status === 'stopped') {
-      if (status.exitstatus !== 'OK') throw new Error('Proxmox task failed: ' + String(status.exitstatus || 'unknown').slice(0, 300));
+      const exitstatus = String(status.exitstatus || 'unknown').trim();
+
+      // Proxmox can report a completed task with warnings as "WARNINGS: N".
+      // Treat only that exact warning-summary format as successful; real errors
+      // and unknown exit statuses must still fail closed.
+      const completedWithWarnings = /^WARNINGS:\s*\d+$/i.test(exitstatus);
+      if (exitstatus !== 'OK' && !completedWithWarnings) {
+        throw new Error('Proxmox task failed: ' + exitstatus.slice(0, 300));
+      }
+
+      if (completedWithWarnings) {
+        console.warn('[Proxmox] Task completed with warnings:', {
+          upid,
+          exitstatus
+        });
+      }
       return status;
     }
     await delay(2000);
