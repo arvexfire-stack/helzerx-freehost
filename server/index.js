@@ -14,7 +14,8 @@ const required=['SESSION_SECRET','DISCORD_CLIENT_ID','DISCORD_CLIENT_SECRET','DI
 const missing=required.filter(k=>!process.env[k]);if(prod&&missing.length)console.error('[startup] Missing environment variables:',missing.join(', '));
 if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32))throw new Error('SESSION_SECRET must be at least 32 characters in production.');
 app.disable('x-powered-by');
-app.set('trust proxy', 1);
+// Cloudflare Tunnel/Nginx should connect locally. Do not trust arbitrary public X-Forwarded-For headers.
+app.set('trust proxy', 'loopback');
 // Defense in depth. Cloudflare/WAF limits are still required for distributed floods.
 app.use(applySecurityHeaders);
 const apiLimiter = createRateLimiter({
