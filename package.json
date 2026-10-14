@@ -9,19 +9,20 @@
     "start": "NODE_ENV=production node server/index.js"
   },
   "dependencies": {
-    "express": "^4.21.2",
-    "express-session": "^1.18.1",
     "connect-sqlite3": "^0.9.16",
     "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "lucide-react": "^0.468.0"
+    "sqlite3": "^6.0.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.2",
-    "vite": "^6.0.7",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
   },
   "engines": {
     "node": ">=20"

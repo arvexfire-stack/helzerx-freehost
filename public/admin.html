@@ -1,15 +1,98 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>HelzerX Free Hosting · Admin Review</title>
-<style>
-:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#0a0b13;color:#f2f3fa}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 0%,#252044 0,transparent 42%),#0a0b13;min-height:100vh}.wrap{max-width:1100px;margin:auto;padding:32px 18px 70px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}.brand{font-weight:800;letter-spacing:.04em}.brand span{color:#a99bff}.muted{color:#a5a6bb}.panel{background:#131420;border:1px solid #2a2b40;border-radius:18px;padding:22px;margin-top:20px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}input{flex:1;min-width:220px;background:#0d0e18;color:#fff;border:1px solid #37384f;border-radius:10px;padding:12px}button{cursor:pointer;border:1px solid #45435f;background:#24223a;color:#fff;padding:10px 14px;border-radius:10px;font-weight:650}button:disabled{opacity:.5;cursor:wait}.approve{background:#173c32;border-color:#246b55}.reject{background:#421f2b;border-color:#79374a}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.tabs button.active{background:#6250bc;border-color:#8c7bf0}.card{border:1px solid #2a2b40;border-radius:14px;padding:16px;margin-top:12px;background:#10111b}.card h3{margin:0 0 8px;font-size:16px}.meta{color:#b6b6ca;font-size:13px;line-height:1.7;overflow-wrap:anywhere}.actions{display:flex;gap:8px;margin-top:14px}.status{margin-top:12px;color:#c8c5f8;white-space:pre-wrap}.empty{padding:26px;text-align:center;color:#aaaac0}.warning{font-size:13px;color:#d6cfa7;line-height:1.6}
-</style></head><body><main class="wrap"><header class="top"><div><div class="brand">HELZER<span>X</span> / FREE HOSTING</div><p class="muted">Administrator review console</p></div><button id="refresh">Refresh queues</button></header>
-<section class="panel"><h2>Secure admin access</h2><p class="warning">Enter the ADMIN_REVIEW_KEY configured on the server. The key is kept only in this page's memory and is not written to localStorage. Use HTTPS and a trusted device only.</p><div class="row"><input id="key" type="password" autocomplete="current-password" placeholder="ADMIN_REVIEW_KEY" aria-label="Admin review key"><button id="connect">Connect</button><button id="forget">Forget key</button></div><div id="status" class="status" role="status"></div></section>
-<section class="panel"><div class="top"><div><h2 style="margin:0">Pending reviews</h2><p class="muted">Approve only after independently verifying the evidence.</p></div></div><div class="tabs"><button data-kind="invites" class="active">Invite claims</button><button data-kind="boosts">Boost claims</button><button data-kind="hosting">Hosting requests</button></div><div id="items"><div class="empty">Connect to load pending reviews.</div></div></section>
-<p class="muted" style="font-size:12px;margin-top:18px">Approving a hosting request may deduct HZL and trigger Proxmox LXC provisioning when the integration is enabled and fully configured. Failed provisioning is locked for manual reconciliation; verify the request and Proxmox tasks before retrying.</p></main>
-<script>
-(()=>{let key='',kind='invites',queues={invites:[],boosts:[],hosting:[]};const $=id=>document.getElementById(id);const status=s=>$('status').textContent=s;const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const date=s=>s?new Date(s).toLocaleString():'—';
-async function api(url,opts={}){const r=await fetch(url,{...opts,headers:{'Content-Type':'application/json','x-admin-key':key,...opts.headers}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||'Request failed ('+r.status+')');return d}
-function render(){const arr=queues[kind]||[];if(!arr.length){$('items').innerHTML='<div class="empty">No pending items in this queue.</div>';return}$('items').innerHTML=arr.map(x=>{let title='',details='',id=esc(x.id);if(kind==='invites'){title='Invite verification';details='Referrer ID: '+esc(x.referrerId)+'<br>New member: '+esc(x.inviteeUsername)+' ('+esc(x.inviteeId)+')<br>Submitted: '+date(x.createdAt)}else if(kind==='boosts'){title='Server boost claim · '+esc(x.boosts)+' boost(s)';details='Member: '+esc(x.username)+' ('+esc(x.userId)+')<br>Requested reward: '+esc(x.amount)+' HZL<br>Submitted: '+date(x.createdAt)}else{title=esc(x.service)+' · '+esc(x.planName);details='Member: '+esc(x.username)+' ('+esc(x.userId)+')<br>Cost: '+esc(x.cost)+' HZL<br>Submitted: '+date(x.createdAt)}return '<article class="card"><h3>'+title+'</h3><div class="meta">'+details+'</div><div class="actions"><button class="approve" data-action="approve" data-id="'+id+'">Approve</button><button class="reject" data-action="reject" data-id="'+id+'">Reject</button></div></article>'}).join('')}
-async function load(){if(!key){status('Enter the admin key first.');return}$('refresh').disabled=true;status('Loading pending reviews…');try{const urls={invites:'/api/admin/invite-claims',boosts:'/api/admin/boost-claims',hosting:'/api/admin/hosting-requests'};const [i,b,h]=await Promise.all([api(urls.invites),api(urls.boosts),api(urls.hosting)]);queues.invites=i.claims.filter(x=>x.status==='pending');queues.boosts=b.claims.filter(x=>x.status==='pending');queues.hosting=h.requests.filter(x=>x.status==='pending');render();status('Connected. Pending: '+queues.invites.length+' invite · '+queues.boosts.length+' boost · '+queues.hosting.length+' hosting.')}catch(e){status(e.message)}finally{$('refresh').disabled=false}}
-$('connect').addEventListener('click',async()=>{key=$('key').value.trim();await load()});$('key').addEventListener('keydown',e=>{if(e.key==='Enter')$('connect').click()});$('forget').addEventListener('click',()=>{key='';$('key').value='';queues={invites:[],boosts:[],hosting:[]};render();status('Admin key forgotten.')});$('refresh').addEventListener('click',load);document.querySelectorAll('[data-kind]').forEach(b=>b.addEventListener('click',()=>{kind=b.dataset.kind;document.querySelectorAll('[data-kind]').forEach(x=>x.classList.toggle('active',x===b));render()}));$('items').addEventListener('click',async e=>{const b=e.target.closest('button[data-action]');if(!b)return;const action=b.dataset.action,id=b.dataset.id;const kindNow=kind;const labels={invites:'invite claim',boosts:'boost claim',hosting:'hosting request'};if(!confirm((action==='approve'?'Approve':'Reject')+' this '+labels[kindNow]+'?'))return;b.disabled=true;try{const endpoint={invites:'/api/admin/invite-claims/',boosts:'/api/admin/boost-claims/',hosting:'/api/admin/hosting-requests/'}[kindNow];await api(endpoint+encodeURIComponent(id)+'/review',{method:'POST',body:JSON.stringify({action})});status('Review saved.');await load()}catch(err){status(err.message);b.disabled=false}});render()})();
-</script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#f4f4f1">
+  <title>HelzerX · Admin Review</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+    :root{font-family:'DM Sans',sans-serif;color:#252624;background:#f4f4f1;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;--ink:#252624;--muted:#777973;--line:#e1e2dc;--surface:#fbfbf9;--dark:#222320;--olive:#6f765f}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:#f4f4f1}
+    button,input{font:inherit}
+    button:focus-visible,input:focus-visible{outline:2px solid #6c7459;outline-offset:3px}
+    .wrap{max-width:1070px;margin:auto;padding:35px 28px 70px}
+    .top{display:flex;justify-content:space-between;gap:18px;align-items:center;flex-wrap:wrap}
+    .brand{font-size:13px;font-weight:700;letter-spacing:.09em}
+    .brand span{color:#737a64}
+    .eyebrow{margin:0 0 10px;color:#82847a;font-size:9px;font-weight:700;letter-spacing:.17em}
+    h1,h2,h3,p{margin-top:0}
+    h1{margin:0;font-size:clamp(35px,5vw,54px);font-weight:500;letter-spacing:-.07em;line-height:1}
+    h1 em{font:italic 400 1.06em 'Instrument Serif',Georgia,serif;letter-spacing:-.03em}
+    h2{font-size:16px;letter-spacing:-.035em}
+    .muted{color:var(--muted);font-size:11px;line-height:1.8}
+    .intro{max-width:520px;margin:14px 0 0}
+    .top>button{min-height:39px}
+    .panel{margin-top:22px;padding:22px 23px;background:var(--surface);border:1px solid var(--line)}
+    .access-panel{display:grid;grid-template-columns:.8fr 1.2fr;gap:28px;align-items:start;background:#eeefeb}
+    .access-panel h2{margin:0 0 10px;font-size:17px}
+    .warning{font-size:10px;color:#686a62;line-height:1.8;margin:0}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    input{flex:1;min-width:220px;background:#fafaf7;color:var(--ink);border:1px solid #d9dbd3;border-radius:0;padding:12px;font-size:11px}
+    input::placeholder{color:#999b93}
+    button{cursor:pointer;border:1px solid var(--dark);background:var(--dark);color:#f7f7f2;padding:10px 14px;border-radius:0;font-size:10px;font-weight:700;transition:background .18s ease,color .18s ease,border-color .18s ease}
+    button:hover{background:#484a43;border-color:#484a43}
+    button:disabled{opacity:.55;cursor:wait}
+    #forget{background:transparent;color:#55574f;border-color:#c9cbc2}
+    #forget:hover{background:#e1e3dc}
+    #refresh{background:transparent;color:var(--ink);border-color:#cfd1c9}
+    #refresh:hover{background:#e7e9e2}
+    .status{margin-top:12px;color:#505548;font-size:10px;line-height:1.7;white-space:pre-wrap}
+    .queue-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap}
+    .queue-head h2{margin:0 0 5px}
+    .queue-head p{margin:0}
+    .tabs{display:flex;gap:7px;flex-wrap:wrap;margin-top:19px;padding-bottom:13px;border-bottom:1px solid var(--line)}
+    .tabs button{background:transparent;color:#676960;border-color:#dbddd5;padding:9px 12px}
+    .tabs button:hover{background:#eeefeb}
+    .tabs button.active{background:var(--dark);border-color:var(--dark);color:#f7f7f2}
+    .card{margin-top:11px;padding:17px 18px;background:#f8f8f5;border:1px solid var(--line)}
+    .card h3{margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:-.02em}
+    .meta{color:#696b63;font-size:10px;line-height:1.8;overflow-wrap:anywhere}
+    .actions{display:flex;gap:7px;margin-top:13px}
+    .actions button{min-width:77px}
+    .actions .approve{background:#e8ebe3;color:#41483a;border-color:#cbd0c1}
+    .actions .approve:hover{background:#dce1d3}
+    .actions .reject{background:#f2e9e6;color:#694940;border-color:#ddcbc5}
+    .actions .reject:hover{background:#eadbd6}
+    .empty{padding:35px 15px;text-align:center;color:#777973;font-size:10px}
+    .security-foot{max-width:860px;margin:20px 0 0;padding-left:12px;border-left:2px solid #c2c6b7}
+    @media(max-width:700px){.wrap{padding:25px 16px 45px}.access-panel{grid-template-columns:1fr;gap:16px}.panel{padding:18px}.top{align-items:flex-start}.queue-head{align-items:flex-start}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div>
+        <p class="eyebrow">HELZERX CLOUD / TRUST & SAFETY</p>
+        <h1>Review with<br><em>care.</em></h1>
+        <p class="muted intro">Administrator review console. Verify each submission before a reward or hosting request is approved.</p>
+      </div>
+      <button id="refresh">Refresh queues</button>
+    </header>
+    <section class="panel access-panel">
+      <div><p class="eyebrow">PRIVATE ADMIN ACCESS</p><h2>Secure admin access</h2><p class="warning">Enter the ADMIN_REVIEW_KEY configured on the server. The key is kept only in this page's memory and is not written to localStorage. Use HTTPS and a trusted device only.</p></div>
+      <div><div class="row"><input id="key" type="password" autocomplete="current-password" placeholder="ADMIN_REVIEW_KEY" aria-label="Admin review key"><button id="connect">Connect</button><button id="forget">Forget key</button></div><div id="status" class="status" role="status" aria-live="polite"></div></div>
+    </section>
+    <section class="panel">
+      <div class="queue-head"><div><p class="eyebrow">REVIEW QUEUES</p><h2>Pending reviews</h2><p class="muted">Approve only after independently verifying the evidence.</p></div></div>
+      <div class="tabs" role="tablist" aria-label="Review queue">
+        <button data-kind="invites" class="active" role="tab" aria-selected="true">Invite claims</button>
+        <button data-kind="boosts" role="tab" aria-selected="false">Boost claims</button>
+        <button data-kind="hosting" role="tab" aria-selected="false">Hosting requests</button>
+      </div>
+      <div id="items" aria-live="polite"><div class="empty">Connect to load pending reviews.</div></div>
+    </section>
+    <p class="muted security-foot">Approving a hosting request may deduct HZL and trigger Proxmox LXC provisioning when the integration is enabled and fully configured. Failed provisioning is locked for manual reconciliation; verify the request and Proxmox tasks before retrying.</p>
+  </main>
+  <script>
+    (()=>{let key='',kind='invites',queues={invites:[],boosts:[],hosting:[]};const $=id=>document.getElementById(id);const status=s=>$('status').textContent=s;const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const date=s=>s?new Date(s).toLocaleString():'—';
+    async function api(url,opts={}){const r=await fetch(url,{...opts,headers:{'Content-Type':'application/json','x-admin-key':key,...opts.headers}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||'Request failed ('+r.status+')');return d}
+    function render(){const arr=queues[kind]||[];if(!arr.length){$('items').innerHTML='<div class="empty">No pending items in this queue.</div>';return}$('items').innerHTML=arr.map(x=>{let title='',details='',id=esc(x.id);if(kind==='invites'){title='Invite verification';details='Referrer ID: '+esc(x.referrerId)+'<br>New member: '+esc(x.inviteeUsername)+' ('+esc(x.inviteeId)+')<br>Submitted: '+date(x.createdAt)}else if(kind==='boosts'){title='Server boost claim · '+esc(x.boosts)+' boost(s)';details='Member: '+esc(x.username)+' ('+esc(x.userId)+')<br>Requested reward: '+esc(x.amount)+' HZL<br>Submitted: '+date(x.createdAt)}else{title=esc(x.service)+' · '+esc(x.planName);details='Member: '+esc(x.username)+' ('+esc(x.userId)+')<br>Cost: '+esc(x.cost)+' HZL<br>Submitted: '+date(x.createdAt)}return '<article class="card"><h3>'+title+'</h3><div class="meta">'+details+'</div><div class="actions"><button class="approve" data-action="approve" data-id="'+id+'">Approve</button><button class="reject" data-action="reject" data-id="'+id+'">Reject</button></div></article>'}).join('')}
+    async function load(){if(!key){status('Enter the admin key first.');return}$('refresh').disabled=true;status('Loading pending reviews…');try{const urls={invites:'/api/admin/invite-claims',boosts:'/api/admin/boost-claims',hosting:'/api/admin/hosting-requests'};const [i,b,h]=await Promise.all([api(urls.invites),api(urls.boosts),api(urls.hosting)]);queues.invites=i.claims.filter(x=>x.status==='pending');queues.boosts=b.claims.filter(x=>x.status==='pending');queues.hosting=h.requests.filter(x=>x.status==='pending');render();status('Connected. Pending: '+queues.invites.length+' invite · '+queues.boosts.length+' boost · '+queues.hosting.length+' hosting.')}catch(e){status(e.message)}finally{$('refresh').disabled=false}}
+    $('connect').addEventListener('click',async()=>{key=$('key').value.trim();await load()});$('key').addEventListener('keydown',e=>{if(e.key==='Enter')$('connect').click()});$('forget').addEventListener('click',()=>{key='';$('key').value='';queues={invites:[],boosts:[],hosting:[]};render();status('Admin key forgotten.')});$('refresh').addEventListener('click',load);document.querySelectorAll('[data-kind]').forEach(b=>b.addEventListener('click',()=>{kind=b.dataset.kind;document.querySelectorAll('[data-kind]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-selected',String(x===b))});render()}));$('items').addEventListener('click',async e=>{const b=e.target.closest('button[data-action]');if(!b)return;const action=b.dataset.action,id=b.dataset.id;const kindNow=kind;const labels={invites:'invite claim',boosts:'boost claim',hosting:'hosting request'};if(!confirm((action==='approve'?'Approve':'Reject')+' this '+labels[kindNow]+'?'))return;b.disabled=true;try{const endpoint={invites:'/api/admin/invite-claims/',boosts:'/api/admin/boost-claims/',hosting:'/api/admin/hosting-requests/'}[kindNow];await api(endpoint+encodeURIComponent(id)+'/review',{method:'POST',body:JSON.stringify({action})});status('Review saved.');await load()}catch(err){status(err.message);b.disabled=false}});render()})();
+  </script>
+</body>
+</html>
