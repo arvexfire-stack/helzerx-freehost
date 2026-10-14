@@ -49,8 +49,127 @@ app.get('/api/auth/discord/callback',async(req,res)=>{const {code,state,error}=r
  await new Promise((resolve,reject)=>req.session.regenerate(e=>e?reject(e):resolve()));req.session.user={id:me.id,username:me.username,global_name:me.global_name||me.username,avatar:me.avatar||null,loggedAt:Date.now()};
  const member=ensureUser(me.id);if(referral&&referral!==me.id&&!member.referrer&&!member.pendingReferrer&&data.users[referral]){member.pendingReferrer=referral;data.inviteClaims.push({id:crypto.randomUUID(),referrerId:referral,inviteeId:me.id,inviteeUsername:me.username,status:'pending',createdAt:new Date().toISOString()});}writeData();req.session.save(e=>{if(e)return res.status(500).send('Could not create a secure session. Please try again.');res.redirect('/?login=success');});
  }catch(e){console.error('[discord OAuth]',e.message);res.redirect('/?login=failed');}});
-app.post('/api/auth/logout',(req,res)=>req.session.destroy(e=>{res.clearCookie('hx_freehost_sid',{httpOnly:true,secure:prod,sameSite:'lax'});if(e)return res.status(500).json({error:'Logout failed'});res.json({ok:true});}));
-app.post('/api/auth/demo',(req,res)=>{const username=String(req.body?.username||'HelzerXMember').trim().slice(0,32);const id=String(req.body?.discordId||('usr_'+crypto.randomBytes(4).toString('hex')));req.session.user={id,username,global_name:username,avatar:null,loggedAt:Date.now()};const member=ensureUser(id);if(member.balance===0){member.balance=2500;}writeData();req.session.save(e=>{if(e)return res.status(500).json({error:'Session save failed'});res.json({ok:true,user:publicUser(req.session.user)});});});
+function hashPassword(password, salt) {
+  return crypto.scryptSync(password, salt, 64).toString('hex');
+}
+
+app.post('/api/auth/register', (req, res) => {
+  const firstName = String(req.body?.firstName || '').trim();
+  const lastName = String(req.body?.lastName || '').trim();
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const password = String(req.body?.password || '');
+  const referral = String(req.body?.referralCode || '').trim();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
+  }
+  if (!password || password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+  }
+
+  for (const [, u] of Object.entries(data.users)) {
+    if (u.email && u.email.toLowerCase() === email) {
+      return res.status(409).json({ error: 'An account with this email address already exists. Please log in.' });
+    }
+  }
+
+  const salt = crypto.randomBytes(16).toString('hex');
+  const passwordHash = hashPassword(password, salt);
+  const id = 'usr_' + crypto.randomBytes(6).toString('hex');
+  const username = (firstName + (lastName ? ' ' + lastName : '')).trim() || email.split('@')[0];
+
+  const userRecord = {
+    id,
+    email,
+    salt,
+    passwordHash,
+    username,
+    global_name: username,
+    balance: 0,
+    verifiedInvites: 0,
+    activeBoosts: 0,
+    referrer: null,
+    pendingReferrer: null,
+    creditedMilestones: [],
+    createdAt: Date.now()
+  };
+
+  data.users[id] = userRecord;
+
+  if (referral && referral !== id && data.users[referral]) {
+    userRecord.pendingReferrer = referral;
+    data.inviteClaims.push({
+      id: crypto.randomUUID(),
+      referrerId: referral,
+      inviteeId: id,
+      inviteeUsername: username,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  writeData();
+
+  req.session.user = {
+    id,
+    email,
+    username,
+    global_name: username,
+    avatar: null,
+    loggedAt: Date.now()
+  };
+
+  req.session.save(e => {
+    if (e) return res.status(500).json({ error: 'Failed to initialize secure session' });
+    res.status(201).json({ ok: true, user: publicUser(req.session.user) });
+  });
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const password = String(req.body?.password || '');
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Please enter your email and password.' });
+  }
+
+  let foundUser = null;
+  for (const [, u] of Object.entries(data.users)) {
+    if (u.email && u.email.toLowerCase() === email) {
+      foundUser = u;
+      break;
+    }
+  }
+
+  if (!foundUser || !foundUser.passwordHash || !foundUser.salt) {
+    return res.status(401).json({ error: 'Invalid email or password.' });
+  }
+
+  const hashToTest = hashPassword(password, foundUser.salt);
+  if (hashToTest !== foundUser.passwordHash) {
+    return res.status(401).json({ error: 'Invalid email or password.' });
+  }
+
+  req.session.user = {
+    id: foundUser.id,
+    email: foundUser.email,
+    username: foundUser.username,
+    global_name: foundUser.global_name || foundUser.username,
+    avatar: foundUser.avatar || null,
+    loggedAt: Date.now()
+  };
+
+  req.session.save(e => {
+    if (e) return res.status(500).json({ error: 'Failed to initialize secure session' });
+    res.json({ ok: true, user: publicUser(req.session.user) });
+  });
+});
+
+app.post('/api/auth/logout', (req, res) => req.session.destroy(e => {
+  res.clearCookie('hx_freehost_sid', { httpOnly: true, secure: prod, sameSite: 'lax' });
+  if (e) return res.status(500).json({ error: 'Logout failed' });
+  res.json({ ok: true });
+}));
 app.get('/api/me',auth,async(req,res)=>{res.set('Cache-Control','no-store');res.json({user:publicUser(req.session.user),rewards:await rewardsFor(req.session.user)});});
 app.get('/api/rewards',auth,async(req,res)=>{res.set('Cache-Control','no-store');res.json(await rewardsFor(req.session.user));});
 app.get('/api/invites',auth,(req,res)=>{const u=ensureUser(req.session.user.id);res.set('Cache-Control','no-store');res.json({referralCode:req.session.user.id,referralUrl:(process.env.APP_URL||'https://free.helzerx.cyou')+'/?ref='+encodeURIComponent(req.session.user.id),verifiedInvites:u.verifiedInvites,pendingInvites:data.inviteClaims.filter(c=>c.referrerId===req.session.user.id&&c.status==='pending').length,creditedMilestones:u.creditedMilestones});});

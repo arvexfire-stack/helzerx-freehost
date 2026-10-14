@@ -531,13 +531,30 @@ button, input, select, textarea {
   justify-content: space-between;
   min-height: 240px;
   overflow: hidden;
-  transition: all 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.35s ease, background 0.3s ease;
+  transform-style: preserve-3d;
+}
+
+.bento-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(245, 176, 65, 0.1), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bento-card:hover::before {
+  opacity: 1;
 }
 
 .bento-card:hover {
   background: var(--card-hover);
-  border-color: var(--card-border-hover);
-  transform: translateY(-2px);
+  border-color: rgba(245, 176, 65, 0.35);
+  transform: translateY(-6px) scale(1.015);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(245, 176, 65, 0.12);
 }
 
 .bento-num {

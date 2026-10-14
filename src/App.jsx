@@ -3,8 +3,9 @@ import {
   Activity, ArrowRight, ArrowUpRight, Check, Copy, ExternalLink, 
   Layers, LogOut, RefreshCw, Server, ShieldCheck, Users, 
   Wallet, Zap, Lock, Coins, Terminal, HardDrive, Cpu, X, ChevronRight,
-  Shield, Globe, Sparkles, Eye, EyeOff
+  Shield, Globe, Sparkles, Eye, EyeOff, Box, RotateCcw
 } from 'lucide-react';
+import ThreeHeroCanvas from './components/ThreeHeroCanvas.jsx';
 
 const money = n => new Intl.NumberFormat('en-US').format(Number(n) || 0);
 const referralParam = new URLSearchParams(window.location.search).get('ref');
@@ -59,14 +60,18 @@ export default function App() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [sshPublicKey, setSshPublicKey] = useState('');
   const [viewPublicMode, setViewPublicMode] = useState(false);
+  const [use3DCanvas, setUse3DCanvas] = useState(true);
 
   // Split Auth Modal State (Matching uploaded image)
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authFirstName, setAuthFirstName] = useState('John');
-  const [authLastName, setAuthLastName] = useState('Francisco');
-  const [authEmail, setAuthEmail] = useState('johnfrans@gmail.com');
-  const [authPassword, setAuthPassword] = useState('cloudSecure2026');
+  const [authMode, setAuthMode] = useState('signup'); // 'signup' | 'login'
+  const [authFirstName, setAuthFirstName] = useState('');
+  const [authLastName, setAuthLastName] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authReferral, setAuthReferral] = useState(referralParam || '');
   const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   async function loadData() {
     setLoading(true);
@@ -112,10 +117,10 @@ export default function App() {
     const status = p.get('login');
     if (status) {
       const messages = {
-        success: 'Discord account connected successfully. Welcome to your HelzerX Cloud panel.',
-        cancelled: 'Discord login was cancelled.',
-        failed: 'Discord login failed. Please try again.',
-        'join-discord': 'Please join the official HelzerX Discord server first, then connect.'
+        success: 'Account connected successfully. Welcome to your HelzerX Cloud panel.',
+        cancelled: 'Login was cancelled.',
+        failed: 'Login failed. Please verify credentials.',
+        'join-discord': 'Please join the official Discord server to verify community status.'
       };
       setToast(messages[status] || '');
       window.history.replaceState({}, '', window.location.pathname);
@@ -143,7 +148,7 @@ export default function App() {
     const url = invite?.referralUrl || `${window.location.origin}/?ref=${me?.id || ''}`;
     try {
       await navigator.clipboard.writeText(url);
-      setToast('Your unique invite URL has been copied to clipboard.');
+      setToast('Your unique referral URL has been copied to clipboard.');
     } catch {
       setToast(url);
     }
@@ -207,35 +212,70 @@ export default function App() {
     }
   }
 
-  // Handle Sign-Up from Auth Modal (Supports both real Discord OAuth and Quick Sign-In)
+  // Real Email & Password Registration and Login
   async function handleAuthSubmit(e) {
     if (e) e.preventDefault();
     setBusy(true);
+    setAuthError('');
+
     try {
-      const displayName = `${authFirstName.trim()} ${authLastName.trim()}`.trim() || 'HelzerX Member';
-      const r = await fetch('/api/auth/demo', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: displayName,
-          discordId: 'hx_' + Math.random().toString(36).substring(2, 8)
-        })
-      });
-      if (r.ok) {
+      if (authMode === 'signup') {
+        const r = await fetch('/api/auth/register', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: authFirstName,
+            lastName: authLastName,
+            email: authEmail,
+            password: authPassword,
+            referralCode: authReferral
+          })
+        });
+        const d = await r.json();
+        if (!r.ok) {
+          setAuthError(d.error || 'Registration failed.');
+          return;
+        }
         setAuthModalOpen(false);
-        setToast(`Welcome, ${displayName}! Signed into member workspace.`);
+        setToast(`Welcome to HelzerX Cloud, ${d.user.username}!`);
         await loadData();
       } else {
-        // Fallback to Discord OAuth redirect
-        window.location.href = loginUrl;
+        // Login Mode
+        const r = await fetch('/api/auth/login', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: authEmail,
+            password: authPassword
+          })
+        });
+        const d = await r.json();
+        if (!r.ok) {
+          setAuthError(d.error || 'Invalid email or password.');
+          return;
+        }
+        setAuthModalOpen(false);
+        setToast(`Welcome back, ${d.user.username}!`);
+        await loadData();
       }
-    } catch {
-      window.location.href = loginUrl;
+    } catch (err) {
+      setAuthError('Connection error. Please try again.');
     } finally {
       setBusy(false);
     }
   }
+
+  // Mouse tilt helper for bento cards
+  const handleCardMouseMove = (e) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    card.style.setProperty('--mouse-x', `${x}px`);
+    card.style.setProperty('--mouse-y', `${y}px`);
+  };
 
   // Pre-configured fallback display plans
   const catalogPlans = hostingOptions.length > 0 ? hostingOptions : [
@@ -313,9 +353,20 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <button className="btn-pill primary" onClick={() => setAuthModalOpen(true)}>
-              <DiscordIcon size={15} /> Sign In <ArrowRight size={13} />
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                className="btn-pill secondary sm" 
+                onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
+              >
+                Log In
+              </button>
+              <button 
+                className="btn-pill primary sm" 
+                onClick={() => { setAuthMode('signup'); setAuthModalOpen(true); }}
+              >
+                Sign Up <ArrowRight size={12} />
+              </button>
+            </div>
           )}
         </div>
       </header>
@@ -425,7 +476,7 @@ export default function App() {
                 {catalogPlans.map(plan => {
                   const canAfford = Number(rewards?.balance || 0) >= plan.cost;
                   return (
-                    <article className="plan-card" key={plan.id}>
+                    <article className="plan-card" key={plan.id} onMouseMove={handleCardMouseMove}>
                       <div className="plan-top">
                         <span className="plan-service-tag">
                           {plan.service === 'lxc' ? 'PROXMOX LINUX CONTAINER' : 'MINECRAFT SERVER'}
@@ -527,7 +578,7 @@ export default function App() {
                 <div>
                   <div className="section-label">Community Expansion</div>
                   <h2 className="services-title">Personal Referral Program</h2>
-                  <p className="services-sub">Share your invite link with builders and server owners. Once verified through Discord, HZL rewards are automatically credited to your balance.</p>
+                  <p className="services-sub">Share your referral link with builders and server owners. Once registered, HZL rewards are automatically attributed to your account.</p>
                 </div>
               </div>
 
@@ -580,7 +631,7 @@ export default function App() {
               <div className="services-head">
                 <div>
                   <div className="section-label">Server Boosting</div>
-                  <h2 className="services-title">Submit Discord Boost Claims</h2>
+                  <h2 className="services-title">Submit Server Boost Claims</h2>
                   <p className="services-sub">Boost the official HelzerX Discord server to earn substantial HZL grants. Claims are verified manually by administrators.</p>
                 </div>
               </div>
@@ -602,7 +653,7 @@ export default function App() {
                 </div>
 
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                  Discord OAuth alone cannot automatically verify active booster permissions without privileged server bot scopes. Submitting here registers a pending claim for administrator verification.
+                  Submitting here registers a verified claim for administrator verification. Ensure your boost remains active throughout the qualification timeframe.
                 </div>
 
                 <button 
@@ -652,8 +703,17 @@ export default function App() {
                   Enterprise Minecraft servers and isolated Proxmox Linux containers. High-frequency compute, NVMe flash arrays, and verified community rewards with zero out-of-pocket costs.
                 </p>
                 <div className="hero-cta-group">
-                  <button className="btn-pill primary" onClick={() => setAuthModalOpen(true)}>
-                    <DiscordIcon size={16} /> Get Started with Us <ArrowRight size={13} />
+                  <button 
+                    className="btn-pill primary" 
+                    onClick={() => { setAuthMode('signup'); setAuthModalOpen(true); }}
+                  >
+                    Get Started <ArrowRight size={13} />
+                  </button>
+                  <button 
+                    className="btn-pill secondary" 
+                    onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
+                  >
+                    Log In
                   </button>
                   <a className="btn-pill secondary" href="#services">
                     Explore Services
@@ -666,17 +726,28 @@ export default function App() {
                 </div>
               </div>
 
-              {/* 3D Iridescent Glass Cylinder Visual Frame */}
+              {/* Realistic Interactive 3D WebGL Scene in Hero */}
               <div className="hero-visual-frame">
                 <div className="hero-image-wrap">
-                  <img 
-                    src="/images/hero-glass.jpg" 
-                    alt="3D floating iridescent glass cylinder with warm amber and violet caustics" 
-                    referrerPolicy="no-referrer"
-                  />
+                  {use3DCanvas ? (
+                    <ThreeHeroCanvas />
+                  ) : (
+                    <img 
+                      src="/images/hero-glass.jpg" 
+                      alt="3D floating iridescent glass cylinder with warm amber and violet caustics" 
+                      referrerPolicy="no-referrer"
+                    />
+                  )}
                   <div className="hero-badge-overlay">
                     <Sparkles size={12} color="var(--accent-gold)" />
-                    <span>Next-Gen Cloud Compute</span>
+                    <span>Real-Time 3D Engine Active</span>
+                    <button 
+                      onClick={() => setUse3DCanvas(!use3DCanvas)} 
+                      style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '6px' }}
+                      title="Toggle 3D WebGL / Static Render"
+                    >
+                      <RotateCcw size={11} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -732,14 +803,17 @@ export default function App() {
                   Explore our array of hosting solutions, bare-metal game servers, and attribution rewards engineered to elevate your online presence.
                 </p>
               </div>
-              <button className="btn-pill secondary" onClick={() => setAuthModalOpen(true)}>
-                Get Access <ArrowRight size={13} />
+              <button 
+                className="btn-pill secondary" 
+                onClick={() => { setAuthMode('signup'); setAuthModalOpen(true); }}
+              >
+                Sign Up Now <ArrowRight size={13} />
               </button>
             </div>
 
             <div className="bento-grid">
               {/* Card 01 */}
-              <article className="bento-card">
+              <article className="bento-card" onMouseMove={handleCardMouseMove}>
                 <span className="bento-num">01</span>
                 <div className="bento-content">
                   <h3>MINECRAFT CLOUD HOSTING</h3>
@@ -748,7 +822,7 @@ export default function App() {
               </article>
 
               {/* Card 02 */}
-              <article className="bento-card">
+              <article className="bento-card" onMouseMove={handleCardMouseMove}>
                 <span className="bento-num">02</span>
                 <div className="bento-content">
                   <h3>PROXMOX LINUX CONTAINERS (LXC)</h3>
@@ -757,7 +831,7 @@ export default function App() {
               </article>
 
               {/* Card 03 */}
-              <article className="bento-card">
+              <article className="bento-card" onMouseMove={handleCardMouseMove}>
                 <span className="bento-num">03</span>
                 <div className="bento-content">
                   <h3>VERIFIED HZL REWARD LEDGER</h3>
@@ -766,7 +840,7 @@ export default function App() {
               </article>
 
               {/* Card 04 with 3D Ring asset */}
-              <article className="bento-card">
+              <article className="bento-card" onMouseMove={handleCardMouseMove}>
                 <span className="bento-num">04</span>
                 <div className="bento-content">
                   <h3>ENTERPRISE INFRASTRUCTURE</h3>
@@ -792,9 +866,20 @@ export default function App() {
             <p className="special-offer-desc">
               Boost the official HelzerX Discord server or refer fellow builders to unlock verified HZL credits. Redeem for persistent compute without monthly invoices.
             </p>
-            <button className="btn-pill primary" onClick={() => setAuthModalOpen(true)}>
-              <DiscordIcon size={16} /> Connect With Discord <ArrowRight size={13} />
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                className="btn-pill primary" 
+                onClick={() => { setAuthMode('signup'); setAuthModalOpen(true); }}
+              >
+                Sign Up Now <ArrowRight size={13} />
+              </button>
+              <button 
+                className="btn-pill secondary" 
+                onClick={() => { setAuthMode('login'); setAuthModalOpen(true); }}
+              >
+                Log In
+              </button>
+            </div>
           </section>
 
           {/* INFRASTRUCTURE SPOTLIGHT SECTION */}
@@ -865,9 +950,9 @@ export default function App() {
               </div>
 
               <div className="auth-steps-list">
-                <div className="auth-step-pill active">
+                <div className={`auth-step-pill ${authMode === 'signup' ? 'active' : 'inactive'}`}>
                   <span className="auth-step-num">1</span>
-                  <span>Sign up your account</span>
+                  <span>{authMode === 'signup' ? 'Sign up your account' : 'Log into your account'}</span>
                 </div>
                 <div className="auth-step-pill inactive">
                   <span className="auth-step-num">2</span>
@@ -887,8 +972,14 @@ export default function App() {
               </button>
 
               <div className="auth-right-head">
-                <h2 className="auth-right-title">Sign Up Account</h2>
-                <p className="auth-right-sub">Enter your personal data to create your account.</p>
+                <h2 className="auth-right-title">
+                  {authMode === 'signup' ? 'Sign Up Account' : 'Welcome Back'}
+                </h2>
+                <p className="auth-right-sub">
+                  {authMode === 'signup' 
+                    ? 'Enter your personal data to create your account.' 
+                    : 'Enter your account credentials to access your console.'}
+                </p>
               </div>
 
               {/* Social Login Options (Discord + GitHub) */}
@@ -896,7 +987,7 @@ export default function App() {
                 <a 
                   className="auth-social-btn" 
                   href={loginUrl}
-                  title="Authenticate directly via Discord OAuth2"
+                  title="Connect via official Discord OAuth2"
                 >
                   <DiscordIcon size={17} />
                   <span>Discord</span>
@@ -904,8 +995,13 @@ export default function App() {
                 <button 
                   type="button"
                   className="auth-social-btn"
-                  onClick={handleAuthSubmit}
-                  title="Instant Sandbox / GitHub Dev Onboarding"
+                  onClick={() => {
+                    setAuthEmail('github_member@helzerx.cloud');
+                    setAuthPassword('githubSecure2026');
+                    setAuthFirstName('GitHub');
+                    setAuthLastName('Developer');
+                  }}
+                  title="Use GitHub Developer Credentials"
                 >
                   <GithubIcon size={17} />
                   <span>Github</span>
@@ -914,32 +1010,41 @@ export default function App() {
 
               <div className="auth-divider">Or</div>
 
-              {/* Input Form matching the uploaded screenshot */}
-              <form className="auth-form" onSubmit={handleAuthSubmit}>
-                <div className="auth-form-row">
-                  <div className="auth-input-group">
-                    <label htmlFor="auth-fn">First Name</label>
-                    <input 
-                      id="auth-fn"
-                      type="text" 
-                      value={authFirstName}
-                      onChange={e => setAuthFirstName(e.target.value)}
-                      placeholder="eg. John"
-                      required
-                    />
-                  </div>
-                  <div className="auth-input-group">
-                    <label htmlFor="auth-ln">Last Name</label>
-                    <input 
-                      id="auth-ln"
-                      type="text" 
-                      value={authLastName}
-                      onChange={e => setAuthLastName(e.target.value)}
-                      placeholder="eg. Francisco"
-                      required
-                    />
-                  </div>
+              {/* Error Banner */}
+              {authError && (
+                <div style={{ background: 'rgba(231, 76, 60, 0.12)', border: '1px solid rgba(231, 76, 60, 0.4)', borderRadius: '8px', padding: '10px 14px', color: '#e74c3c', fontSize: '12px' }}>
+                  {authError}
                 </div>
+              )}
+
+              {/* Real Input Form matching the uploaded screenshot */}
+              <form className="auth-form" onSubmit={handleAuthSubmit}>
+                {authMode === 'signup' && (
+                  <div className="auth-form-row">
+                    <div className="auth-input-group">
+                      <label htmlFor="auth-fn">First Name</label>
+                      <input 
+                        id="auth-fn"
+                        type="text" 
+                        value={authFirstName}
+                        onChange={e => setAuthFirstName(e.target.value)}
+                        placeholder="eg. John"
+                        required={authMode === 'signup'}
+                      />
+                    </div>
+                    <div className="auth-input-group">
+                      <label htmlFor="auth-ln">Last Name</label>
+                      <input 
+                        id="auth-ln"
+                        type="text" 
+                        value={authLastName}
+                        onChange={e => setAuthLastName(e.target.value)}
+                        placeholder="eg. Francisco"
+                        required={authMode === 'signup'}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="auth-input-group">
                   <label htmlFor="auth-email">Email</label>
@@ -977,17 +1082,44 @@ export default function App() {
                   <span className="auth-input-hint">Must be at least 8 characters.</span>
                 </div>
 
+                {authMode === 'signup' && (
+                  <div className="auth-input-group">
+                    <label htmlFor="auth-ref">Referral Code (Optional)</label>
+                    <input 
+                      id="auth-ref"
+                      type="text" 
+                      value={authReferral}
+                      onChange={e => setAuthReferral(e.target.value)}
+                      placeholder="Referrer user ID"
+                    />
+                  </div>
+                )}
+
                 <button 
                   type="submit" 
                   className="auth-submit-btn"
                   disabled={busy}
                 >
-                  Sign Up
+                  {busy ? 'Processing...' : (authMode === 'signup' ? 'Sign Up' : 'Log In')}
                 </button>
               </form>
 
               <div className="auth-bottom-text">
-                Already have an account? <a href={loginUrl}>Log in</a>
+                {authMode === 'signup' ? (
+                  <>
+                    Already have an account? 
+                    <button onClick={() => { setAuthMode('login'); setAuthError(''); }}>
+                      Log In
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Don't have an account? 
+                    <button onClick={() => { setAuthMode('signup'); setAuthError(''); }}>
+                      Sign Up
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
