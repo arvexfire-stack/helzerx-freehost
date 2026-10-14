@@ -726,29 +726,10 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Realistic Interactive 3D WebGL Scene in Hero */}
+              {/* Clean, borderless HX logo visual */}
               <div className="hero-visual-frame">
-                <div className="hero-image-wrap">
-                  {use3DCanvas ? (
-                    <ThreeHeroCanvas />
-                  ) : (
-                    <img 
-                      src="/images/hero-glass.jpg" 
-                      alt="3D floating iridescent glass cylinder with warm amber and violet caustics" 
-                      referrerPolicy="no-referrer"
-                    />
-                  )}
-                  <div className="hero-badge-overlay">
-                    <Sparkles size={12} color="var(--accent-gold)" />
-                    <span>Real-Time 3D Engine Active</span>
-                    <button 
-                      onClick={() => setUse3DCanvas(!use3DCanvas)} 
-                      style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', marginLeft: '6px' }}
-                      title="Toggle 3D WebGL / Static Render"
-                    >
-                      <RotateCcw size={11} />
-                    </button>
-                  </div>
+                <div className="hero-image-wrap hx-hero-image-wrap">
+                  <ThreeHeroCanvas />
                 </div>
               </div>
             </div>
