@@ -37,6 +37,7 @@ jobs:
           node --check server/index.js
           node --check server/proxmox.js
           node --check server/security.js
+          node --test test/*.test.js
       - name: Build frontend
         run: npm run build
 
