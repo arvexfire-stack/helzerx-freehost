@@ -1536,3 +1536,25 @@ button, input, select, textarea {
   }
 }
 
+
+/* Animated HX hero emblem — layered metallic 3D treatment */
+.hero-image-wrap:has(.hx-hero-scene){background:radial-gradient(ellipse at 50% 48%,rgba(22,37,59,.78),rgba(5,7,12,.96) 68%);border-color:rgba(135,158,190,.12)}
+.hx-hero-scene{position:relative;isolation:isolate;width:100%;min-height:340px;height:100%;overflow:hidden;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 55%,rgba(44,55,82,.26),transparent 58%)}
+.hx-logo-stage{position:relative;z-index:2;width:min(100%,570px);transform-style:preserve-3d;animation:hxLogoFloat 6s ease-in-out infinite;filter:drop-shadow(0 22px 20px rgba(0,0,0,.72)) drop-shadow(0 0 18px rgba(104,145,196,.12))}
+.hx-logo-svg{width:100%;height:auto;overflow:visible;transform:perspective(900px) rotateY(-8deg) rotateX(3deg)}
+.hx-logo-face{filter:drop-shadow(0 0 2px rgba(195,219,255,.35))}.hx-logo-depth{transform:translate(0,12px)}
+.hx-logo-glint{stroke-dasharray:145;stroke-dashoffset:145;animation:hxGlint 5s ease-in-out infinite}
+.hx-logo-reflection{position:absolute;left:19%;right:18%;bottom:3%;height:18%;background:linear-gradient(90deg,transparent,rgba(101,143,211,.17),rgba(245,176,65,.12),transparent);filter:blur(22px);transform:scaleY(.45);pointer-events:none}
+.hx-scene-halo{position:absolute;width:58%;height:48%;border-radius:50%;filter:blur(46px);opacity:.23;z-index:0}
+.hx-halo-gold{background:#b97928;right:12%;bottom:15%;animation:hxHalo 8s ease-in-out infinite alternate}
+.hx-halo-violet{background:#5a3d9a;left:12%;top:12%;animation:hxHalo 7s ease-in-out infinite alternate-reverse}
+.hx-orbit{position:absolute;z-index:1;width:78%;height:46%;border:1px solid rgba(146,177,222,.13);border-radius:50%;transform:rotate(-17deg);pointer-events:none}
+.hx-orbit-one{animation:hxOrbit 18s linear infinite}.hx-orbit-two{width:68%;height:58%;border-color:rgba(245,176,65,.11);transform:rotate(24deg);animation:hxOrbit 24s linear infinite reverse}
+.hx-scene-caption{position:absolute;z-index:3;bottom:20px;left:24px;display:flex;align-items:center;gap:9px;color:rgba(220,228,241,.66);font:600 10px/1 'Plus Jakarta Sans',sans-serif;letter-spacing:.2em}
+.hx-scene-caption span{width:6px;height:6px;border-radius:50%;background:#e6b45f;box-shadow:0 0 12px #e6b45f}
+@keyframes hxLogoFloat{0%,100%{transform:translateY(2px) rotateX(0deg)}50%{transform:translateY(-9px) rotateX(2deg)}}
+@keyframes hxGlint{0%,25%{stroke-dashoffset:145;opacity:.1}55%,75%{stroke-dashoffset:0;opacity:.9}100%{stroke-dashoffset:-145;opacity:0}}
+@keyframes hxHalo{from{transform:translate3d(-8px,5px,0) scale(.92)}to{transform:translate3d(12px,-9px,0) scale(1.12)}}
+@keyframes hxOrbit{from{rotate:0deg}to{rotate:360deg}}
+@media(prefers-reduced-motion:reduce){.hx-logo-stage,.hx-logo-glint,.hx-halo-gold,.hx-halo-violet,.hx-orbit-one,.hx-orbit-two{animation:none!important}}
+@media(max-width:640px){.hx-hero-scene{min-height:270px}.hx-scene-caption{bottom:14px;left:16px;font-size:9px}}
