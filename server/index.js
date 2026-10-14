@@ -196,17 +196,18 @@ app.get('/api/boost-rewards',auth,(_req,res)=>res.json({tiers:boostTiers,verific
 app.post('/api/boost-claims',auth,(req,res)=>{const count=Number(req.body?.boosts);if(![1,2,3,4,7,10].includes(count))return res.status(400).json({error:'Choose an eligible boost tier.'});const duplicate=data.claims.some(c=>c.userId===req.session.user.id&&c.status==='pending');if(duplicate)return res.status(409).json({error:'You already have a pending boost claim.'});const tier=boostTiers.find(x=>x[0]===count);data.claims.push({id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,boosts:count,amount:tier[1],status:'pending',createdAt:new Date().toISOString()});writeData();res.status(201).json({ok:true,message:'Claim submitted for manual verification. HZL will only be credited after approval.'});});
 app.get('/api/boost-claims',auth,(req,res)=>res.json({claims:data.claims.filter(c=>c.userId===req.session.user.id).map(({id,boosts,amount,status,createdAt})=>({id,boosts,amount,status,createdAt}))}));
 function adminOnly(req,res,next){
- if(!process.env.ADMIN_EMAIL||!process.env.ADMIN_PASSWORD)return res.status(503).json({error:'Admin authentication is not configured.'});
- if(!req.session?.admin?.authenticated||!req.session.admin.email||req.session.admin.email!==String(process.env.ADMIN_EMAIL||'').trim().toLowerCase())return res.status(401).json({error:'Admin sign-in required.'});
+ if(!process.env.ADMIN_EMAIL||!process.env.ADMIN_PASSWORD||!/^[0-9]{6}$/.test(String(process.env.STAFF_SECRET||'')))return res.status(503).json({error:'Secure staff sign-in is not configured.'});
+ if(!req.session?.admin?.authenticated||req.session.admin.staffSecretVerified!==true||!req.session.admin.email||req.session.admin.email!==String(process.env.ADMIN_EMAIL||'').trim().toLowerCase())return res.status(401).json({error:'Sign-in required.'});
  if(Date.now()-Number(req.session.admin.loggedAt||0)>2*60*60*1000){req.session.destroy(()=>{});res.clearCookie('hx_freehost_sid',{httpOnly:true,secure:prod,sameSite:'lax',path:'/'});return res.status(401).json({error:'Admin session expired. Sign in again.'});}
  res.set('Cache-Control','no-store');next();
 }
 app.post('/api/admin/login',adminLoginLimiter,adminMutationOrigin,async(req,res)=>{
- const ip=req.ip||req.socket.remoteAddress||'unknown',entry=adminLoginAttempts.get(ip);
- const email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||'');
- const configuredEmail=String(process.env.ADMIN_EMAIL||'').trim().toLowerCase(),configuredPassword=String(process.env.ADMIN_PASSWORD||'');
- if(!configuredEmail||!configuredPassword)return res.status(503).json({error:'Admin credentials are not configured on the server.'});
- const valid=safeEqual(email,configuredEmail)&&safeEqual(password,configuredPassword);
+ const ip=req.ip||req.socket.remoteAddress||'unknown';
+ const email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||''),staffSecret=String(req.body?.staffSecret||'');
+ const configuredEmail=String(process.env.ADMIN_EMAIL||'').trim().toLowerCase(),configuredPassword=String(process.env.ADMIN_PASSWORD||''),configuredStaffSecret=String(process.env.STAFF_SECRET||'');
+ if(!configuredEmail||!configuredPassword||!/^[0-9]{6}$/.test(configuredStaffSecret))return res.status(503).json({error:'Secure staff sign-in is not configured on the server.'});
+ const validEmail=safeEqual(email,configuredEmail),validPassword=safeEqual(password,configuredPassword),validStaffSecret=safeEqual(staffSecret,configuredStaffSecret);
+ const valid=Boolean(validEmail & validPassword & validStaffSecret);
  if(!valid){
   const now=Date.now();let state=adminLoginAttempts.get(ip);
   if(!state||now-state.startedAt>ADMIN_LOCK_WINDOW_MS)state={startedAt:now,count:0,blockedUntil:0};
@@ -216,7 +217,7 @@ app.post('/api/admin/login',adminLoginLimiter,adminMutationOrigin,async(req,res)
  }
  adminLoginAttempts.delete(ip);
  await new Promise((resolve,reject)=>req.session.regenerate(err=>err?reject(err):resolve()));
- req.session.admin={authenticated:true,email:configuredEmail,loggedAt:Date.now()};
+ req.session.admin={authenticated:true,staffSecretVerified:true,email:configuredEmail,loggedAt:Date.now()};
  req.session.save(err=>{if(err)return res.status(500).json({error:'Could not create secure admin session.'});res.set('Cache-Control','no-store');res.json({ok:true});});
 });
 app.get('/api/admin/session',adminOnly,(_req,res)=>res.json({ok:true}));
