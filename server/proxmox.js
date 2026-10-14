@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { Client } from 'ssh2';
 const env = (key, fallback = '') => String(process.env[key] ?? fallback).trim();
 export function proxmoxConfig() {
   return {
@@ -15,7 +16,12 @@ export function proxmoxConfig() {
     taskTimeoutMs: Number(env('PROXMOX_TASK_TIMEOUT_MS', '180000')),
     // DHCP must actually exist on the configured bridge; otherwise set a supported static
     // network plan before enabling provisioning.
-    network: env('PROXMOX_NETWORK', 'dhcp').toLowerCase()
+    network: env('PROXMOX_NETWORK', 'dhcp').toLowerCase(),
+    sshHost: env('PROXMOX_SSH_HOST'),
+    sshPort: Number(env('PROXMOX_SSH_PORT', '22')),
+    sshUsername: env('PROXMOX_SSH_USERNAME', 'helzerx-panel'),
+    sshPrivateKey: env('PROXMOX_SSH_PRIVATE_KEY'),
+    sshHostKeySha256: env('PROXMOX_SSH_HOST_KEY_SHA256').replace(/^SHA256:/, '')
   };
 }
 export function proxmoxReadiness() {
@@ -160,6 +166,109 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey }) 
 }
 
 /**
+ * Read live status/configuration/snapshots for a managed LXC. Each read is independent so
+ * a missing optional permission does not hide the other diagnostics.
+ */
+export async function inspectLxc({ vmid }) {
+  const readiness = proxmoxReadiness();
+  if (!readiness.ready) throw new Error('Proxmox management is not enabled or configured. Missing: ' + readiness.missing.join(', '));
+  const c = proxmoxConfig();
+  const id = Number(vmid);
+  if (!Number.isInteger(id) || id < c.vmidMin || id > c.vmidMax) throw new Error('Container ID is outside the configured HelzerX VMID range.');
+  const base = '/nodes/' + enc(c.node) + '/lxc/' + id;
+  const result = { vmid:id, node:c.node, terminalReady:Boolean(c.sshHost && c.sshPrivateKey && c.sshHostKeySha256), terminalReason:null };
+  const reads = await Promise.allSettled([
+    api(c, 'GET', base + '/status/current'),
+    api(c, 'GET', base + '/config'),
+    api(c, 'GET', base + '/snapshot')
+  ]);
+  if (reads[0].status === 'fulfilled') result.status = reads[0].value;
+  else result.statusError = String(reads[0].reason?.message || 'Could not read status').slice(0, 300);
+  if (reads[1].status === 'fulfilled') result.config = reads[1].value;
+  else result.configError = String(reads[1].reason?.message || 'Could not read config').slice(0, 300);
+  if (reads[2].status === 'fulfilled') result.snapshots = Array.isArray(reads[2].value) ? reads[2].value : [];
+  else { result.snapshots = []; result.snapshotsError = String(reads[2].reason?.message || 'Could not read snapshots').slice(0, 300); }
+  if (!result.terminalReady) result.terminalReason = 'Configure PROXMOX_SSH_HOST, PROXMOX_SSH_PRIVATE_KEY and PROXMOX_SSH_HOST_KEY_SHA256, plus the restricted pct-exec wrapper on the Proxmox host.';
+  return result;
+}
+
+export async function runLxcTerminal({ vmid, command }) {
+  const readiness = proxmoxReadiness();
+  if (!readiness.ready) throw new Error('Proxmox management is not enabled or configured.');
+  const c = proxmoxConfig();
+  const id = Number(vmid);
+  if (!Number.isInteger(id) || id < c.vmidMin || id > c.vmidMax) throw new Error('Container ID is outside the configured HelzerX VMID range.');
+  if (!c.sshHost || !c.sshPrivateKey || !c.sshHostKeySha256 || !Number.isInteger(c.sshPort) || c.sshPort < 1 || c.sshPort > 65535) {
+    throw new Error('Terminal is not configured. Set the Proxmox SSH host, private key and verified SHA-256 host-key fingerprint.');
+  }
+  const text = String(command || '').trim();
+  if (!text || text.length > 4000 || /\\u0000/.test(text)) throw new Error('Enter a command of 1–4000 characters.');
+  // The SSH key must be restricted to a host-side wrapper that accepts only:
+  // ct-exec <VMID> <base64-command>. No arbitrary host shell is exposed.
+  const payload = Buffer.from(text, 'utf8').toString('base64');
+  const remoteCommand = 'ct-exec ' + id + ' ' + payload;
+  return await new Promise((resolve, reject) => {
+    const client = new Client();
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      client.end();
+      if (error) reject(error); else resolve(value);
+    };
+    const timer = setTimeout(() => finish(new Error('Terminal command timed out after 15 seconds.')), 15000);
+    client.on('ready', () => {
+      client.exec(remoteCommand, { pty:false }, (error, stream) => {
+        if (error) return finish(error);
+        let stdout = '', stderr = '';
+        stream.on('data', chunk => { stdout = (stdout + chunk.toString('utf8')).slice(-12000); });
+        stream.stderr.on('data', chunk => { stderr = (stderr + chunk.toString('utf8')).slice(-4000); });
+        stream.on('close', (code, signal) => {
+          const output = (stdout + (stderr ? '\\n' + stderr : '')).slice(-15000);
+          if (code !== 0) return finish(new Error(('Command exited with code ' + String(code ?? signal ?? 'unknown') + (output ? ': ' + output : '')).slice(0, 500)));
+          finish(null, { output: output || '(Command completed with no output.)', exitCode:0 });
+        });
+      });
+    });
+    client.on('error', error => finish(new Error('Proxmox SSH connection failed: ' + String(error.message || 'connection error').slice(0, 250))));
+    const expected = c.sshHostKeySha256;
+    client.connect({
+      host:c.sshHost, port:c.sshPort, username:c.sshUsername,
+      privateKey:c.sshPrivateKey, readyTimeout:10000, keepaliveInterval:5000,
+      hostHash:'sha256',
+      hostVerifier: hash => crypto.timingSafeEqual(Buffer.from(String(hash)), Buffer.from(expected))
+    });
+  });
+}
+
+export async function manageLxcSnapshot({ vmid, action, name }) {
+  const readiness = proxmoxReadiness();
+  if (!readiness.ready) throw new Error('Proxmox management is not enabled or configured.');
+  const c = proxmoxConfig();
+  const id = Number(vmid);
+  if (!Number.isInteger(id) || id < c.vmidMin || id > c.vmidMax) throw new Error('Container ID is outside the configured HelzerX VMID range.');
+  const base = '/nodes/' + enc(c.node) + '/lxc/' + id + '/snapshot';
+  if (action === 'create') {
+    const snap = String(name || '').trim();
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(snap)) throw new Error('Snapshot name must be 1–40 letters, numbers, underscores or hyphens.');
+    const upid = await api(c, 'POST', base, { snapname:snap, description:'Created from HelzerX admin control panel' });
+    if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid snapshot task ID.');
+    await waitTask(c, upid);
+    return { vmid:id, action, name:snap, upid };
+  }
+  if (action === 'delete') {
+    const snap = String(name || '').trim();
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(snap) || snap === 'current') throw new Error('Invalid snapshot name.');
+    const upid = await api(c, 'DELETE', base + '/' + enc(snap));
+    if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid snapshot deletion task ID.');
+    await waitTask(c, upid);
+    return { vmid:id, action, name:snap, upid };
+  }
+  throw new Error('Unsupported snapshot action.');
+}
+
+/**
  * Manage only a container that has already been associated with a persisted hosting request.
  * This adapter intentionally supports LXC actions only; it never sends QEMU/KVM operations.
  */
@@ -169,20 +278,27 @@ export async function manageLxc({ vmid, action }) {
   const c = proxmoxConfig();
   const id = Number(vmid);
   if (!Number.isInteger(id) || id < c.vmidMin || id > c.vmidMax) throw new Error('Container ID is outside the configured HelzerX VMID range.');
-  if (!['suspend','resume','delete'].includes(action)) throw new Error('Unsupported container action.');
+  if (!['start','stop','reboot','suspend','resume','delete'].includes(action)) throw new Error('Unsupported container action.');
   const base = '/nodes/' + enc(c.node) + '/lxc/' + id;
   const current = await api(c, 'GET', base + '/status/current');
-  if (action === 'suspend') {
+  if (action === 'start' || action === 'resume') {
     if (current.status === 'stopped') return { vmid:id, status:'stopped' };
     const upid = await api(c, 'POST', base + '/status/stop');
     if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid stop task ID.');
     await waitTask(c, upid);
     return { vmid:id, status:'stopped', upid };
   }
-  if (action === 'resume') {
-    if (current.status === 'running') return { vmid:id, status:'running' };
-    const upid = await api(c, 'POST', base + '/status/start');
-    if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid start task ID.');
+  if (action === 'stop' || action === 'suspend') {
+    if (current.status === 'stopped') return { vmid:id, status:'stopped' };
+    const upid = await api(c, 'POST', base + '/status/stop');
+    if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid stop task ID.');
+    await waitTask(c, upid);
+    return { vmid:id, status:'stopped', upid };
+  }
+  if (action === 'reboot') {
+    if (current.status !== 'running') throw new Error('Start the container before requesting a reboot.');
+    const upid = await api(c, 'POST', base + '/status/reboot');
+    if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid reboot task ID.');
     await waitTask(c, upid);
     return { vmid:id, status:'running', upid };
   }
