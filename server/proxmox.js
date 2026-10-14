@@ -11,6 +11,7 @@ export function proxmoxConfig() {
     template: env('PROXMOX_TEMPLATE'),
     tokenId: env('PROXMOX_TOKEN_ID'),
     tokenSecret: env('PROXMOX_TOKEN_SECRET'),
+    sshPublicKeys: env('PROXMOX_SSH_PUBLIC_KEYS'),
     vmidMin: Number(env('PROXMOX_VMID_MIN', '2000')),
     vmidMax: Number(env('PROXMOX_VMID_MAX', '2999')),
     taskTimeoutMs: Number(env('PROXMOX_TASK_TIMEOUT_MS', '180000')),
@@ -29,6 +30,7 @@ export function proxmoxReadiness() {
   if (!c.template) missing.push('PROXMOX_TEMPLATE');
   if (!c.tokenId) missing.push('PROXMOX_TOKEN_ID');
   if (!c.tokenSecret) missing.push('PROXMOX_TOKEN_SECRET');
+  if (!c.sshPublicKeys) missing.push('PROXMOX_SSH_PUBLIC_KEYS (root SSH key required; passwords are not exposed or stored)');
   if (!Number.isInteger(c.vmidMin) || !Number.isInteger(c.vmidMax) || c.vmidMin < 100 || c.vmidMax < c.vmidMin) missing.push('PROXMOX_VMID_MIN/PROXMOX_VMID_MAX');
   if (!/^https:\/\//i.test(c.baseUrl)) missing.push('PROXMOX_API_URL must use HTTPS');
   return { enabled: c.enabled, ready: c.enabled && missing.length === 0, missing, network: c.network };
@@ -89,13 +91,14 @@ export async function provisionLxc({ requestId, plan, username }) {
     throw new Error('Proxmox next VMID is outside the configured safe range ' + c.vmidMin + '-' + c.vmidMax + '. Configure a dedicated VMID range/pool before provisioning.');
   }
   const hostname = ('hx-' + String(requestId).replace(/[^a-z0-9]/gi, '').slice(0, 10) + '-' + next).toLowerCase().slice(0, 63);
-  const password = crypto.randomBytes(24).toString('base64url') + 'aA1!';
+  const sshKeys = String(resources.sshPublicKeys || c.sshPublicKeys).trim();
+  if (!sshKeys || !sshKeys.startsWith('ssh-') && !sshKeys.startsWith('ecdsa-') && !sshKeys.startsWith('sk-')) throw new Error('A valid administrator-managed SSH public key is required. Password-based credential delivery is intentionally disabled.');
   const net0 = 'name=eth0,bridge=' + c.bridge + ',ip=dhcp,ip6=auto';
   const upid = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc', {
     vmid: next,
     ostemplate: c.template,
     hostname,
-    password,
+    'ssh-public-keys': sshKeys,
     unprivileged: 1,
     onboot: 1,
     cores: Number(resources.cores),
