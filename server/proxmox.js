@@ -282,11 +282,11 @@ export async function manageLxc({ vmid, action }) {
   const base = '/nodes/' + enc(c.node) + '/lxc/' + id;
   const current = await api(c, 'GET', base + '/status/current');
   if (action === 'start' || action === 'resume') {
-    if (current.status === 'stopped') return { vmid:id, status:'stopped' };
-    const upid = await api(c, 'POST', base + '/status/stop');
-    if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid stop task ID.');
+    if (current.status === 'running') return { vmid:id, status:'running' };
+    const upid = await api(c, 'POST', base + '/status/start');
+    if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid start task ID.');
     await waitTask(c, upid);
-    return { vmid:id, status:'stopped', upid };
+    return { vmid:id, status:'running', upid };
   }
   if (action === 'stop' || action === 'suspend') {
     if (current.status === 'stopped') return { vmid:id, status:'stopped' };
