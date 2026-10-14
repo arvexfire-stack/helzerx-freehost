@@ -1595,3 +1595,10 @@ button, input, select, textarea {
   .hx-logo-stage { width:min(100%,390px); }
 }
 @media (prefers-reduced-motion:reduce) { .hx-logo-stage,.hx-logo-highlight { animation:none!important; } }
+
+/* Keep the brand mark's original H + single rising slash silhouette. */
+.hx-hero-scene { background:radial-gradient(ellipse at 52% 54%,rgba(25,37,67,.22),transparent 68%); }
+.hx-logo-stage { filter:drop-shadow(0 20px 22px rgba(0,0,0,.58)) drop-shadow(0 0 12px rgba(106,126,224,.16)); }
+.hx-logo-svg { transform:perspective(1000px) rotateY(-4deg) rotateX(1deg); }
+.hx-logo-highlight { stroke-dasharray:230; stroke-dashoffset:230; animation:hxLogoSweep 7s ease-in-out infinite; }
+@keyframes hxLogoSweep { 0%,18%{stroke-dashoffset:230;opacity:.15} 55%,72%{stroke-dashoffset:0;opacity:.85} 100%{stroke-dashoffset:-230;opacity:.1} }
