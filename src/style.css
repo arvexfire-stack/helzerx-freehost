@@ -1632,3 +1632,17 @@ body { overflow-x:hidden; }
   .hero-title { font-size:clamp(29px,8vw,40px); }
 }
 @media (prefers-reduced-motion:reduce) { .hx-logo-stage,.hx-logo-highlight { animation:none!important; } }
+
+/* Premium HX hero: bigger, deeper metallic finish with restrained cinematic motion. */
+.hero-image-wrap.hx-hero-image-wrap{width:100%;max-width:760px;aspect-ratio:1.02/1;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+.hero-visual-frame{width:100%;min-width:0;overflow:visible}
+.hx-hero-scene{width:100%;min-height:390px;height:100%;display:grid;place-items:center;overflow:visible;isolation:isolate;background:radial-gradient(ellipse at 50% 53%,rgba(68,91,145,.24),transparent 68%);perspective:1100px}
+.hx-logo-stage{position:relative;width:116%;max-width:760px;z-index:1;transform-style:preserve-3d;transform-origin:50% 50%;animation:hxPremiumFloat 7.5s cubic-bezier(.45,0,.55,1) infinite;filter:drop-shadow(0 28px 22px rgba(0,0,0,.68)) drop-shadow(0 0 12px rgba(113,151,235,.2));will-change:transform,filter}
+.hx-logo-svg{display:block;width:100%;height:auto;overflow:visible;transform-style:preserve-3d;transform:rotateY(-9deg) rotateX(3deg)}
+.hx-logo-side{filter:drop-shadow(0 0 2px rgba(153,190,255,.2))}.hx-logo-face{filter:drop-shadow(0 0 3px rgba(203,228,255,.4))}.hx-logo-sheen{mix-blend-mode:screen;opacity:.65}.hx-logo-bevel-line{opacity:.58}
+.hx-logo-highlight{stroke-dasharray:380;stroke-dashoffset:380;animation:hxPremiumSweep 5.8s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes hxPremiumFloat{0%,100%{transform:translate3d(0,4px,0) rotateY(-2deg) rotateX(0deg) scale(1)}25%{transform:translate3d(0,-5px,0) rotateY(1.5deg) rotateX(1deg) scale(1.012)}50%{transform:translate3d(0,-11px,0) rotateY(2deg) rotateX(-.6deg) scale(1.018)}75%{transform:translate3d(0,-3px,0) rotateY(-1deg) rotateX(-1deg) scale(1.008)}}
+@keyframes hxPremiumSweep{0%,12%{stroke-dashoffset:380;opacity:0}22%{opacity:.15}58%{stroke-dashoffset:0;opacity:.95}78%{stroke-dashoffset:-380;opacity:.28}100%{stroke-dashoffset:-380;opacity:0}}
+@media(max-width:900px){.hero-image-wrap.hx-hero-image-wrap{max-width:100%}.hx-hero-scene{min-height:300px}.hx-logo-stage{width:125%}}
+@media(max-width:680px){.hero-visual-frame{max-height:none}.hero-image-wrap.hx-hero-image-wrap{max-width:430px;aspect-ratio:1.25/1}.hx-hero-scene{min-height:270px}.hx-logo-stage{width:112%;max-width:480px}}
+@media(prefers-reduced-motion:reduce){.hx-logo-stage,.hx-logo-highlight{animation:none!important}}
