@@ -1,251 +1,46 @@
-import React, { useEffect, useRef } from 'react';
-import * as THREE from 'three';
+import React from 'react';
 
 export default function ThreeHeroCanvas() {
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    // Scene, Camera, Renderer
-    const scene = new THREE.Scene();
-    const width = container.clientWidth || 540;
-    const height = container.clientHeight || 340;
-
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 0, 7.5);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
-    container.appendChild(renderer.domElement);
-
-    // Group for mouse parallax tilt
-    const mainGroup = new THREE.Group();
-    scene.add(mainGroup);
-
-    // 1. Procedural 3D Glass Capsule (Pill)
-    // CapsuleGeometry (radius, length, capSubdivisions, radialSegments)
-    const capsuleGeo = new THREE.CapsuleGeometry(1.2, 2.2, 16, 32);
-    capsuleGeo.rotateZ(Math.PI / 3.2);
-
-    // Outer Glass Material
-    const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      transmission: 0.92,
-      opacity: 1,
-      transparent: true,
-      roughness: 0.08,
-      metalness: 0.1,
-      ior: 1.52,
-      thickness: 1.8,
-      specularIntensity: 1.0,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-    });
-
-    const capsuleMesh = new THREE.Mesh(capsuleGeo, glassMat);
-    mainGroup.add(capsuleMesh);
-
-    // 2. Interior Glowing Amber/Gold Caustic Core
-    const coreGeo = new THREE.CapsuleGeometry(0.85, 1.8, 12, 24);
-    coreGeo.rotateZ(Math.PI / 3.2);
-    const coreMat = new THREE.MeshPhysicalMaterial({
-      color: 0xf5b041,
-      emissive: 0x8a4508,
-      emissiveIntensity: 0.6,
-      roughness: 0.25,
-      metalness: 0.8,
-      clearcoat: 0.8
-    });
-    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-    capsuleMesh.add(coreMesh);
-
-    // 3. Central Metallic Gold Seam Ring
-    const ringGeo = new THREE.TorusGeometry(1.24, 0.08, 16, 64);
-    ringGeo.rotateY(Math.PI / 2);
-    ringGeo.rotateZ(Math.PI / 3.2);
-    const ringMat = new THREE.MeshStandardMaterial({
-      color: 0xffd700,
-      metalness: 0.95,
-      roughness: 0.15
-    });
-    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-    capsuleMesh.add(ringMesh);
-
-    // 4. Orbiting Iridescent Slanted Torus Ring
-    const orbitTorusGeo = new THREE.TorusGeometry(2.3, 0.04, 16, 100);
-    const orbitTorusMat = new THREE.MeshStandardMaterial({
-      color: 0xa855f7,
-      metalness: 0.9,
-      roughness: 0.2,
-      emissive: 0x3b0764,
-      emissiveIntensity: 0.4
-    });
-    const orbitTorus = new THREE.Mesh(orbitTorusGeo, orbitTorusMat);
-    orbitTorus.rotation.x = Math.PI / 2.6;
-    orbitTorus.rotation.y = Math.PI / 6;
-    mainGroup.add(orbitTorus);
-
-    // 5. Surrounding Volumetric Stardust Particle Cloud
-    const particleCount = 120;
-    const particleGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
-
-    const cGold = new THREE.Color(0xf5b041);
-    const cViolet = new THREE.Color(0xa855f7);
-    const cWhite = new THREE.Color(0xffffff);
-
-    for (let i = 0; i < particleCount; i++) {
-      const radius = 2.5 + Math.random() * 3.5;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-
-      positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      positions[i * 3 + 2] = radius * Math.cos(phi);
-
-      const mixed = Math.random() > 0.5 ? cGold : (Math.random() > 0.5 ? cViolet : cWhite);
-      colors[i * 3] = mixed.r;
-      colors[i * 3 + 1] = mixed.g;
-      colors[i * 3 + 2] = mixed.b;
-    }
-
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-    // Particle sprite texture
-    const canvas = document.createElement('canvas');
-    canvas.width = 32;
-    canvas.height = 32;
-    const ctx = canvas.getContext('2d');
-    const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-    grad.addColorStop(0, 'rgba(255,255,255,1)');
-    grad.addColorStop(0.3, 'rgba(245,176,65,0.8)');
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 32, 32);
-
-    const particleTexture = new THREE.CanvasTexture(canvas);
-    const particleMat = new THREE.PointsMaterial({
-      size: 0.16,
-      vertexColors: true,
-      map: particleTexture,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
-    });
-
-    const particles = new THREE.Points(particleGeo, particleMat);
-    mainGroup.add(particles);
-
-    // Studio Lights Rig
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
-    scene.add(ambientLight);
-
-    const keyLight = new THREE.DirectionalLight(0xfffaed, 3.5);
-    keyLight.position.set(5, 5, 6);
-    scene.add(keyLight);
-
-    const rimLight = new THREE.PointLight(0xa855f7, 4.5, 20);
-    rimLight.position.set(-5, -3, -3);
-    scene.add(rimLight);
-
-    const warmLight = new THREE.PointLight(0xf5b041, 4.0, 20);
-    warmLight.position.set(4, -4, 3);
-    scene.add(warmLight);
-
-    // Smooth Mouse Tracking
-    let targetRotX = 0;
-    let targetRotY = 0;
-    let mouseX = 0;
-    let mouseY = 0;
-
-    const handleMouseMove = (e) => {
-      const rect = container.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-      mouseX = x;
-      mouseY = y;
-      targetRotY = mouseX * 0.45;
-      targetRotX = -mouseY * 0.35;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-
-    // Resize Handler
-    const handleResize = () => {
-      if (!container) return;
-      const newW = container.clientWidth || 540;
-      const newH = container.clientHeight || 340;
-      camera.aspect = newW / newH;
-      camera.updateProjectionMatrix();
-      renderer.setSize(newW, newH);
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    // Animation Loop
-    let animId;
-    let clock = new THREE.Clock();
-
-    const animate = () => {
-      animId = requestAnimationFrame(animate);
-      const delta = clock.getDelta();
-      const time = clock.getElapsedTime();
-
-      // Idle levitation & gentle rotation
-      capsuleMesh.rotation.y += delta * 0.4;
-      capsuleMesh.position.y = Math.sin(time * 1.5) * 0.12;
-
-      orbitTorus.rotation.z += delta * 0.25;
-      particles.rotation.y += delta * 0.08;
-
-      // Smooth exponential damping to mouse position
-      mainGroup.rotation.y += (targetRotY - mainGroup.rotation.y) * 0.06;
-      mainGroup.rotation.x += (targetRotX - mainGroup.rotation.x) * 0.06;
-
-      renderer.render(scene, camera);
-    };
-
-    animate();
-
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('resize', handleResize);
-      renderer.dispose();
-      capsuleGeo.dispose();
-      glassMat.dispose();
-      coreGeo.dispose();
-      coreMat.dispose();
-      ringGeo.dispose();
-      ringMat.dispose();
-      orbitTorusGeo.dispose();
-      orbitTorusMat.dispose();
-      particleGeo.dispose();
-      particleMat.dispose();
-      particleTexture.dispose();
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
-    };
-  }, []);
-
   return (
-    <div 
-      ref={containerRef} 
-      style={{ 
-        width: '100%', 
-        height: '100%', 
-        minHeight: '340px',
-        position: 'relative',
-        cursor: 'grab'
-      }} 
-    />
+    <div className="hx-hero-scene" role="img" aria-label="HelzerX HX emblem in animated metallic 3D">
+      <div className="hx-scene-halo hx-halo-gold" />
+      <div className="hx-scene-halo hx-halo-violet" />
+      <div className="hx-orbit hx-orbit-one" />
+      <div className="hx-orbit hx-orbit-two" />
+      <div className="hx-logo-stage">
+        <svg className="hx-logo-svg" viewBox="0 0 640 360" aria-hidden="true">
+          <defs>
+            <linearGradient id="hxMetal" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#f8fbff" />
+              <stop offset=".18" stopColor="#64758b" />
+              <stop offset=".38" stopColor="#172332" />
+              <stop offset=".58" stopColor="#a9b8c9" />
+              <stop offset=".76" stopColor="#303344" />
+              <stop offset="1" stopColor="#f4b85d" />
+            </linearGradient>
+            <linearGradient id="hxEdge" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#b9e7ff" />
+              <stop offset=".48" stopColor="#7663c9" />
+              <stop offset="1" stopColor="#f5b041" />
+            </linearGradient>
+            <filter id="hxGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="8" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
+          <g className="hx-logo-depth" transform="translate(0 12)" opacity=".5" fill="#06080d" stroke="#202b3b" strokeWidth="13" strokeLinejoin="round">
+            <path d="M95 78 Q95 58 116 58 H164 Q184 58 184 79 V143 H325 L362 180 L325 217 H184 V282 Q184 303 163 303 H116 Q95 303 95 282 Z" />
+            <path d="M393 66 Q400 56 416 56 H474 Q495 56 482 76 L377 180 L482 284 Q495 304 474 304 H416 Q402 304 393 294 L294 196 Q278 180 294 164 Z" />
+          </g>
+          <g className="hx-logo-face" stroke="url(#hxEdge)" strokeWidth="3" strokeLinejoin="round">
+            <path d="M95 66 Q95 46 116 46 H164 Q184 46 184 67 V131 H325 L362 168 L325 205 H184 V270 Q184 291 163 291 H116 Q95 291 95 270 Z" fill="url(#hxMetal)" />
+            <path d="M393 54 Q400 44 416 44 H474 Q495 44 482 64 L377 168 L482 272 Q495 292 474 292 H416 Q402 292 393 282 L294 184 Q278 168 294 152 Z" fill="url(#hxMetal)" />
+          </g>
+          <path className="hx-logo-glint" d="M112 63 H159 Q166 63 166 73 V125 M414 60 H465 L366 159" fill="none" stroke="#f5fbff" strokeWidth="4" strokeLinecap="round" opacity=".8" />
+        </svg>
+        <div className="hx-logo-reflection" />
+      </div>
+      <div className="hx-scene-caption"><span /> HELZERX TECHNOLOGIES</div>
+    </div>
   );
 }
