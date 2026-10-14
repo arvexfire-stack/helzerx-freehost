@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import session from 'express-session';
 import crypto from 'node:crypto';
-import { provisionLxc, proxmoxReadiness, manageLxc } from './proxmox.js';
+import { provisionLxc, proxmoxReadiness, manageLxc, inspectLxc, runLxcTerminal, manageLxcSnapshot } from './proxmox.js';
 import { readState, writeState } from './database.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -398,14 +398,51 @@ app.post('/api/admin/hosting-requests/manual',adminOnly,adminMutationOrigin,asyn
  try{const created=await provisionLxc({requestId:request.id,plan,username:request.username,sshPublicKey});request.status='provisioned';request.provisioningStatus='container-started';request.vmid=created.vmid;request.hostname=created.hostname;request.proxmoxTask=created.upid;request.updatedAt=new Date().toISOString();auditAdmin(req,'vps_manual_create','hosting_request',request.id,{userId,vmid:created.vmid,charged:charge?plan.cost:0});writeData();res.status(201).json({ok:true,request:{...request,sshPublicKey:undefined},...(created.generatedSshPrivateKey?{generatedSshPrivateKey:created.generatedSshPrivateKey}:{} )});
  }catch(error){request.status='provisioning-error';request.provisioningStatus='needs-admin-reconciliation';request.error=String(error?.message||'Provisioning failed').slice(0,500);request.updatedAt=new Date().toISOString();try{auditAdmin(req,'vps_manual_create_failed','hosting_request',request.id,{userId,error:request.error});writeData();}catch(persistError){console.error('[manual LXC provisioning] Failed to persist error state for request '+request.id+':',persistError);}console.error('[manual LXC provisioning] Request '+request.id+' failed:',error?.stack||request.error);return res.status(502).json({error:'Manual LXC provisioning failed: '+request.error+'. Do not retry until the existing request and Proxmox VMID have been reconciled.',request:{id:request.id,status:request.status,provisioningStatus:request.provisioningStatus}});}
 });
+app.get('/api/admin/hosting-requests/:id/inspect',adminOnly,async(req,res)=>{
+ const item=data.hostingRequests.find(x=>x.id===req.params.id);
+ if(!item)return res.status(404).json({error:'Hosting request not found.'});
+ if(item.service!=='lxc'||!Number.isInteger(Number(item.vmid))||!['provisioned','suspended','provisioning-error'].includes(item.status))return res.status(409).json({error:'This record is not an inspectable managed LXC container.'});
+ try{const live=await inspectLxc({vmid:item.vmid});res.set('Cache-Control','no-store');res.json({ok:true,request:{id:item.id,vmid:item.vmid,hostname:item.hostname,planName:item.planName,username:item.username,status:item.status,createdAt:item.createdAt,updatedAt:item.updatedAt},live});}
+ catch(error){res.status(502).json({error:String(error.message||'Could not inspect container').slice(0,500)});}
+});
+app.post('/api/admin/hosting-requests/:id/terminal',adminOnly,adminMutationOrigin,async(req,res)=>{
+ const item=data.hostingRequests.find(x=>x.id===req.params.id);
+ if(!item)return res.status(404).json({error:'Hosting request not found.'});
+ if(item.service!=='lxc'||!Number.isInteger(Number(item.vmid))||item.status!=='provisioned')return res.status(409).json({error:'Terminal access is available only for active managed LXC containers.'});
+ const command=String(req.body?.command||''),reason=String(req.body?.reason||'').trim();
+ if(!command.trim()||command.length>4000)return res.status(400).json({error:'Command must be 1–4000 characters.'});
+ if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide an audit reason (3–300 characters).'});
+ try{
+  const live=await inspectLxc({vmid:item.vmid});
+  if(live.status?.status!=='running')return res.status(409).json({error:'Container is not running. Start it before using the terminal.'});
+  const result=await runLxcTerminal({vmid:item.vmid,command});
+  auditAdmin(req,'vps_terminal_command','hosting_request',item.id,{vmid:item.vmid,commandLength:command.length,reason});
+  writeData();res.json({ok:true,...result});
+ }catch(error){res.status(502).json({error:String(error.message||'Terminal command failed').slice(0,500)});}
+});
+app.post('/api/admin/hosting-requests/:id/snapshots',adminOnly,adminMutationOrigin,async(req,res)=>{
+ const item=data.hostingRequests.find(x=>x.id===req.params.id);
+ if(!item)return res.status(404).json({error:'Hosting request not found.'});
+ if(item.service!=='lxc'||!Number.isInteger(Number(item.vmid))||!['provisioned','suspended'].includes(item.status))return res.status(409).json({error:'Snapshots are available only for active managed LXC containers.'});
+ const action=String(req.body?.action||''),name=String(req.body?.name||'').trim(),reason=String(req.body?.reason||'').trim();
+ if(!['create','delete'].includes(action))return res.status(400).json({error:'Snapshot action must be create or delete.'});
+ if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide an audit reason (3–300 characters).'});
+ if(action==='delete'&&!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(name))return res.status(400).json({error:'Invalid snapshot name.'});
+ if(action==='delete'&&!Array.isArray((await inspectLxc({vmid:item.vmid})).snapshots?.filter(x=>x.name===name)))return res.status(404).json({error:'Snapshot not found.'});
+ try{
+  const result=await manageLxcSnapshot({vmid:item.vmid,action,name});
+  auditAdmin(req,'vps_snapshot_'+action,'hosting_request',item.id,{vmid:item.vmid,name,reason});writeData();
+  res.json({ok:true,...result});
+ }catch(error){res.status(502).json({error:String(error.message||'Snapshot operation failed').slice(0,500)});}
+});
 app.post('/api/admin/hosting-requests/:id/action',adminOnly,adminMutationOrigin,async(req,res)=>{
  const item=data.hostingRequests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({error:'Hosting request not found.'});
  if(item.service!=='lxc'||!Number.isInteger(Number(item.vmid)))return res.status(409).json({error:'This record is not a managed LXC container.'});
  const action=String(req.body?.action||''),reason=String(req.body?.reason||'').trim();
  if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide an audit reason (3–300 characters).'});
  if(action==='delete'&&req.body?.confirm!==true)return res.status(400).json({error:'Explicit delete confirmation is required.'});
- if(action==='suspend'&&!['provisioned','suspended'].includes(item.status))return res.status(409).json({error:'Only provisioned containers can be suspended.'});
- if(action==='resume'&&item.status!=='suspended')return res.status(409).json({error:'Only suspended containers can be resumed.'});
+ if(['stop','suspend','reboot'].includes(action)&&!['provisioned','suspended'].includes(item.status))return res.status(409).json({error:'Only provisioned containers can be suspended.'});
+ if(['start','resume'].includes(action)&&!['suspended','provisioned'].includes(item.status))return res.status(409).json({error:'Only suspended containers can be resumed.'});
  if(action==='delete'&&!['provisioned','suspended','provisioning-error'].includes(item.status))return res.status(409).json({error:'This container cannot be deleted from its current state.'});
  try{
   const result=await manageLxc({vmid:item.vmid,action});
