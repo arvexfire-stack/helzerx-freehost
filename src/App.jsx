@@ -317,6 +317,7 @@ export default function App() {
             <>
               <a href="#overview" onClick={() => setActiveTab('deploy')} className={activeTab === 'deploy' ? 'active' : ''}>Deploy</a>
               <a href="#servers" onClick={() => setActiveTab('servers')} className={activeTab === 'servers' ? 'active' : ''}>My Servers ({hostingRequests.length})</a>
+              <a href="/control">Control Center ↗</a>
               <a href="#invites" onClick={() => setActiveTab('invites')} className={activeTab === 'invites' ? 'active' : ''}>Invite Hub</a>
               <a href="#boosts" onClick={() => setActiveTab('boosts')} className={activeTab === 'boosts' ? 'active' : ''}>Boost Rewards</a>
               <a href="#preview" onClick={() => setViewPublicMode(true)}>View Landing</a>
