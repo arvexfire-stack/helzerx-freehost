@@ -189,6 +189,14 @@ function showModal(title,body){$('modal-root').innerHTML='<div class="modal-back
   const b=e.target.closest('[data-action]');if(!b)return;const a=b.dataset.action,id=b.dataset.id;
   try{
    if(a==='vps-manage-refresh'){await openVpsManager(id);return}
+   if(a==='vps-delete'){
+    const item=state.hosting.find(x=>x.id===id);
+    if(!confirm('PERMANENTLY DELETE Proxmox container '+(item?.vmid||'')+'? Its data may be unrecoverable.'))return;
+    const reason=prompt('Enter an audit reason for this deletion:');
+    if(!reason||reason.trim().length<3)return;
+    await post('/api/admin/hosting-requests/'+encodeURIComponent(id)+'/action',{action:'delete',confirm:true,reason:reason.trim()});
+    closeModal();toast('VPS deleted.');await loadView('hosting');return;
+   }
    if(a==='vps-power'){
     const item=state.hosting.find(x=>x.id===id),power=b.dataset.power;
     if(!['start','stop','reboot'].includes(power))return;
@@ -213,7 +221,7 @@ function showModal(title,body){$('modal-root').innerHTML='<div class="modal-back
   }catch(err){toast(err.message||'VPS action failed',true)}
  });
 
- $('modal-root').addEventListener('submit',async e=>{const form=e.target;if(form.id!=='vps-terminal-form')return;e.preventDefault();e.stopPropagation();const fd=new FormData(form),id=form.dataset.id,command=String(fd.get('command')||''),reason=String(fd.get('reason')||'').trim(),btn=form.querySelector('button[type=submit]'),output=$('vps-terminal-output');if(!command.trim()||reason.length<3)return;btn.disabled=true;btn.textContent='Running securely…';if(output)output.textContent='Executing command inside container…';try{const r=await post('/api/admin/hosting-requests/'+encodeURIComponent(id)+'/terminal',{command,reason});if(output)output.textContent=r.output||'(No output)';toast('Command completed successfully.')}catch(err){if(output)output.textContent='ERROR: '+(err.message||'Command failed');toast(err.message||'Terminal command failed',true)}finally{if(btn.isConnected){btn.disabled=false;btn.textContent='Run command securely →'}}});
+ $('modal-root').addEventListener('submit',async e=>{const form=e.target;if(form.id!=='vps-terminal-form')return;e.preventDefault();e.stopImmediatePropagation();const fd=new FormData(form),id=form.dataset.id,command=String(fd.get('command')||''),reason=String(fd.get('reason')||'').trim(),btn=form.querySelector('button[type=submit]'),output=$('vps-terminal-output');if(!command.trim()||reason.length<3)return;btn.disabled=true;btn.textContent='Running securely…';if(output)output.textContent='Executing command inside container…';try{const r=await post('/api/admin/hosting-requests/'+encodeURIComponent(id)+'/terminal',{command,reason});if(output)output.textContent=r.output||'(No output)';toast('Command completed successfully.')}catch(err){if(output)output.textContent='ERROR: '+(err.message||'Command failed');toast(err.message||'Terminal command failed',true)}finally{if(btn.isConnected){btn.disabled=false;btn.textContent='Run command securely →'}}});
 
  $('modal-root').addEventListener('submit',async e=>{e.preventDefault();const form=e.target,fd=new FormData(form);const btn=form.querySelector('button[type=submit]');if(btn)btn.disabled=true;try{
  if(form.id==='plan-form'){await savePlanForm(form);return}
