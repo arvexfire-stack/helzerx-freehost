@@ -1602,3 +1602,33 @@ button, input, select, textarea {
 .hx-logo-svg { transform:perspective(1000px) rotateY(-4deg) rotateX(1deg); }
 .hx-logo-highlight { stroke-dasharray:230; stroke-dashoffset:230; animation:hxLogoSweep 7s ease-in-out infinite; }
 @keyframes hxLogoSweep { 0%,18%{stroke-dashoffset:230;opacity:.15} 55%,72%{stroke-dashoffset:0;opacity:.85} 100%{stroke-dashoffset:-230;opacity:.1} }
+
+/* Quality pass: preserve the HX silhouette, improve legibility, and prevent mobile clipping. */
+html, body, #root { max-width:100%; }
+body { overflow-x:hidden; }
+.page-content { width:100%; min-width:0; }
+.hero-section, .hero-main-grid, .hero-text-block, .hero-visual-frame { min-width:0; }
+.hero-main-grid { grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr); align-items:center; }
+.hero-title { overflow-wrap:normal; }
+.hero-image-wrap.hx-hero-image-wrap { max-width:100%; }
+.hx-hero-scene { min-height:280px; background:radial-gradient(ellipse at 52% 55%,rgba(49,63,101,.23),transparent 68%); }
+.hx-logo-stage { width:100%; max-width:620px; filter:drop-shadow(0 20px 24px rgba(0,0,0,.55)) drop-shadow(0 0 15px rgba(130,137,231,.18)); }
+.hx-logo-svg { display:block; width:100%; height:auto; overflow:visible; transform:none; }
+.hx-logo-face { filter:drop-shadow(0 0 2px rgba(211,231,255,.28)); }
+.hx-logo-highlight { stroke-dasharray:310; stroke-dashoffset:310; animation:hxLogoSweep 8s ease-in-out infinite; }
+@keyframes hxLogoSweep { 0%,18%{stroke-dashoffset:310;opacity:.1} 55%,72%{stroke-dashoffset:0;opacity:.85} 100%{stroke-dashoffset:-310;opacity:.08} }
+@media (max-width:900px) {
+  .hero-main-grid { grid-template-columns:minmax(0,1fr) minmax(0,.82fr); gap:14px; }
+  .hero-title { font-size:clamp(27px,4.2vw,42px); line-height:1.02; }
+  .hx-hero-scene { min-height:210px; }
+}
+@media (max-width:680px) {
+  .hero-main-grid { grid-template-columns:minmax(0,1fr); gap:0; }
+  .hero-text-block { grid-row:1; width:100%; }
+  .hero-visual-frame { grid-row:2; width:100%; max-height:220px; margin:8px auto 0; }
+  .hero-image-wrap.hx-hero-image-wrap { width:100%; max-width:350px; aspect-ratio:1.45 / 1; margin-inline:auto; }
+  .hx-hero-scene { min-height:190px; }
+  .hx-logo-stage { width:min(100%,350px); }
+  .hero-title { font-size:clamp(29px,8vw,40px); }
+}
+@media (prefers-reduced-motion:reduce) { .hx-logo-stage,.hx-logo-highlight { animation:none!important; } }
