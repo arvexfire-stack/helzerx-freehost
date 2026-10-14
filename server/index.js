@@ -3,6 +3,7 @@ import express from 'express';
 import session from 'express-session';
 import crypto from 'node:crypto';
 import { provisionLxc, proxmoxReadiness } from './proxmox.js';
+import { applySecurityHeaders, createRateLimiter } from './security.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +13,32 @@ fs.mkdirSync(path.join(root,'data'),{recursive:true});
 const required=['SESSION_SECRET','DISCORD_CLIENT_ID','DISCORD_CLIENT_SECRET','DISCORD_REDIRECT_URI'];
 const missing=required.filter(k=>!process.env[k]);if(prod&&missing.length)console.error('[startup] Missing environment variables:',missing.join(', '));
 if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32))throw new Error('SESSION_SECRET must be at least 32 characters in production.');
-app.disable('x-powered-by');app.set('trust proxy',1);app.use(express.json({limit:'20kb'}));
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+// Defense in depth. Cloudflare/WAF limits are still required for distributed floods.
+app.use(applySecurityHeaders);
+const apiLimiter = createRateLimiter({
+  windowMs: 60_000,
+  limit: 240,
+  keyPrefix: 'api',
+  message: 'Too many API requests. Please slow down and try again.'
+});
+const authLimiter = createRateLimiter({
+  windowMs: 15 * 60_000,
+  limit: 12,
+  keyPrefix: 'auth',
+  message: 'Too many authentication attempts. Please wait before trying again.'
+});
+const adminEdgeLimiter = createRateLimiter({
+  windowMs: 15 * 60_000,
+  limit: 10,
+  keyPrefix: 'admin-login',
+  message: 'Too many admin sign-in attempts. Please wait before trying again.'
+});
+app.use('/api', (req, res, next) => req.path === '/health' ? next() : apiLimiter(req, res, next));
+app.use(['/api/auth/register', '/api/auth/login'], authLimiter);
+app.use('/api/admin/login', adminEdgeLimiter);
+app.use(express.json({limit:'20kb'}));
 app.use(session({name:'hx_freehost_sid',secret:process.env.SESSION_SECRET||'development-only-change-me',resave:false,saveUninitialized:false,rolling:true,cookie:{httpOnly:true,secure:prod,sameSite:'lax',maxAge:604800000}}));
 
 // Never let a CDN, browser cache, or SPA fallback serve a stale public page for staff-only paths.
