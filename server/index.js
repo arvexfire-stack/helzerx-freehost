@@ -15,13 +15,27 @@ if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32))thr
 app.disable('x-powered-by');app.set('trust proxy',1);app.use(express.json({limit:'20kb'}));
 app.use(session({name:'hx_freehost_sid',secret:process.env.SESSION_SECRET||'development-only-change-me',resave:false,saveUninitialized:false,rolling:true,cookie:{httpOnly:true,secure:prod,sameSite:'lax',maxAge:604800000}}));
 
-// Keep the staff console on the clean /admin URL and register it before SPA/static fallbacks.
-app.get('/admin.html', (_req,res) => res.status(404).type('text/plain').send('Not found'));
-app.get('/admin/', (_req,res) => res.redirect(308, '/admin'));
-app.get('/admin', (_req,res) => {
+// Never let a CDN, browser cache, or SPA fallback serve a stale public page for staff-only paths.
+app.use(['/admin', '/admin/', '/admin.html'], (_req, res, next) => {
+  res.set({
+    'Cache-Control': 'private, no-store, no-cache, must-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+    'CDN-Cache-Control': 'no-store',
+    'Cloudflare-CDN-Cache-Control': 'no-store',
+    'X-Robots-Tag': 'noindex, nofollow, noarchive',
+    'X-Content-Type-Options': 'nosniff'
+  });
+  next();
+});
+app.get('/admin.html', (_req, res) => res.status(404).type('text/plain').send('Not found'));
+app.get('/admin/', (_req, res) => res.redirect(308, '/admin'));
+app.get('/admin', (_req, res) => {
   res.status(200);
-  res.set({ 'Cache-Control':'no-store, no-cache, must-revalidate, private', 'Pragma':'no-cache', 'X-Robots-Tag':'noindex, nofollow, noarchive' });
-  res.sendFile(path.join(root,'private','admin.html'));
+  res.type('html');
+  res.sendFile(path.join(root, 'private', 'admin.html'), { dotfiles: 'deny', cacheControl: false }, (err) => {
+    if (err && !res.headersSent) res.status(404).type('text/plain').send('Not found');
+  });
 });
 const pendingOAuth=new Map();
 const adminLoginAttempts=new Map();
