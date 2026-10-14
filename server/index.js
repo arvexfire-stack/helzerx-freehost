@@ -2,7 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import session from 'express-session';
 import crypto from 'node:crypto';
-import { provisionLxc, proxmoxReadiness } from './proxmox.js';
+import { provisionLxc, proxmoxReadiness, manageLxc } from './proxmox.js';
+import { readState, writeState } from './database.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,20 +58,43 @@ function adminMutationOrigin(req,res,next){
  if(!req.is('application/json'))return res.status(415).json({error:'JSON requests required.'});
  next();
 }
-const DATA_FILE=path.join(root,'data','rewards.json');
+const LEGACY_DATA_FILE=path.join(root,'data','rewards.json');
 function readData(){
-  let stored={};
-  try{stored=JSON.parse(fs.readFileSync(DATA_FILE,'utf8'));}catch{}
-  // Normalize older data files so newly added features never crash on missing arrays.
-  return {
-    users:stored&&stored.users&&typeof stored.users==='object'&&!Array.isArray(stored.users)?stored.users:{},
-    claims:Array.isArray(stored?.claims)?stored.claims:[],
-    inviteClaims:Array.isArray(stored?.inviteClaims)?stored.inviteClaims:[],
-    hostingRequests:Array.isArray(stored?.hostingRequests)?stored.hostingRequests:[]
+  const stored=readState();
+  const hasDatabaseData=Object.values(stored).some(value=>Array.isArray(value)?value.length>0:Object.keys(value||{}).length>0);
+  if(!hasDatabaseData&&fs.existsSync(LEGACY_DATA_FILE)){
+    try {
+      const legacy=JSON.parse(fs.readFileSync(LEGACY_DATA_FILE,'utf8'));
+      const migrated={
+        users:legacy?.users&&typeof legacy.users==='object'&&!Array.isArray(legacy.users)?legacy.users:{},
+        claims:Array.isArray(legacy?.claims)?legacy.claims:[],
+        inviteClaims:Array.isArray(legacy?.inviteClaims)?legacy.inviteClaims:[],
+        hostingRequests:Array.isArray(legacy?.hostingRequests)?legacy.hostingRequests:[],
+        tickets:[], plans:[], auditLogs:[]
+      };
+      writeState(migrated);
+      return migrated;
+    } catch(error) { console.error('[database migration] Legacy rewards file could not be migrated:',error.message); }
+  }
+  let envPlans=[];
+  try { envPlans=JSON.parse(process.env.HOSTING_REDEMPTION_OPTIONS||'[]'); } catch {}
+  const state={
+    users:stored.users||{},
+    claims:stored.claims||[],
+    inviteClaims:stored.inviteClaims||[],
+    hostingRequests:stored.hostingRequests||[],
+    tickets:stored.tickets||[],
+    plans:Array.isArray(stored.plans)?stored.plans:[],
+    auditLogs:stored.auditLogs||[]
   };
+  if(!state.plans.length&&Array.isArray(envPlans)&&envPlans.length){
+    state.plans=envPlans.filter(x=>x&&typeof x.id==='string'&&typeof x.service==='string').map(x=>({...x,enabled:x.enabled!==false}));
+    writeState(state);
+  }
+  return state;
 }
 let data=readData();
-function writeData(){const tmp=DATA_FILE+'.tmp';fs.writeFileSync(tmp,JSON.stringify(data,null,2),{mode:0o600});fs.renameSync(tmp,DATA_FILE);}
+function writeData(){writeState(data);}
 function ensureUser(id){if(!data.users[id])data.users[id]={balance:0,verifiedInvites:0,activeBoosts:0,referrer:null,pendingReferrer:null,creditedMilestones:[],createdAt:Date.now()};if(!Array.isArray(data.inviteClaims))data.inviteClaims=[];if(!Array.isArray(data.hostingRequests))data.hostingRequests=[];return data.users[id];}
 const inviteTiers=[[2,200],[4,600],[8,900],[12,1300],[16,1700],[24,2400],[28,2900],[34,3400],[38,4000],[42,4500]];
 const boostTiers=[[1,2000],[2,4000],[3,4700],[4,5000],[7,6900],[10,10000]];
@@ -78,7 +102,7 @@ function creditInviteMilestones(id){const u=ensureUser(id);for(const [count,amou
 function discordGuildMemberships(accessToken){return fetch('https://discord.com/api/users/@me/guilds',{headers:{Authorization:'Bearer '+accessToken,Accept:'application/json'},signal:AbortSignal.timeout(10000)});}
 
 function publicUser(u){return u?{id:u.id,username:u.username,global_name:u.global_name||u.username,avatar:u.avatar?'https://cdn.discordapp.com/avatars/'+u.id+'/'+u.avatar+'.'+(u.avatar.startsWith('a_')?'gif':'png')+'?size=128':null}:null;}
-function auth(req,res,next){if(!req.session.user)return res.status(401).json({error:'DISCORD_LOGIN_REQUIRED'});next();}
+function auth(req,res,next){if(!req.session.user)return res.status(401).json({error:'DISCORD_LOGIN_REQUIRED'});const account=data.users[req.session.user.id];if(account?.status==='suspended')return res.status(403).json({error:'ACCOUNT_SUSPENDED'});next();}
 async function rewardsFor(user){const u=ensureUser(user.id);return {connected:true,balance:u.balance,verifiedInvites:u.verifiedInvites,activeBoosts:u.activeBoosts,rewards:[],message:null,inviteTiers,boostTiers,referralCode:user.id};}
 app.get('/api/health',(_q,r)=>r.json({ok:true,service:'helzerx-freehost',discordConfigured:Boolean(process.env.DISCORD_CLIENT_ID&&process.env.DISCORD_CLIENT_SECRET),rewardsConfigured:Boolean(process.env.REWARDS_API_URL&&process.env.REWARDS_API_TOKEN),proxmox:{enabled:proxmoxReadiness().enabled,ready:proxmoxReadiness().ready}}));
 app.get('/api/auth/discord',(req,res)=>{if(!process.env.DISCORD_CLIENT_ID||!process.env.DISCORD_REDIRECT_URI)return res.status(503).send('Discord login is not configured yet.');const state=crypto.randomBytes(32).toString('hex');pendingOAuth.set(state,{createdAt:Date.now(),referral:typeof req.query.ref==='string'?req.query.ref:''});for(const [k,v] of pendingOAuth)if(Date.now()-v.createdAt>600000)pendingOAuth.delete(k);const u=new URL('https://discord.com/oauth2/authorize');u.searchParams.set('client_id',process.env.DISCORD_CLIENT_ID);u.searchParams.set('response_type','code');u.searchParams.set('redirect_uri',process.env.DISCORD_REDIRECT_URI);u.searchParams.set('scope','identify guilds');u.searchParams.set('state',state);res.redirect(u.toString());});
@@ -215,9 +239,9 @@ app.post('/api/auth/logout', (req, res) => req.session.destroy(e => {
 app.get('/api/me',auth,async(req,res)=>{res.set('Cache-Control','no-store');res.json({user:publicUser(req.session.user),rewards:await rewardsFor(req.session.user)});});
 app.get('/api/rewards',auth,async(req,res)=>{res.set('Cache-Control','no-store');res.json(await rewardsFor(req.session.user));});
 app.get('/api/invites',auth,(req,res)=>{const u=ensureUser(req.session.user.id);res.set('Cache-Control','no-store');res.json({referralCode:req.session.user.id,referralUrl:(process.env.APP_URL||'https://free.helzerx.cyou')+'/?ref='+encodeURIComponent(req.session.user.id),verifiedInvites:u.verifiedInvites,pendingInvites:data.inviteClaims.filter(c=>c.referrerId===req.session.user.id&&c.status==='pending').length,creditedMilestones:u.creditedMilestones});});
-app.get('/api/hosting-options',auth,(_req,res)=>{let options=[];try{options=JSON.parse(process.env.HOSTING_REDEMPTION_OPTIONS||'[]')}catch{}const readiness=proxmoxReadiness();res.set('Cache-Control','no-store');res.json({options:options.map(({id,service,name,cost,description})=>({id,service,name,cost,description})),provisioning:{enabled:readiness.enabled,ready:readiness.ready}})});
+app.get('/api/hosting-options',auth,(_req,res)=>{const options=data.plans.filter(x=>x.enabled!==false);const readiness=proxmoxReadiness();res.set('Cache-Control','no-store');res.json({options:options.map(({id,service,name,cost,description})=>({id,service,name,cost,description})),provisioning:{enabled:readiness.enabled,ready:readiness.ready}})});
 app.get('/api/hosting-requests',auth,(req,res)=>{res.set('Cache-Control','no-store');res.json({requests:data.hostingRequests.filter(x=>x.userId===req.session.user.id).map(({id,service,planName,cost,status,createdAt,updatedAt,vmid,hostname,provisioningStatus,error})=>({id,service,planName,cost,status,createdAt,updatedAt,vmid,hostname,provisioningStatus,error}))})});
-app.post('/api/hosting-requests',auth,(req,res)=>{const service=String(req.body?.service||'');const planId=String(req.body?.planId||'');const sshPublicKey=typeof req.body?.sshPublicKey==='string'?req.body.sshPublicKey.trim():'';let options=[];try{options=JSON.parse(process.env.HOSTING_REDEMPTION_OPTIONS||'[]')}catch{}const option=options.find(x=>x.id===planId&&x.service===service&&Number.isSafeInteger(x.cost)&&x.cost>0&&typeof x.name==='string');if(!option)return res.status(400).json({error:'This hosting plan is not currently configured for HZL redemption.'});if(service==='lxc'&&!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048)return res.status(400).json({error:'Provide a valid SSH public key for your LXC account. Never submit a private key or password.'});const u=ensureUser(req.session.user.id);if(u.balance<option.cost)return res.status(400).json({error:'Not enough HZL for this hosting plan.'});if(data.hostingRequests.some(x=>x.userId===req.session.user.id&&x.status==='pending'))return res.status(409).json({error:'You already have a pending hosting request.'});const request={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,service,planId:option.id,planName:option.name,cost:option.cost,status:'pending',...(service==='lxc'?{sshPublicKey}:{}),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.hostingRequests.push(request);writeData();res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status},message:'Hosting request submitted for review. HZL is not deducted until an administrator approves it.'});});
+app.post('/api/hosting-requests',auth,(req,res)=>{const service=String(req.body?.service||'');const planId=String(req.body?.planId||'');const sshPublicKey=typeof req.body?.sshPublicKey==='string'?req.body.sshPublicKey.trim():'';const option=data.plans.find(x=>x.enabled!==false&&x.id===planId&&x.service===service&&Number.isSafeInteger(x.cost)&&x.cost>0&&typeof x.name==='string');if(!option)return res.status(400).json({error:'This hosting plan is not currently configured for HZL redemption.'});if(service==='lxc'&&!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048)return res.status(400).json({error:'Provide a valid SSH public key for your LXC account. Never submit a private key or password.'});const u=ensureUser(req.session.user.id);if(u.balance<option.cost)return res.status(400).json({error:'Not enough HZL for this hosting plan.'});if(data.hostingRequests.some(x=>x.userId===req.session.user.id&&x.status==='pending'))return res.status(409).json({error:'You already have a pending hosting request.'});const request={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,service,planId:option.id,planName:option.name,cost:option.cost,planSnapshot:{id:option.id,service:option.service,name:option.name,cost:option.cost,...(option.proxmox?{proxmox:{...option.proxmox}}:{})},status:'pending',...(service==='lxc'?{sshPublicKey}:{}),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.hostingRequests.push(request);writeData();res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status},message:'Hosting request submitted for review. HZL is not deducted until an administrator approves it.'});});
 app.get('/api/boost-rewards',auth,(_req,res)=>res.json({tiers:boostTiers,verification:'Boost rewards are submitted as claims and must be reviewed. Discord OAuth alone cannot verify active server boosts without a privileged integration.'}));
 app.post('/api/boost-claims',auth,(req,res)=>{const count=Number(req.body?.boosts);if(![1,2,3,4,7,10].includes(count))return res.status(400).json({error:'Choose an eligible boost tier.'});const duplicate=data.claims.some(c=>c.userId===req.session.user.id&&c.status==='pending');if(duplicate)return res.status(409).json({error:'You already have a pending boost claim.'});const tier=boostTiers.find(x=>x[0]===count);data.claims.push({id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,boosts:count,amount:tier[1],status:'pending',createdAt:new Date().toISOString()});writeData();res.status(201).json({ok:true,message:'Claim submitted for manual verification. HZL will only be credited after approval.'});});
 app.get('/api/boost-claims',auth,(req,res)=>res.json({claims:data.claims.filter(c=>c.userId===req.session.user.id).map(({id,boosts,amount,status,createdAt})=>({id,boosts,amount,status,createdAt}))}));
@@ -255,9 +279,144 @@ app.post('/api/admin/logout',adminMutationOrigin,(req,res)=>req.session.destroy(
 app.get('/api/admin/boost-claims',adminOnly,(_req,res)=>res.json({claims:data.claims}));
 app.get('/api/admin/invite-claims',adminOnly,(_req,res)=>res.json({claims:data.inviteClaims.filter(c=>c.status==='pending')}));
 app.post('/api/admin/invite-claims/:id/review',adminOnly,adminMutationOrigin,(req,res)=>{const claim=data.inviteClaims.find(c=>c.id===req.params.id);if(!claim)return res.status(404).json({error:'Invite claim not found'});if(claim.status!=='pending')return res.status(409).json({error:'Invite claim has already been reviewed'});const action=req.body?.action;if(!['approve','reject'].includes(action))return res.status(400).json({error:'Action must be approve or reject'});claim.status=action==='approve'?'approved':'rejected';claim.reviewedAt=new Date().toISOString();const invitee=ensureUser(claim.inviteeId);invitee.pendingReferrer=null;if(action==='approve'){invitee.referrer=claim.referrerId;const owner=ensureUser(claim.referrerId);owner.verifiedInvites+=1;creditInviteMilestones(claim.referrerId);}writeData();res.json({ok:true,claim});});
-app.get('/api/admin/hosting-requests',adminOnly,(_req,res)=>res.json({requests:data.hostingRequests.filter(x=>x.status==='pending'||x.status==='provisioning-error').map(({sshPublicKey,...x})=>x)}));
-app.post('/api/admin/hosting-requests/:id/review',adminOnly,adminMutationOrigin,async(req,res)=>{const item=data.hostingRequests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({error:'Hosting request not found'});if(item.status!=='pending')return res.status(409).json({error:'Hosting request has already been reviewed'});const action=req.body?.action;if(!['approve','reject'].includes(action))return res.status(400).json({error:'Action must be approve or reject'});const u=ensureUser(item.userId);if(action==='reject'){item.status='rejected';item.reviewedAt=new Date().toISOString();item.updatedAt=item.reviewedAt;writeData();return res.json({ok:true,request:item})}if(u.balance<item.cost)return res.status(409).json({error:'User balance is no longer sufficient'});let options=[];try{options=JSON.parse(process.env.HOSTING_REDEMPTION_OPTIONS||'[]')}catch{}const plan=options.find(x=>x.id===item.planId&&x.service===item.service&&Number.isSafeInteger(x.cost)&&x.cost===item.cost);if(!plan||!plan.proxmox||plan.service!=='lxc')return res.status(409).json({error:'Only explicitly configured LXC plans can be provisioned. No HZL was deducted.'});const readiness=proxmoxReadiness();if(!readiness.ready)return res.status(503).json({error:'Proxmox provisioning is not ready. No HZL was deducted.',missing:readiness.missing});u.balance-=item.cost;item.status='provisioning';item.provisioningStatus='creating-container';item.reviewedAt=new Date().toISOString();item.updatedAt=item.reviewedAt;item.provisioningAttempts=(item.provisioningAttempts||0)+1;writeData();try{const created=await provisionLxc({requestId:item.id,plan,username:item.username,sshPublicKey:item.sshPublicKey});item.status='provisioned';item.provisioningStatus='container-start-requested';item.vmid=created.vmid;item.hostname=created.hostname;item.proxmoxTask=created.upid;item.updatedAt=new Date().toISOString();writeData();return res.json({ok:true,request:item})}catch(e){item.status='provisioning-error';item.provisioningStatus='needs-admin-reconciliation';item.error=String(e.message||'Provisioning failed').slice(0,500);item.updatedAt=new Date().toISOString();writeData();console.error('[proxmox provisioning]',item.id,item.error);return res.status(502).json({error:'Provisioning did not complete cleanly. The request is locked against duplicate provisioning and requires admin reconciliation; HZL was not automatically refunded to avoid double provisioning.',request:{id:item.id,status:item.status,provisioningStatus:item.provisioningStatus}})}});
+app.get('/api/admin/hosting-requests',adminOnly,(_req,res)=>res.json({requests:data.hostingRequests.map(({sshPublicKey,...x})=>x)}));
+app.post('/api/admin/hosting-requests/:id/review',adminOnly,adminMutationOrigin,async(req,res)=>{const item=data.hostingRequests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({error:'Hosting request not found'});if(item.status!=='pending')return res.status(409).json({error:'Hosting request has already been reviewed'});const action=req.body?.action;if(!['approve','reject'].includes(action))return res.status(400).json({error:'Action must be approve or reject'});const u=ensureUser(item.userId);if(action==='reject'){item.status='rejected';item.reviewedAt=new Date().toISOString();item.updatedAt=item.reviewedAt;writeData();return res.json({ok:true,request:item})}if(u.balance<item.cost)return res.status(409).json({error:'User balance is no longer sufficient'});const plan=item.planSnapshot||data.plans.find(x=>x.id===item.planId&&x.service===item.service&&x.proxmox);if(!plan||!plan.proxmox||plan.service!=='lxc')return res.status(409).json({error:'Only explicitly configured LXC plans can be provisioned. No HZL was deducted.'});const readiness=proxmoxReadiness();if(!readiness.ready)return res.status(503).json({error:'Proxmox provisioning is not ready. No HZL was deducted.',missing:readiness.missing});u.balance-=item.cost;item.status='provisioning';item.provisioningStatus='creating-container';item.reviewedAt=new Date().toISOString();item.updatedAt=item.reviewedAt;item.provisioningAttempts=(item.provisioningAttempts||0)+1;writeData();try{const created=await provisionLxc({requestId:item.id,plan,username:item.username,sshPublicKey:item.sshPublicKey});item.status='provisioned';item.provisioningStatus='container-start-requested';item.vmid=created.vmid;item.hostname=created.hostname;item.proxmoxTask=created.upid;item.updatedAt=new Date().toISOString();writeData();return res.json({ok:true,request:item})}catch(e){item.status='provisioning-error';item.provisioningStatus='needs-admin-reconciliation';item.error=String(e.message||'Provisioning failed').slice(0,500);item.updatedAt=new Date().toISOString();writeData();console.error('[proxmox provisioning]',item.id,item.error);return res.status(502).json({error:'Provisioning did not complete cleanly. The request is locked against duplicate provisioning and requires admin reconciliation; HZL was not automatically refunded to avoid double provisioning.',request:{id:item.id,status:item.status,provisioningStatus:item.provisioningStatus}})}});
 app.post('/api/admin/boost-claims/:id/review',adminOnly,adminMutationOrigin,(req,res)=>{const claim=data.claims.find(c=>c.id===req.params.id);if(!claim)return res.status(404).json({error:'Claim not found'});if(claim.status!=='pending')return res.status(409).json({error:'Claim has already been reviewed'});const action=req.body?.action;if(!['approve','reject'].includes(action))return res.status(400).json({error:'Action must be approve or reject'});claim.status=action==='approve'?'approved':'rejected';claim.reviewedAt=new Date().toISOString();if(action==='approve'){const u=ensureUser(claim.userId);u.balance+=claim.amount;u.activeBoosts=Math.max(u.activeBoosts,claim.boosts);}writeData();res.json({ok:true,claim});});
+
+function auditAdmin(req,action,targetType,targetId,details={}) {
+  data.auditLogs.unshift({id:crypto.randomUUID(),adminEmail:req.session.admin.email,action,targetType,targetId:String(targetId||''),details,createdAt:new Date().toISOString()});
+  if(data.auditLogs.length>5000)data.auditLogs.length=5000;
+}
+function safeAdminUser(id,u) {
+  return {id,username:u.username||u.global_name||'Unknown',email:u.email||null,balance:Number(u.balance)||0,verifiedInvites:Number(u.verifiedInvites)||0,activeBoosts:Number(u.activeBoosts)||0,createdAt:u.createdAt||null,status:u.status==='suspended'?'suspended':'active',avatar:u.avatar||null,referrer:u.referrer||null};
+}
+app.get('/api/tickets',auth,(req,res)=>{res.set('Cache-Control','no-store');res.json({tickets:data.tickets.filter(t=>t.userId===req.session.user.id).map(({messages=[],...t})=>({...t,messageCount:messages.length,lastMessageAt:messages.at(-1)?.createdAt||t.createdAt}))})});
+app.post('/api/tickets',auth,adminMutationOrigin,(req,res)=>{
+ const subject=String(req.body?.subject||'').trim(),message=String(req.body?.message||'').trim(),category=String(req.body?.category||'general');
+ if(subject.length<4||subject.length>120)return res.status(400).json({error:'Ticket subject must be 4–120 characters.'});
+ if(message.length<5||message.length>5000)return res.status(400).json({error:'Message must be 5–5000 characters.'});
+ if(!['general','billing','technical','vps','account'].includes(category))return res.status(400).json({error:'Invalid ticket category.'});
+ const openCount=data.tickets.filter(t=>t.userId===req.session.user.id&&t.status!=='closed').length;
+ if(openCount>=10)return res.status(429).json({error:'You have reached the limit of 10 open tickets.'});
+ const now=new Date().toISOString(),ticket={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username||'Member',subject,category,status:'open',priority:'normal',createdAt:now,updatedAt:now,messages:[{id:crypto.randomUUID(),authorId:req.session.user.id,authorName:req.session.user.username||'Member',authorRole:'user',message,createdAt:now}]};
+ data.tickets.push(ticket);writeData();res.status(201).json({ok:true,ticket:{...ticket}});
+});
+app.post('/api/tickets/:id/messages',auth,adminMutationOrigin,(req,res)=>{
+ const ticket=data.tickets.find(t=>t.id===req.params.id&&t.userId===req.session.user.id);
+ if(!ticket)return res.status(404).json({error:'Ticket not found.'});
+ if(ticket.status==='closed')return res.status(409).json({error:'This ticket is closed.'});
+ const message=String(req.body?.message||'').trim();if(message.length<1||message.length>5000)return res.status(400).json({error:'Message must be 1–5000 characters.'});
+ const now=new Date().toISOString();ticket.messages.push({id:crypto.randomUUID(),authorId:req.session.user.id,authorName:req.session.user.username||'Member',authorRole:'user',message,createdAt:now});ticket.updatedAt=now;ticket.status='open';writeData();res.json({ok:true,ticket});
+});
+app.get('/api/tickets/:id',auth,(req,res)=>{const ticket=data.tickets.find(t=>t.id===req.params.id&&t.userId===req.session.user.id);if(!ticket)return res.status(404).json({error:'Ticket not found.'});res.set('Cache-Control','no-store');res.json({ticket})});
+
+app.get('/api/admin/overview',adminOnly,(_req,res)=>{
+ const users=Object.values(data.users),requests=data.hostingRequests;
+ res.json({stats:{users:users.length,activeUsers:users.filter(u=>u.status!=='suspended').length,suspendedUsers:users.filter(u=>u.status==='suspended').length,openTickets:data.tickets.filter(t=>t.status!=='closed').length,pendingHosting:requests.filter(x=>x.status==='pending').length,activeVps:requests.filter(x=>['provisioned','suspended'].includes(x.status)).length,totalHzl:users.reduce((n,u)=>n+(Number(u.balance)||0),0)},proxmox:proxmoxReadiness()});
+});
+app.get('/api/admin/users',adminOnly,(req,res)=>{
+ const q=String(req.query.q||'').trim().toLowerCase(),status=String(req.query.status||'all');
+ const users=Object.entries(data.users).map(([id,u])=>safeAdminUser(id,u)).filter(u=>(!q||[u.id,u.username,u.email||''].some(v=>String(v).toLowerCase().includes(q)))&&(status==='all'||u.status===status)).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+ res.json({users,total:users.length});
+});
+app.get('/api/admin/users/:id',adminOnly,(req,res)=>{
+ const u=data.users[req.params.id];if(!u)return res.status(404).json({error:'User not found.'});
+ const id=req.params.id,hosting=data.hostingRequests.filter(x=>x.userId===id).map(({sshPublicKey,...x})=>x),tickets=data.tickets.filter(x=>x.userId===id).map(({messages,...x})=>({...x,messageCount:(messages||[]).length})),invites=data.inviteClaims.filter(x=>x.referrerId===id||x.inviteeId===id),boosts=data.claims.filter(x=>x.userId===id);
+ res.set('Cache-Control','no-store');res.json({user:{...safeAdminUser(id,u),globalName:u.global_name||u.username,avatar:u.avatar||null,referrer:u.referrer||null,pendingReferrer:u.pendingReferrer||null,creditedMilestones:u.creditedMilestones||[],statusReason:u.statusReason||null,statusUpdatedAt:u.statusUpdatedAt||null},hosting,tickets,inviteClaims:invites,boostClaims:boosts});
+});
+app.post('/api/admin/users/:id/balance',adminOnly,adminMutationOrigin,(req,res)=>{
+ const user=data.users[req.params.id];if(!user)return res.status(404).json({error:'User not found.'});
+ const action=String(req.body?.action||''),amount=Number(req.body?.amount),reason=String(req.body?.reason||'').trim();
+ if(!['add','remove'].includes(action)||!Number.isSafeInteger(amount)||amount<1||amount>100000000)return res.status(400).json({error:'Choose add/remove and an integer HZL amount between 1 and 100,000,000.'});
+ if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide an audit reason (3–300 characters).'});
+ const before=Number(user.balance)||0;if(action==='remove'&&before<amount)return res.status(409).json({error:'User does not have enough HZL to remove.'});
+ user.balance=action==='add'?before+amount:before-amount;
+ auditAdmin(req,'balance_'+action,'user',req.params.id,{amount,before,after:user.balance,reason});writeData();
+ res.json({ok:true,user:safeAdminUser(req.params.id,user)});
+});
+app.post('/api/admin/users/:id/status',adminOnly,adminMutationOrigin,(req,res)=>{
+ const user=data.users[req.params.id];if(!user)return res.status(404).json({error:'User not found.'});
+ const status=String(req.body?.status||''),reason=String(req.body?.reason||'').trim();
+ if(!['active','suspended'].includes(status))return res.status(400).json({error:'Status must be active or suspended.'});
+ if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide a reason (3–300 characters).'});
+ user.status=status;user.statusReason=reason;user.statusUpdatedAt=new Date().toISOString();
+ auditAdmin(req,'user_'+status,'user',req.params.id,{reason});writeData();res.json({ok:true,user:safeAdminUser(req.params.id,user)});
+});
+app.get('/api/admin/plans',adminOnly,(_req,res)=>res.json({plans:data.plans}));
+app.post('/api/admin/plans',adminOnly,adminMutationOrigin,(req,res)=>{
+ const {id,service,name,cost,description,enabled=true,proxmox:resources}=req.body||{};
+ if(typeof id!=='string'||!/^[a-z0-9][a-z0-9-]{1,30}$/i.test(id)||data.plans.some(p=>p.id===id))return res.status(400).json({error:'Plan ID must be unique and 2–31 letters, numbers or hyphens.'});
+ if(!['lxc','minecraft','vps'].includes(service)||typeof name!=='string'||name.trim().length<2||name.trim().length>100||!Number.isSafeInteger(Number(cost))||Number(cost)<1||Number(cost)>100000000)return res.status(400).json({error:'Invalid plan service, name or HZL cost.'});
+ if(description!==undefined&&(typeof description!=='string'||description.length>1000))return res.status(400).json({error:'Description must be at most 1000 characters.'});
+ const plan={id,service,name:name.trim(),cost:Number(cost),description:String(description||''),enabled:Boolean(enabled)};
+ if(service==='lxc'){if(!resources)return res.status(400).json({error:'LXC plans require explicit Proxmox resources (cores, memory, disk and swap).'});const cores=Number(resources.cores),memory=Number(resources.memory),disk=Number(resources.disk),swap=Number(resources.swap??512);if(!Number.isInteger(cores)||cores<1||cores>64||!Number.isInteger(memory)||memory<256||memory>1048576||!Number.isInteger(disk)||disk<2||disk>10000||!Number.isInteger(swap)||swap<0||swap>1048576)return res.status(400).json({error:'Invalid LXC resource limits.'});plan.proxmox={cores,memory,disk,swap};}
+ data.plans.push(plan);auditAdmin(req,'plan_create','plan',id,{service,cost:plan.cost});writeData();res.status(201).json({ok:true,plan});
+});
+app.put('/api/admin/plans/:id',adminOnly,adminMutationOrigin,(req,res)=>{
+ const plan=data.plans.find(p=>p.id===req.params.id);if(!plan)return res.status(404).json({error:'Plan not found.'});
+ const {name,cost,description,enabled,proxmox:resources}=req.body||{};
+ if(name!==undefined&&(typeof name!=='string'||name.trim().length<2||name.trim().length>100))return res.status(400).json({error:'Invalid plan name.'});
+ if(cost!==undefined&&(!Number.isSafeInteger(Number(cost))||Number(cost)<1||Number(cost)>100000000))return res.status(400).json({error:'Invalid HZL cost.'});
+ if(description!==undefined&&(typeof description!=='string'||description.length>1000))return res.status(400).json({error:'Description must be at most 1000 characters.'});
+ if(name!==undefined)plan.name=name.trim();if(cost!==undefined)plan.cost=Number(cost);if(description!==undefined)plan.description=description;if(enabled!==undefined)plan.enabled=Boolean(enabled);
+ if(resources!==undefined){if(plan.service!=='lxc'||!resources||!Number.isInteger(Number(resources.cores))||Number(resources.cores)<1||!Number.isInteger(Number(resources.memory))||Number(resources.memory)<256||!Number.isInteger(Number(resources.disk))||Number(resources.disk)<2)return res.status(400).json({error:'Invalid LXC resource mapping.'});plan.proxmox={cores:Number(resources.cores),memory:Number(resources.memory),disk:Number(resources.disk),swap:Number(resources.swap??512)};}
+ auditAdmin(req,'plan_update','plan',plan.id,{name:plan.name,cost:plan.cost,enabled:plan.enabled});writeData();res.json({ok:true,plan});
+});
+app.delete('/api/admin/plans/:id',adminOnly,adminMutationOrigin,(req,res)=>{
+ const idx=data.plans.findIndex(p=>p.id===req.params.id);if(idx<0)return res.status(404).json({error:'Plan not found.'});
+ if(data.hostingRequests.some(x=>x.planId===req.params.id&&['pending','provisioning','provisioned','suspended'].includes(x.status)))return res.status(409).json({error:'Plan is referenced by pending or active hosting requests. Disable it instead.'});
+ const [plan]=data.plans.splice(idx,1);auditAdmin(req,'plan_delete','plan',plan.id,{name:plan.name});writeData();res.json({ok:true});
+});
+app.get('/api/admin/tickets',adminOnly,(req,res)=>{
+ const status=String(req.query.status||'open'),q=String(req.query.q||'').toLowerCase();
+ const tickets=data.tickets.filter(t=>(status==='all'||t.status===status)&&( !q||[t.id,t.subject,t.username,t.userId].some(v=>String(v||'').toLowerCase().includes(q)))).map(t=>({...t,messages:t.messages||[]})).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
+ res.json({tickets,total:tickets.length});
+});
+app.post('/api/admin/tickets/:id/messages',adminOnly,adminMutationOrigin,(req,res)=>{
+ const ticket=data.tickets.find(t=>t.id===req.params.id);if(!ticket)return res.status(404).json({error:'Ticket not found.'});
+ const message=String(req.body?.message||'').trim();if(message.length<1||message.length>5000)return res.status(400).json({error:'Message must be 1–5000 characters.'});
+ const now=new Date().toISOString();ticket.messages=ticket.messages||[];ticket.messages.push({id:crypto.randomUUID(),authorId:req.session.admin.email,authorName:'HelzerX Support',authorRole:'admin',message,createdAt:now});ticket.updatedAt=now;if(ticket.status==='closed')ticket.status='open';auditAdmin(req,'ticket_reply','ticket',ticket.id,{});writeData();res.json({ok:true,ticket});
+});
+app.post('/api/admin/tickets/:id/status',adminOnly,adminMutationOrigin,(req,res)=>{
+ const ticket=data.tickets.find(t=>t.id===req.params.id);if(!ticket)return res.status(404).json({error:'Ticket not found.'});
+ const status=String(req.body?.status||''),priority=String(req.body?.priority||ticket.priority||'normal');
+ if(!['open','in_progress','waiting_user','closed'].includes(status)||!['low','normal','high','urgent'].includes(priority))return res.status(400).json({error:'Invalid ticket status or priority.'});
+ ticket.status=status;ticket.priority=priority;ticket.updatedAt=new Date().toISOString();auditAdmin(req,'ticket_status','ticket',ticket.id,{status,priority});writeData();res.json({ok:true,ticket});
+});
+
+app.post('/api/admin/hosting-requests/manual',adminOnly,adminMutationOrigin,async(req,res)=>{
+ const userId=String(req.body?.userId||''),planId=String(req.body?.planId||''),sshPublicKey=String(req.body?.sshPublicKey||'').trim(),charge=req.body?.charge===true;
+ const user=data.users[userId];if(!user)return res.status(404).json({error:'User not found.'});
+ const plan=data.plans.find(p=>p.id===planId&&p.enabled!==false);
+ if(!plan||plan.service!=='lxc'||!plan.proxmox)return res.status(400).json({error:'Choose an enabled LXC plan with an explicit Proxmox resource mapping.'});
+ if(!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048)return res.status(400).json({error:'Provide a valid SSH public key. Private keys and passwords are not accepted.'});
+ if(charge&&(Number(user.balance)||0)<plan.cost)return res.status(409).json({error:'User does not have enough HZL.'});
+ const readiness=proxmoxReadiness();if(!readiness.ready)return res.status(503).json({error:'Proxmox provisioning is not ready.',missing:readiness.missing});
+ const now=new Date().toISOString(),request={id:crypto.randomUUID(),userId,username:user.username||user.global_name||userId,service:'lxc',planId:plan.id,planName:plan.name,cost:charge?plan.cost:0,status:'provisioning',sshPublicKey,manualCreated:true,createdAt:now,updatedAt:now,createdBy:req.session.admin.email};
+ data.hostingRequests.push(request);if(charge){user.balance-=plan.cost;auditAdmin(req,'balance_remove','user',userId,{amount:plan.cost,reason:'Manual LXC provisioning: '+request.id});}
+ request.provisioningAttempts=1;writeData();
+ try{const created=await provisionLxc({requestId:request.id,plan,username:request.username,sshPublicKey});request.status='provisioned';request.provisioningStatus='container-started';request.vmid=created.vmid;request.hostname=created.hostname;request.proxmoxTask=created.upid;request.updatedAt=new Date().toISOString();auditAdmin(req,'vps_manual_create','hosting_request',request.id,{userId,vmid:created.vmid,charged:charge?plan.cost:0});writeData();res.status(201).json({ok:true,request:{...request,sshPublicKey:undefined}});
+ }catch(error){request.status='provisioning-error';request.provisioningStatus='needs-admin-reconciliation';request.error=String(error.message||'Provisioning failed').slice(0,500);request.updatedAt=new Date().toISOString();auditAdmin(req,'vps_manual_create_failed','hosting_request',request.id,{userId,error:request.error});writeData();res.status(502).json({error:'Provisioning failed or needs reconciliation. Review the request before retrying to avoid duplicate containers.',request:{id:request.id,status:request.status,provisioningStatus:request.provisioningStatus}});}
+});
+app.post('/api/admin/hosting-requests/:id/action',adminOnly,adminMutationOrigin,async(req,res)=>{
+ const item=data.hostingRequests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({error:'Hosting request not found.'});
+ if(item.service!=='lxc'||!Number.isInteger(Number(item.vmid)))return res.status(409).json({error:'This record is not a managed LXC container.'});
+ const action=String(req.body?.action||''),reason=String(req.body?.reason||'').trim();
+ if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide an audit reason (3–300 characters).'});
+ if(action==='delete'&&req.body?.confirm!==true)return res.status(400).json({error:'Explicit delete confirmation is required.'});
+ if(action==='suspend'&&!['provisioned','suspended'].includes(item.status))return res.status(409).json({error:'Only provisioned containers can be suspended.'});
+ if(action==='resume'&&item.status!=='suspended')return res.status(409).json({error:'Only suspended containers can be resumed.'});
+ if(action==='delete'&&!['provisioned','suspended','provisioning-error'].includes(item.status))return res.status(409).json({error:'This container cannot be deleted from its current state.'});
+ try{
+  const result=await manageLxc({vmid:item.vmid,action});
+  item.updatedAt=new Date().toISOString();
+  if(action==='suspend'){item.status='suspended';item.provisioningStatus='container-stopped';}
+  else if(action==='resume'){item.status='provisioned';item.provisioningStatus='container-running';}
+  else{item.status='deleted';item.provisioningStatus='container-deleted';item.deletedAt=item.updatedAt;item.deletedBy=req.session.admin.email;}
+  auditAdmin(req,'vps_'+action,'hosting_request',item.id,{vmid:item.vmid,userId:item.userId,reason});writeData();res.json({ok:true,request:{id:item.id,status:item.status,vmid:item.vmid,hostname:item.hostname},proxmox:result});
+ }catch(error){item.updatedAt=new Date().toISOString();item.lastActionError=String(error.message||'Proxmox action failed').slice(0,500);writeData();res.status(502).json({error:item.lastActionError});}
+});
+app.get('/api/admin/audit-logs',adminOnly,(req,res)=>{const limit=Math.max(1,Math.min(500,Number(req.query.limit)||100));res.json({logs:data.auditLogs.slice(0,limit)});});
 app.get('/api/plans',(_q,r)=>r.json({plans:[{id:'minecraft',title:'Minecraft Hosting',description:'Explore eligible Minecraft hosting rewards.',features:['Multiple RAM options','High-performance CPU resources','NVMe storage','Available locations'],command:'.mc-plans'},{id:'vps',title:'KVM VPS',description:'Explore eligible KVM VPS rewards.',features:['Multiple RAM options','Dedicated vCPU resources','NVMe storage','Available locations'],command:'.vps-plans'}]}));
 app.use(express.static(path.join(root, 'public'), { index: false, maxAge: '1h' }));
 if (prod) {

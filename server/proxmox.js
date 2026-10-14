@@ -126,3 +126,41 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey }) 
   await waitTask(c, startTask);
   return { vmid: next, hostname, upid, startTask, status: 'running' };
 }
+
+/**
+ * Manage only a container that has already been associated with a persisted hosting request.
+ * This adapter intentionally supports LXC actions only; it never sends QEMU/KVM operations.
+ */
+export async function manageLxc({ vmid, action }) {
+  const readiness = proxmoxReadiness();
+  if (!readiness.ready) throw new Error('Proxmox management is not enabled or configured. Missing: ' + readiness.missing.join(', '));
+  const c = proxmoxConfig();
+  const id = Number(vmid);
+  if (!Number.isInteger(id) || id < c.vmidMin || id > c.vmidMax) throw new Error('Container ID is outside the configured HelzerX VMID range.');
+  if (!['suspend','resume','delete'].includes(action)) throw new Error('Unsupported container action.');
+  const base = '/nodes/' + enc(c.node) + '/lxc/' + id;
+  const current = await api(c, 'GET', base + '/status/current');
+  if (action === 'suspend') {
+    if (current.status === 'stopped') return { vmid:id, status:'stopped' };
+    const upid = await api(c, 'POST', base + '/status/stop');
+    if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid stop task ID.');
+    await waitTask(c, upid);
+    return { vmid:id, status:'stopped', upid };
+  }
+  if (action === 'resume') {
+    if (current.status === 'running') return { vmid:id, status:'running' };
+    const upid = await api(c, 'POST', base + '/status/start');
+    if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid start task ID.');
+    await waitTask(c, upid);
+    return { vmid:id, status:'running', upid };
+  }
+  if (current.status === 'running') {
+    const stopTask = await api(c, 'POST', base + '/status/stop');
+    if (typeof stopTask !== 'string' || !stopTask.startsWith('UPID:')) throw new Error('Proxmox did not return a valid stop task ID before deletion.');
+    await waitTask(c, stopTask);
+  }
+  const upid = await api(c, 'DELETE', base);
+  if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid delete task ID.');
+  await waitTask(c, upid);
+  return { vmid:id, status:'deleted', upid };
+}
