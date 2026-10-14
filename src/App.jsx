@@ -4,9 +4,144 @@ import { Activity, ArrowRight, ArrowUpRight, Check, Copy, ExternalLink, Layers, 
 const money = n => new Intl.NumberFormat('en-US').format(Number(n) || 0);
 const referralParam = new URLSearchParams(window.location.search).get('ref');
 const loginUrl = '/api/auth/discord' + (referralParam ? '?ref=' + encodeURIComponent(referralParam) : '');
+const inviteMilestones = [[2, 200], [4, 600], [8, 900], [12, 1300], [16, 1700], [24, 2400], [28, 2900], [34, 3400], [38, 4000], [42, 4500]];
+const boostTiers = [[1, 2000], [4, 5000], [10, 10000]];
 
 function Brand() {
-  return <a className="brand" href="/" aria-label="HelzerX Free Hosting"><span className="brand-mark">H<span>X</span></span><span className="brand-copy"><b>HelzerX</b><small>FREE HOSTING</small></span></a>;
+  return <a className="brand" href="/" aria-label="HelzerX Free Hosting home"><span className="brand-mark">H<span>X</span></span><span className="brand-copy"><b>HelzerX</b><small>FREE HOSTING</small></span></a>;
+}
+
+function PublicLanding({ toast, setToast }) {
+  return (
+    <div className="site-wrap">
+      <main className="site-shell">
+        <div className="site-columns">
+          <div className="site-column">
+            <section className="landing-hero reveal" data-reveal style={{ '--delay': '0ms' }}>
+              <div className="hero-top">
+                <Brand />
+                <nav className="hero-nav" aria-label="Site navigation">
+                  <a href="#services">Services</a>
+                  <a href="#rewards">HZL rewards</a>
+                  <a href="#eligibility">How it works</a>
+                </nav>
+              </div>
+              <div className="hero-center">
+                <div className="eyebrow"><span className="live-dot" /> HELZERX CLOUD · COMMUNITY HOSTING</div>
+                <h1>Room to build.<br />A community behind it.</h1>
+                <p>Minecraft hosting and Linux containers, with eligible hosting access for members who support the HelzerX community.</p>
+                <div className="hero-actions" style={{ marginTop: 13 }}>
+                  <a className="button primary" href={loginUrl}><MessageCircle size={12} /> Sign in with Discord <ArrowRight size={12} /></a>
+                  <a className="button secondary" href="#services">Explore services</a>
+                </div>
+              </div>
+              <div className="hero-foot">
+                <span><Lock /> Discord identity sign-in</span>
+                <span>Eligibility applies · HZL has no cash value</span>
+              </div>
+            </section>
+
+            <figure className="photo-card reveal" data-reveal style={{ '--delay': '50ms', margin: 0 }}>
+              <img src="/images/helzerx-datacenter.jpg" alt="Monochrome view of real server racks and cabling in a data center" />
+              <figcaption className="photo-caption"><b>Infrastructure for what you make.</b><span>HELZERX CLOUD / 01</span></figcaption>
+            </figure>
+
+            <div className="trust-strip reveal" data-reveal style={{ '--delay': '90ms' }} aria-label="Program notes">
+              <span><ShieldCheck /> Verified community activity</span>
+              <span><Coins /> HZL is non-cash credit</span>
+              <span><Activity /> Claims reviewed by admins</span>
+            </div>
+
+            <section className="preview-panel reveal" data-reveal style={{ '--delay': '130ms' }} aria-labelledby="preview-title">
+              <div className="preview-head"><h2 id="preview-title">Your member space, at a glance</h2><span className="pill">Discord verified</span></div>
+              <div className="preview-body" aria-hidden="true">
+                <div className="preview-widget"><span className="widget-label">INVITE LINK</span><div className="widget-line" /><div className="widget-line short" /></div>
+                <div className="preview-widget"><span className="widget-label">HOSTING REQUESTS</span><div className="widget-chips"><i /><i /><i /></div></div>
+              </div>
+              <p className="preview-caption">Check your own balance, invitation URL, claim status and hosting requests after signing in. No sample account figures shown.</p>
+            </section>
+
+            <section className="product-section reveal" id="services" data-reveal style={{ '--delay': '170ms' }}>
+              <h2 className="section-title">A place for game worlds and Linux projects.</h2>
+              <p className="section-subtitle" style={{ marginBottom: 10 }}>Hosting access is limited to plans configured by HelzerX and reviewed member requests.</p>
+              <div className="product-grid">
+                <article className="product-card"><span className="card-icon"><Layers /></span><h3>Minecraft Hosting</h3><p>Project hosting with multiple RAM options, high-performance CPU resources and NVMe storage.</p></article>
+                <article className="product-card"><span className="card-icon"><Server /></span><h3>Linux Containers</h3><p>Eligible Proxmox LXC hosting with configured CPU and memory limits.</p></article>
+                <article className="product-card"><span className="card-icon"><Users /></span><h3>Verified invites</h3><p>Invite genuine new members. Eligibility is checked before HZL is credited.</p></article>
+                <article className="product-card"><span className="card-icon"><Zap /></span><h3>Boost claims</h3><p>Submit eligible Discord boosts for manual administrator review.</p></article>
+              </div>
+            </section>
+
+            <section className="invite-milestones reveal" data-reveal style={{ '--delay': '210ms' }}>
+              <div className="eyebrow">VERIFIED INVITE MILESTONES</div>
+              <h2 className="section-title" style={{ marginTop: 6 }}>Support that adds up.</h2>
+              <p className="section-subtitle">HZL rewards are credited only after eligible invites are verified.</p>
+              <div className="milestone-list">
+                {inviteMilestones.map(([count, amount]) => <div key={count}><span>{count} verified invites</span><b>{money(amount)} <small>HZL</small></b></div>)}
+              </div>
+              <p className="fine-print">Invite eligibility and attribution are checked by the website. Self-invites, duplicate or manipulated accounts do not qualify.</p>
+            </section>
+          </div>
+
+          <div className="site-column">
+            <section className="quick-row reveal" data-reveal style={{ '--delay': '60ms' }} aria-label="Program essentials">
+              <article className="quick-card"><div className="quick-top"><span>HOSTING ACCESS</span><Layers /></div><b>Configured plans only</b><p>Availability depends on plans enabled by HelzerX administrators.</p></article>
+              <article className="quick-card"><div className="quick-top"><span>HZL REWARDS</span><ShieldCheck /></div><b>For eligible members</b><p>Internal hosting credits only. No cash value or withdrawal.</p></article>
+            </section>
+
+            <section className="boost-pricing reveal" id="rewards" data-reveal style={{ '--delay': '100ms' }}>
+              <div className="eyebrow">DISCORD BOOSTS · HZL BOOST REWARDS</div>
+              <h2>Choose a claim tier.</h2>
+              <p>Submit a claim for eligible active server boosts. Each claim remains pending until an authorized administrator reviews it.</p>
+              <div className="tier-grid">
+                {boostTiers.map(([count, amount], index) => (
+                  <article className={index === 1 ? 'tier-card highlight' : 'tier-card'} key={count}>
+                    <div><span className="tier-boosts">{count} {count === 1 ? 'boost' : 'boosts'}</span><b>{money(amount)}<small>HZL</small></b></div>
+                    <div className="tier-foot">Claim pending admin verification</div>
+                  </article>
+                ))}
+              </div>
+              <div className="pending-note"><ShieldCheck /><span>Claims are not instant credits and HZL is not cash. Credits are added only after manual verification and approval.</span></div>
+              <div style={{ marginTop: 11 }}><a href={loginUrl} className="button dark-button">Sign in to submit a claim <ArrowRight size={11} /></a></div>
+            </section>
+
+            <section className="feature-band reveal" data-reveal style={{ '--delay': '150ms' }}>
+              <div className="feature-photo"><img src="/images/helzerx-network.jpg" alt="Close-up of Ethernet cables connected to a network switch" /></div>
+              <div className="feature-copy">
+                <div className="eyebrow">HOSTING, WITH CLEAR REQUIREMENTS</div>
+                <h2>Pick a service that fits your project.</h2>
+                <p>Only options configured for redemption appear in the member area.</p>
+                <ul className="check-list">
+                  <li><Check /> Minecraft plans include multiple RAM options, CPU resources and NVMe storage.</li>
+                  <li><Check /> Linux hosting uses Proxmox LXC containers, not KVM virtual machines.</li>
+                  <li><Check /> LXC requests require a valid SSH public key. Never submit a private key.</li>
+                </ul>
+              </div>
+            </section>
+
+            <section className="cta-panel reveal" id="eligibility" data-reveal style={{ '--delay': '190ms' }}>
+              <div className="eyebrow">SUPPORT FIRST · REDEEM WHEN ELIGIBLE</div>
+              <h2>Build alongside the community.</h2>
+              <p>Connect a Discord account to view your verified HZL, share your invite link and request any hosting plan currently configured for redemption.</p>
+              <div className="cta-actions">
+                <a href={loginUrl} className="button primary"><MessageCircle size={11} /> Continue with Discord <ArrowRight size={11} /></a>
+                <a href="https://discord.com" target="_blank" rel="noreferrer" className="button secondary">Visit Discord <ArrowUpRight size={10} /></a>
+              </div>
+            </section>
+
+            <footer className="site-footer">
+              <div className="footer-col footer-brand"><Brand /><p>Community-supported hosting for projects worth building.</p></div>
+              <div className="footer-col"><b>Explore</b><a href="#services">Hosting services</a><a href="#rewards">Boost rewards</a><a href="#eligibility">Eligibility</a></div>
+              <div className="footer-col"><b>Services</b><span>Minecraft hosting</span><span>Linux containers</span><span>HZL member rewards</span></div>
+              <div className="footer-col"><b>Community</b><a href={loginUrl}>Member sign in</a><a href="https://discord.com" target="_blank" rel="noreferrer">Discord support <ExternalLink size={8} /></a><span>HZL has no cash value</span></div>
+              <div className="copyright">© 2026 HelzerX Cloud · Hosting access and rewards depend on eligibility, review and configured options.</div>
+            </footer>
+          </div>
+        </div>
+        {toast && <div className="toast" role="status">{toast}<button onClick={() => setToast('')} aria-label="Dismiss notification">×</button></div>}
+      </main>
+    </div>
+  );
 }
 
 function App() {
@@ -56,6 +191,25 @@ function App() {
       history.replaceState({}, '', location.pathname);
     }
   }, []);
+
+  useEffect(() => {
+    if (loading) return undefined;
+    const nodes = Array.from(document.querySelectorAll('[data-reveal]'));
+    if (!('IntersectionObserver' in window)) {
+      nodes.forEach(node => node.classList.add('is-visible'));
+      return undefined;
+    }
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    nodes.forEach(node => observer.observe(node));
+    return () => observer.disconnect();
+  }, [loading, !!me]);
 
   async function logout() {
     setBusy(true);
@@ -108,164 +262,132 @@ function App() {
     finally { setBusy(false); }
   }
 
-  if (loading) return <div className="boot"><div className="boot-orb"><span>HX</span></div><p>Preparing your HelzerX space</p><div className="loader-line"><i /></div></div>;
+  if (loading) return <div className="boot"><div className="boot-mark">HX</div><p>Preparing your HelzerX space</p><div className="boot-skeleton" aria-hidden="true"><i /><i /><i /></div><div className="loader-line"><i /></div></div>;
 
-  if (!me) return (
-    <main className="auth-screen">
-      <header className="topbar">
-        <Brand />
-        <a className="top-link" href="https://cloud.helzerx.cyou" target="_blank" rel="noreferrer">HelzerX Cloud <ExternalLink size={13} /></a>
-      </header>
-      <section className="auth-hero">
-        <div className="auth-copy">
-          <div className="eyebrow"><span className="live-dot" /> HELZERX REWARDS · MEMBER ACCESS</div>
-          <h1>Your next project<br />starts with <em>possibility.</em></h1>
-          <p className="auth-lead">Earn HZL through verified community rewards, keep track of your balance, and explore hosting you can redeem.</p>
-          <div className="auth-points">
-            <span><ShieldCheck /> Verified Discord identity</span>
-            <span><Wallet /> Your HZL balance</span>
-            <span><Server /> Hosting rewards</span>
-          </div>
-          <a href={loginUrl} className="button primary login-button"><MessageCircle size={17} /> Continue with Discord <ArrowRight size={16} /></a>
-          <div className="privacy-note"><Lock size={13} /> Secure sign-in · We only request your Discord identity</div>
-        </div>
-        <div className="auth-art">
-          <img src="/images/helzerx-network.jpg" alt="Network switch ports connecting HelzerX hosting infrastructure" />
-          <div className="art-caption"><b>Connection, built to last.</b><span>01 / HELZERX CLOUD</span></div>
-        </div>
-      </section>
-      <section className="auth-bottom">
-        <div><span className="step-no">01</span><b>Connect</b><p>Sign in with Discord.</p></div><ArrowRight className="step-arrow" />
-        <div><span className="step-no">02</span><b>Earn HZL</b><p>Build rewards through eligible activity.</p></div><ArrowRight className="step-arrow" />
-        <div><span className="step-no">03</span><b>Redeem</b><p>Explore hosting rewards when eligible.</p></div>
-      </section>
-      <footer className="footer auth-footer"><Brand /><span>HZL is an internal reward credit with no cash value.</span><small>© 2026 HelzerX Cloud</small></footer>
-      {toast && <div className="toast" role="status">{toast}<button onClick={() => setToast('')} aria-label="Dismiss notification">×</button></div>}
-    </main>
-  );
+  if (!me) return <PublicLanding toast={toast} setToast={setToast} />;
 
   return (
-    <div className="dashboard">
-      <header className="topbar dashbar">
-        <Brand />
-        <nav className={mobile ? 'nav-links open' : 'nav-links'} aria-label="Member navigation">
-          <a onClick={() => setMobile(false)} href="#overview">Overview</a>
-          <a onClick={() => setMobile(false)} href="#earn">Earn HZL</a>
-          <a onClick={() => setMobile(false)} href="#hosting">Hosting</a>
-          <a onClick={() => setMobile(false)} href="#rules">Reward rules</a>
-        </nav>
-        <div className="account">
-          <button className="refresh-btn" title="Refresh balance" aria-label="Refresh balance" onClick={refresh}><RefreshCw size={15} /></button>
-          {me.avatar ? <img className="avatar" src={me.avatar} alt="" /> : <span className="avatar fallback">{me.username.slice(0, 1).toUpperCase()}</span>}
-          <span className="account-name">{me.global_name || me.username}<small>Discord verified</small></span>
-          <button className="logout-btn" onClick={logout} disabled={busy} title="Sign out" aria-label="Sign out"><LogOut size={15} /></button>
-          <button className="mobile-menu" onClick={() => setMobile(!mobile)} aria-expanded={mobile} aria-label={mobile ? 'Close navigation' : 'Open navigation'}><Menu size={18} /></button>
+    <div className="site-wrap dashboard-shell">
+      <main className="site-shell">
+        <div className="site-columns">
+          <div className="site-column">
+            <section className="dash-intro reveal" data-reveal style={{ '--delay': '0ms' }} id="overview">
+              <div className="hero-top">
+                <Brand />
+                <div className="account">
+                  <button className="icon-button" title="Refresh balance" aria-label="Refresh balance" onClick={refresh}><RefreshCw /></button>
+                  {me.avatar ? <img className="avatar" src={me.avatar} alt="" /> : <span className="avatar fallback">{me.username.slice(0, 1).toUpperCase()}</span>}
+                  <span className="account-name">{me.global_name || me.username}<small>Discord verified</small></span>
+                  <button className="icon-button" onClick={logout} disabled={busy} title="Sign out" aria-label="Sign out"><LogOut /></button>
+                  <button className="mobile-menu" onClick={() => setMobile(!mobile)} aria-expanded={mobile} aria-label={mobile ? 'Close navigation' : 'Open navigation'}><Menu /></button>
+                </div>
+              </div>
+              <nav className={mobile ? 'dash-nav open' : 'dash-nav'} aria-label="Member navigation">
+                <a onClick={() => setMobile(false)} href="#overview">Overview</a>
+                <a onClick={() => setMobile(false)} href="#earn">Earn HZL</a>
+                <a onClick={() => setMobile(false)} href="#hosting">Hosting</a>
+                <a onClick={() => setMobile(false)} href="#rules">Reward rules</a>
+              </nav>
+              <div className="hero-center">
+                <div className="eyebrow"><span className="live-dot" /> MEMBER SPACE / HELZERX CLOUD</div>
+                <h1>Make space for your next project.</h1>
+                <p>See what is verified, what is pending and which hosting options are configured for members.</p>
+              </div>
+              <div className="hero-foot"><span><ShieldCheck /> Discord identity verified</span><span>HZL is a non-cash reward credit</span></div>
+            </section>
+
+            <section className="account-summary reveal" data-reveal style={{ '--delay': '50ms' }} aria-label="Rewards summary">
+              <article className="stat-card balance-card"><span className="stat-label">AVAILABLE BALANCE</span><div className="balance-number">{money(rewards?.balance)} <small>HZL</small></div><div className="stat-foot"><span>{rewards?.connected ? 'Website rewards ledger' : 'Rewards service not connected'}</span><Coins /></div></article>
+              <article className="stat-card"><span className="stat-label">VERIFIED INVITES</span><div className="stat-number">{money(rewards?.verifiedInvites)}</div><div className="stat-foot"><span>Verified members</span><Users /></div></article>
+              <article className="stat-card"><span className="stat-label">ACTIVE BOOSTS</span><div className="stat-number">{money(rewards?.activeBoosts)}</div><div className="stat-foot"><span>Eligible boosts</span><Activity /></div></article>
+            </section>
+            {!rewards?.connected && <div className="status-note reveal" data-reveal><span className="status-symbol"><Activity /></span><div><b>Reward sync is waiting for setup</b><p>{rewards?.message || 'Your account is signed in. The HZL balance will be shown when the official rewards service is connected. This page will not invent or award unverified credits.'}</p></div><button onClick={refresh} aria-label="Refresh"><RefreshCw /></button></div>}
+
+            <section className="dash-section reveal" data-reveal style={{ '--delay': '90ms' }} id="earn">
+              <div className="eyebrow">YOUR PERSONAL INVITE LINK</div>
+              <h2>Invite genuine new members.</h2>
+              <p>New members must sign in with Discord and pass the configured community eligibility check. A new eligible account is attributed to one referrer only.</p>
+              <div className="invite-url"><code>{invite?.referralUrl || 'Preparing your invite link…'}</code><button className="button secondary" onClick={copyInvite}><Copy size={11} /> Copy link</button></div>
+              <div className="invite-total"><span>Verified invites credited</span><b>{money(invite?.verifiedInvites || 0)}</b></div>
+              <div className="milestone-list">
+                {inviteMilestones.map(([count, amount]) => <div key={count}><span>{count} verified invites</span><b>{money(amount)} <small>HZL</small></b></div>)}
+              </div>
+              <p className="fine-print">Milestone rewards are for verified eligible invites only. Self-invites, duplicate or manipulated accounts are not eligible.</p>
+            </section>
+
+            <section className="dash-section reveal" data-reveal style={{ '--delay': '130ms' }} id="hosting">
+              <div className="eyebrow">HELZERX HOSTING SERVICES</div>
+              <h2>What you can request.</h2>
+              <p>Hosting options are shown for your account when configured by HelzerX administrators.</p>
+              <div className="hosting-grid" style={{ marginTop: 10 }}>
+                <article className="hosting-card"><div className="hosting-icon"><Layers /></div><span className="hosting-index">01 / GAME SERVERS</span><h3>Minecraft Hosting</h3><p>Build your world on hosting designed for Minecraft projects.</p><ul>{['Multiple RAM options', 'High-performance CPU resources', 'NVMe storage', 'Available locations'].map(x => <li key={x}><Check />{x}</li>)}</ul><div className="hosting-bottom"><span>Website HZL redemption</span><button onClick={() => document.getElementById('redeem')?.scrollIntoView({ behavior: 'smooth' })}>View configured plans <ArrowRight size={10} /></button></div></article>
+                <article className="hosting-card"><div className="hosting-icon"><Server /></div><span className="hosting-index">02 / VIRTUAL SERVERS</span><h3>Linux Container Hosting</h3><p>Eligible Linux containers running on Proxmox. This is LXC hosting, not a KVM virtual machine.</p><ul>{['Isolated Linux container', 'Configured CPU and memory limits', 'NVMe-backed storage where available', 'SSH public-key access'].map(x => <li key={x}><Check />{x}</li>)}</ul><div className="hosting-bottom"><span>SSH public key required</span><button onClick={() => document.getElementById('redeem')?.scrollIntoView({ behavior: 'smooth' })}>View configured plans <ArrowRight size={10} /></button></div></article>
+              </div>
+            </section>
+          </div>
+
+          <div className="site-column">
+            <section className="quick-row reveal" data-reveal style={{ '--delay': '40ms' }} aria-label="Member status">
+              <article className="quick-card"><div className="quick-top"><span>ACCOUNT</span><ShieldCheck /></div><b>{me.global_name || me.username}</b><p>Discord identity verified</p></article>
+              <article className="quick-card"><div className="quick-top"><span>REWARD LEDGER</span><Coins /></div><b>{rewards?.connected ? 'Connected' : 'Not connected'}</b><p>{rewards?.connected ? 'Balance from rewards service' : 'No unverified HZL is shown'}</p></article>
+            </section>
+
+            <section className="boost-pricing dark-panel reveal" data-reveal style={{ '--delay': '80ms' }}>
+              <div className="eyebrow">BOOST REWARDS · WEBSITE CLAIM</div>
+              <h2>Submit a boost claim.</h2>
+              <p>Discord OAuth cannot independently prove active boosts. Claims remain pending until reviewed by an authorized administrator.</p>
+              <label className="select-label" htmlFor="boost-count">Choose an HZL boost reward claim</label>
+              <div className="boost-form">
+                <select id="boost-count" value={boostCount} onChange={e => setBoostCount(e.target.value)}>{boostTiers.map(([n, v]) => <option key={n} value={n}>{n} boost{n > 1 ? 's' : ''} — {money(v)} HZL</option>)}</select>
+                <button className="button dark-button" onClick={claimBoost} disabled={busy}>Submit claim <ArrowRight size={11} /></button>
+              </div>
+              <p className="fine-print">Claims are pending admin verification, not instant credits or cash. HZL is added only after approval.</p>
+            </section>
+
+            <section className="dash-section reveal" data-reveal style={{ '--delay': '120ms' }} id="redeem">
+              <div className="eyebrow">REDEEM HZL · CONFIGURED OPTIONS ONLY</div>
+              <h2>Hosting requests.</h2>
+              <p>Only plans explicitly configured by HelzerX administrators appear here. Requests are reviewed before credits are deducted.</p>
+              {hostingOptions.length ? <div className="hosting-grid" style={{ marginTop: 10 }}>{hostingOptions.map(option => <article className="hosting-card" key={option.id}>
+                <div className="hosting-icon">{option.service === 'minecraft' ? <Layers /> : <Server />}</div>
+                <span className="hosting-index">{option.service === 'minecraft' ? 'MINECRAFT HOSTING' : option.service === 'lxc' ? 'LINUX CONTAINER (LXC)' : 'HOSTING'} / HZL REDEMPTION</span>
+                <h3>{option.name}</h3><p>{option.description || 'Eligible hosting reward plan.'}</p>
+                <div className="hosting-bottom"><span>Cost <code>{money(option.cost)} HZL</code></span><button disabled={busy || Number(rewards?.balance || 0) < option.cost} onClick={() => requestHosting(option)}>{Number(rewards?.balance || 0) < option.cost ? 'Not enough HZL' : 'Request hosting'} <ArrowRight size={10} /></button></div>
+              </article>)}</div> : <div className="status-note" style={{ marginTop: 10 }}><span className="status-symbol"><ShieldCheck /></span><div><b>No hosting plans configured yet</b><p>Hosting redemption is safely disabled until an administrator configures real plan IDs, service types and HZL prices. No sample prices are displayed.</p></div></div>}
+              {hostingRequests.length > 0 && <div style={{ marginTop: 12 }}><div className="eyebrow">YOUR REQUEST HISTORY</div><div className="request-list">{hostingRequests.map(x => <div className="request-row" key={x.id}><span>{x.planName} · {x.provisioningStatus || x.status}{x.vmid ? ` · CT ${x.vmid}` : ''}{x.hostname ? ` · ${x.hostname}` : ''}</span><b>{money(x.cost)} HZL</b></div>)}</div></div>}
+            </section>
+
+            <section className="feature-band reveal" data-reveal style={{ '--delay': '160ms' }}>
+              <div className="feature-photo"><img src="/images/helzerx-datacenter.jpg" alt="Monochrome server rack detail representing HelzerX hosting infrastructure" /></div>
+              <div className="feature-copy"><div className="eyebrow">STATUS, NOT SURPRISES</div><h2>Every request has a next step.</h2><p>Follow review and provisioning messages in your hosting history.</p><ul className="check-list"><li><Check /> Boost submissions wait for admin review.</li><li><Check /> Hosting is limited to configured plans.</li><li><Check /> LXC uses a validated SSH public key.</li></ul></div>
+            </section>
+
+            <section className="dash-section reveal" data-reveal style={{ '--delay': '190ms' }} id="rules">
+              <div className="eyebrow">CLEAR RULES · TRUST FIRST</div>
+              <h2>HZL is for eligible hosting redemptions.</h2>
+              <p>Internal HelzerX Cloud reward credit. It has no cash value and cannot be withdrawn or exchanged for money.</p>
+              <div className="rules-mini">
+                {['Only verified, eligible invites and server boosts count.', 'Self-invites, duplicate or fake accounts, bots and manipulation are not eligible.', 'Boosts must stay active for the required qualification period.', 'Suspicious activity may be reviewed before rewards or hosting are approved.'].map(x => <p key={x}><Check />{x}</p>)}
+              </div>
+              <p className="fine-print">Reward values, eligible services and qualification rules may change. No cash withdrawal or real-money value is provided.</p>
+            </section>
+
+            <section className="cta-panel reveal" data-reveal style={{ '--delay': '220ms' }}>
+              <div className="eyebrow">NEED A HAND?</div><h2>Talk to the HelzerX community.</h2><p>Visit the official HelzerX Cloud Discord and open a support ticket.</p>
+              <div className="cta-actions"><a className="button primary" href="https://discord.com" target="_blank" rel="noreferrer">Get support <ArrowUpRight size={10} /></a><button className="button secondary" onClick={refresh}><RefreshCw size={10} /> Refresh account</button></div>
+            </section>
+
+            <footer className="site-footer">
+              <div className="footer-col footer-brand"><Brand /><p>Community-supported hosting for projects worth building.</p></div>
+              <div className="footer-col"><b>Member space</b><a href="#overview">Overview</a><a href="#earn">Invite rewards</a><a href="#hosting">Hosting</a></div>
+              <div className="footer-col"><b>Rules</b><a href="#rules">Eligibility</a><span>HZL has no cash value</span><span>Manual review applies</span></div>
+              <div className="footer-col"><b>Account</b><button className="button secondary logout-hero" onClick={logout} disabled={busy}>Sign out <LogOut size={9} /></button><span>© 2026 HelzerX Cloud</span></div>
+              <div className="copyright">Hosting access and rewards depend on eligibility, review and configured options.</div>
+            </footer>
+          </div>
         </div>
-      </header>
-      <main className="dash-main">
-        <section className="welcome-row" id="overview">
-          <div>
-            <div className="eyebrow"><span className="live-dot" /> MEMBER SPACE / 01</div>
-            <h1>Make room for<br /><em>what comes next.</em></h1>
-            <p>Your community support can turn into hosting possibilities. Track verified HZL rewards and discover what you can redeem.</p>
-          </div>
-          <div className="welcome-orb">
-            <img src="/images/helzerx-datacenter.jpg" alt="Rows of illuminated servers inside a HelzerX data center" />
-            <span className="orb-label">YOUR REWARDS SPACE</span>
-          </div>
-        </section>
-        <section className="stats-grid" aria-label="Rewards summary">
-          <article className="stat-card balance-card">
-            <div className="stat-top"><span className="stat-icon"><Wallet /></span><span className="stat-label">AVAILABLE BALANCE</span></div>
-            <div className="balance-number">{money(rewards?.balance)} <small>HZL</small></div>
-            <div className="stat-foot"><span>{rewards?.connected ? 'Website rewards ledger' : 'Rewards service not connected'}</span><Coins size={15} /></div>
-          </article>
-          <article className="stat-card">
-            <div className="stat-top"><span className="stat-icon purple"><Users /></span><span className="stat-label">VERIFIED INVITES</span></div>
-            <div className="stat-number">{money(rewards?.verifiedInvites)}</div>
-            <div className="stat-foot">Verified community invites <Users size={15} /></div>
-          </article>
-          <article className="stat-card">
-            <div className="stat-top"><span className="stat-icon cyan"><Zap /></span><span className="stat-label">ACTIVE BOOSTS</span></div>
-            <div className="stat-number">{money(rewards?.activeBoosts)}</div>
-            <div className="stat-foot">Eligible server boosts <Activity size={15} /></div>
-          </article>
-        </section>
-        {!rewards?.connected && <div className="status-note"><span className="status-symbol"><Activity size={17} /></span><div><b>Reward sync is waiting for setup</b><p>{rewards?.message || 'Your account is signed in. The HZL balance will be shown when the official rewards service is connected. This page will not invent or award unverified credits.'}</p></div><button onClick={refresh} aria-label="Refresh"><RefreshCw size={15} /></button></div>}
-
-        <section className="section-block" id="website-rewards">
-          <div className="section-heading"><div><div className="eyebrow">WEBSITE-NATIVE REWARDS / 02</div><h2>Your link.<br /><em>Your community.</em></h2></div><p>Share your personal HelzerX invite link. New members must sign in with Discord and pass the configured community eligibility check.</p></div>
-          <div className="earn-grid">
-            <article className="earn-card">
-              <div className="card-content">
-                <span className="card-kicker">YOUR PERSONAL INVITE LINK</span><h3>Invite and earn HZL.</h3>
-                <p>Each eligible new Discord account can be attributed to one referrer only. Repeat sign-ins do not create extra invite credit.</p>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', margin: '22px 0' }}><code style={{ overflowWrap: 'anywhere', flex: '1', padding: 14, background: '#eceee8' }}>{invite?.referralUrl || 'Preparing your invite link…'}</code><button className="button secondary" onClick={copyInvite}><Copy size={14} /> Copy link</button></div>
-                <div className="stat-foot"><span>Verified invites credited</span><b>{money(invite?.verifiedInvites || 0)}</b></div>
-              </div>
-            </article>
-            <article className="earn-card">
-              <div className="card-content">
-                <span className="card-kicker">BOOST REWARDS · WEBSITE CLAIM</span><h3>Submit a boost claim.</h3>
-                <p>No Discord bot is required for submitting claims. Because Discord OAuth cannot independently prove active boosts, claims stay pending until reviewed by an authorized administrator.</p>
-                <label style={{ display: 'block', margin: '18px 0 8px', fontSize: 10 }} htmlFor="boost-count">Boost tier</label>
-                <select id="boost-count" value={boostCount} onChange={e => setBoostCount(e.target.value)} style={{ width: '100%', padding: 12, border: '1px solid #d9dbd3', background: '#f8f8f5', color: 'inherit' }}>{[[1, 2000], [2, 4000], [3, 4700], [4, 5000], [7, 6900], [10, 10000]].map(([n, v]) => <option key={n} value={n}>{n} boost{n > 1 ? 's' : ''} — {money(v)} HZL</option>)}</select>
-                <button className="button primary" style={{ marginTop: 14 }} onClick={claimBoost} disabled={busy}>Submit for verification <ArrowRight size={15} /></button>
-                <p className="fine-print">A claim is not a credit. HZL is added only after approval.</p>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section className="section-block" id="earn">
-          <div className="section-heading"><div><div className="eyebrow">EARN · COLLECT · REDEEM / 02</div><h2>Earn HZL.<br /><em>Build something real.</em></h2></div><p>Two ways to support the community and unlock eligible hosting rewards.</p></div>
-          <div className="earn-grid">
-            <article className="earn-card invite-card">
-              <div className="earn-visual"><div className="visual-halo" /><div className="visual-icon"><Users /></div><span className="visual-pill">COMMUNITY</span></div>
-              <div className="card-content"><span className="card-kicker">PATH 01 · VERIFIED INVITES</span><h3>Grow the community.</h3><p>Invite genuine new members to HelzerX Cloud. Eligible invites are verified before rewards are credited.</p>
-                <div className="reward-list">{[[2, 200], [4, 600], [8, 900], [12, 1300], [16, 1700], [24, 2400], [28, 2900], [34, 3400], [38, 4000], [42, 4500]].map(([n, v]) => <div className="reward-row" key={n}><span>{n} verified invites</span><b>{money(v)} <small>HZL</small></b></div>)}</div>
-                <div className="card-actions"><a href="https://discord.com" target="_blank" rel="noreferrer" className="button secondary">Open Discord <ArrowUpRight size={15} /></a><span>Verified in the website</span></div>
-              </div>
-            </article>
-            <article className="earn-card boost-card">
-              <div className="earn-visual"><div className="visual-halo" /><div className="visual-icon"><Zap /></div><span className="visual-pill">BOOST REWARDS</span></div>
-              <div className="card-content"><span className="card-kicker">PATH 02 · SERVER BOOSTS</span><h3>Boost. Earn. Unlock.</h3><p>Support the official Discord server with eligible active boosts and claim rewards after verification.</p>
-                <div className="reward-list">{[[1, 2000], [2, 4000], [3, 4700], [4, 5000], [7, 6900], [10, 10000]].map(([n, v]) => <div className="reward-row" key={n}><span>{n} server boost{n > 1 ? 's' : ''}</span><b>{money(v)} <small>HZL</small></b></div>)}</div>
-                <div className="card-actions"><a href="https://discord.com" target="_blank" rel="noreferrer" className="button secondary">Boost on Discord <ArrowUpRight size={15} /></a><span>Manual review</span></div>
-              </div>
-            </article>
-          </div>
-          <p className="fine-print">Reward tables reflect the currently provided program rules. Eligibility, qualification periods and crediting depend on official verification. Values are not cash and cannot be withdrawn.</p>
-        </section>
-
-        <section className="section-block" id="redeem">
-          <div className="section-heading"><div><div className="eyebrow">REDEEM HZL / 03</div><h2>Turn credits into<br /><em>hosting.</em></h2></div><p>Only plans explicitly configured by HelzerX administrators appear here. Requests are reviewed before credits are deducted.</p></div>
-          {hostingOptions.length ? <div className="hosting-grid">{hostingOptions.map(option => <article className="hosting-card" key={option.id}>
-            <div className="hosting-icon">{option.service === 'minecraft' ? <Layers /> : <Server />}</div>
-            <span className="hosting-index">{option.service === 'minecraft' ? 'MINECRAFT HOSTING' : option.service === 'lxc' ? 'LINUX CONTAINER (LXC)' : 'HOSTING'} / HZL REDEMPTION</span>
-            <h3>{option.name}</h3><p>{option.description || 'Eligible hosting reward plan.'}</p>
-            <div className="hosting-bottom"><span>Cost <code>{money(option.cost)} HZL</code></span><button disabled={busy || Number(rewards?.balance || 0) < option.cost} onClick={() => requestHosting(option)}>{Number(rewards?.balance || 0) < option.cost ? 'Not enough HZL' : 'Request hosting'} <ArrowRight size={15} /></button></div>
-          </article>)}</div> : <div className="status-note"><span className="status-symbol"><ShieldCheck size={17} /></span><div><b>No hosting plans configured yet</b><p>Hosting redemption is safely disabled until the administrator configures real plan IDs, service types and HZL prices in HOSTING_REDEMPTION_OPTIONS. No fake plan prices are shown.</p></div></div>}
-          {hostingRequests.length > 0 && <div style={{ marginTop: 20 }}><h3 style={{ fontSize: 14 }}>Your hosting requests</h3>{hostingRequests.map(x => <div className="reward-row" key={x.id}><span>{x.planName} · {x.provisioningStatus || x.status}{x.vmid ? ` · CT ${x.vmid}` : ''}{x.hostname ? ` · ${x.hostname}` : ''}</span><b>{money(x.cost)} HZL</b></div>)}</div>}
-        </section>
-
-        <section className="section-block hosting-section" id="hosting">
-          <div className="section-heading"><div><div className="eyebrow">YOUR HZL HAS A PURPOSE / 03</div><h2>Choose your next<br /><em>hosting destination.</em></h2></div><p>Review the available options and redemption requirements before requesting a reward.</p></div>
-          <div className="hosting-grid">
-            <article className="hosting-card"><div className="hosting-icon"><Layers /></div><span className="hosting-index">01 / GAME SERVERS</span><h3>Minecraft Hosting</h3><p>Build your world on hosting designed for Minecraft projects.</p><ul>{['Multiple RAM options', 'High-performance CPU resources', 'NVMe storage', 'Available locations'].map(x => <li key={x}><Check size={14} />{x}</li>)}</ul><div className="hosting-bottom"><span>Website HZL redemption</span><button onClick={() => document.getElementById('redeem')?.scrollIntoView({ behavior: 'smooth' })}>View plans <ArrowRight size={15} /></button></div></article>
-            <article className="hosting-card featured-host"><div className="hosting-icon"><Server /></div><span className="hosting-index">02 / VIRTUAL SERVERS</span><h3>Linux Container Hosting</h3><p>Explore eligible Linux containers running on Proxmox. This is LXC hosting, not a KVM virtual machine.</p><ul>{['Isolated Linux container', 'Configured CPU and memory limits', 'NVMe-backed storage where available', 'SSH public-key access'].map(x => <li key={x}><Check size={14} />{x}</li>)}</ul><div className="hosting-bottom"><span>Website HZL redemption</span><button onClick={() => document.getElementById('redeem')?.scrollIntoView({ behavior: 'smooth' })}>View plans <ArrowRight size={15} /></button></div></article>
-          </div>
-        </section>
-
-        <section className="steps-band"><div className="eyebrow">SIMPLE BY DESIGN / 04</div><h2>From support to <em>server online.</em></h2><div className="process-grid">{[{ n: '01', title: 'Connect Discord', desc: 'Your identity is verified securely.' }, { n: '02', title: 'Earn HZL', desc: 'Earn from eligible, verified activity.' }, { n: '03', title: 'Check your balance', desc: 'Check your website dashboard.' }, { n: '04', title: 'Redeem hosting', desc: 'Choose eligible plans and follow the website status.' }].map(x => <article key={x.n}><span>{x.n}</span><b>{x.title}</b><p>{x.desc}</p></article>)}</div></section>
-        <section className="rules-section" id="rules">
-          <div><div className="eyebrow">CLEAR RULES · TRUST FIRST / 05</div><h2>Built for<br /><em>real supporters.</em></h2><p>HZL is an internal HelzerX Cloud reward credit designed for eligible hosting redemptions. It has no cash value.</p></div>
-          <div className="rules-list">{['Only verified, eligible invites and server boosts count.', 'Self-invites, duplicate or fake accounts, bots and manipulation are not eligible.', 'Boosts must stay active for the required qualification period.', 'Suspicious activity may be reviewed before rewards or hosting are approved.', 'Reward values, eligible services and qualification rules may change.', 'No cash withdrawal, cash exchange or real-money value is provided for HZL.'].map((x, i) => <div key={x}><span>0{i + 1}</span><p>{x}</p><Check size={15} /></div>)}</div>
-        </section>
-        <section className="help-banner"><div className="help-icon"><MessageCircle /></div><div><span className="eyebrow">NEED A HAND?</span><h3>We’ll help you find your next step.</h3><p>Visit the official HelzerX Cloud Discord and open a support ticket.</p></div><a className="button dark-button" href="https://discord.com" target="_blank" rel="noreferrer">Get support <ArrowUpRight size={15} /></a></section>
+        {toast && <div className="toast" role="status">{toast}<button onClick={() => setToast('')} aria-label="Dismiss notification">×</button></div>}
       </main>
-      <footer className="footer"><Brand /><span>Thoughtful hosting rewards for people building what comes next.</span><div><small>HZL has no cash value.</small><small>© 2026 HelzerX Cloud</small></div></footer>
-      {toast && <div className="toast" role="status">{toast}<button onClick={() => setToast('')} aria-label="Dismiss notification">×</button></div>}
     </div>
   );
 }

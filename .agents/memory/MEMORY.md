@@ -1,0 +1,1 @@
+- [Reference-image redesign](reference-image-redesign.md) — Follow the supplied page layout closely; adapt HelzerX content without changing its systems.
