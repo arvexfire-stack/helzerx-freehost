@@ -29,14 +29,17 @@ app.use(['/admin', '/admin/', '/admin.html'], (_req, res, next) => {
   next();
 });
 app.get('/admin.html', (_req, res) => res.status(404).type('text/plain').send('Not found'));
-app.get('/admin/', (_req, res) => res.redirect(308, '/admin'));
-app.get('/admin', (_req, res) => {
+
+// Serve both slash variants directly. Redirecting between them can loop when a proxy/CDN
+// also canonicalizes the path, so neither URL redirects to the other.
+function sendPrivateAdmin(_req, res) {
   res.status(200);
   res.type('html');
   res.sendFile(path.join(root, 'private', 'admin.html'), { dotfiles: 'deny', cacheControl: false }, (err) => {
     if (err && !res.headersSent) res.status(404).type('text/plain').send('Not found');
   });
-});
+}
+app.get(['/admin', '/admin/'], sendPrivateAdmin);
 const pendingOAuth=new Map();
 const adminLoginAttempts=new Map();
 const ADMIN_LOCK_WINDOW_MS=15*60*1000, ADMIN_MAX_ATTEMPTS=6;
