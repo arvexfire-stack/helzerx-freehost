@@ -467,7 +467,7 @@ export default function App() {
                 <div>
                   <div className="section-label">Configured Redemptions</div>
                   <h2 className="services-title">Available Cloud Hosting Plans</h2>
-                  <p className="services-sub">Redeem verified HZL for bare-metal Minecraft servers or Proxmox Linux containers. Credits are deducted only upon administrator review.</p>
+                  <p className="services-sub">Redeem verified HZL for bare-metal Minecraft servers or Proxmox Linux containers. Credits are deducted only after request verification.</p>
                 </div>
               </div>
 
@@ -631,7 +631,7 @@ export default function App() {
                 <div>
                   <div className="section-label">Server Boosting</div>
                   <h2 className="services-title">Submit Server Boost Claims</h2>
-                  <p className="services-sub">Boost the official HelzerX Discord server to earn substantial HZL grants. Claims are verified manually by administrators.</p>
+                  <p className="services-sub">Boost the official HelzerX Discord server to earn substantial HZL grants. Claims are verified by our support team.</p>
                 </div>
               </div>
 
@@ -652,7 +652,7 @@ export default function App() {
                 </div>
 
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                  Submitting here registers a verified claim for administrator verification. Ensure your boost remains active throughout the qualification timeframe.
+                  Submitting here registers a claim for verification by our support team. Ensure your boost remains active throughout the qualification timeframe.
                 </div>
 
                 <button 
@@ -815,7 +815,7 @@ export default function App() {
                 <span className="bento-num">03</span>
                 <div className="bento-content">
                   <h3>VERIFIED HZL REWARD LEDGER</h3>
-                  <p>Transparent community rewards. Earn non-cash HZL credit by inviting genuine members and boosting the Discord server, reviewed manually by admins.</p>
+                  <p>Transparent community rewards. Earn non-cash HZL credit by inviting genuine members and boosting the Discord server, verified by our support team.</p>
                 </div>
               </article>
 
@@ -1168,7 +1168,6 @@ export default function App() {
             <a href="#services">Services</a>
             <a href="#infrastructure">Infrastructure</a>
             <a href="#rewards">Rewards</a>
-            <a href="/admin.html" target="_blank" rel="noreferrer">Admin Review Console</a>
           </div>
         </div>
         <div className="footer-bottom">
