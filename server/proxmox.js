@@ -119,7 +119,8 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey }) 
     generatedSshPrivateKey = pair.privateKey;
   }
   if (sshKeys.length > 2048 || !/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshKeys)) throw new Error('Provide a valid single SSH public key.');
-  const net0 = 'name=eth0,bridge=' + c.bridge + ',ip=dhcp,ip6=auto';
+  // Configure IPv4 DHCP only. Do not request IPv6 autoconfiguration unless the host network explicitly supports it.
+  const net0 = 'name=eth0,bridge=' + c.bridge + ',ip=dhcp';
   const upid = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc', {
     vmid: next,
     ostemplate: c.template,
