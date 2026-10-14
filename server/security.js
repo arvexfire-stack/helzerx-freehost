@@ -1,5 +1,3 @@
-import crypto from 'node:crypto';
-
 /**
  * Lightweight, bounded in-process limiter.
  *
@@ -83,8 +81,4 @@ export function applySecurityHeaders(_req, res, next) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000');
   }
   next();
-}
-
-export function createRequestId() {
-  return crypto.randomUUID();
 }
