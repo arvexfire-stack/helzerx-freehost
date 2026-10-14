@@ -185,6 +185,34 @@ function showModal(title,body){$('modal-root').innerHTML='<div class="modal-back
  });
  $('content').addEventListener('submit',async e=>{if(e.target.id!=='ticket-reply')return;e.preventDefault();const form=e.target,fd=new FormData(form),id=form.dataset.id,message=String(fd.get('message')||'').trim();if(!message)return;const btn=form.querySelector('button[type=submit]');btn.disabled=true;try{await post('/api/admin/tickets/'+encodeURIComponent(id)+'/messages',{message});await post('/api/admin/tickets/'+encodeURIComponent(id)+'/status',{status:String(fd.get('status')),priority:String(fd.get('priority'))});toast('Support reply saved.');await loadView('tickets')}catch(err){toast(err.message,true)}finally{btn.disabled=false}});
  $('modal-root').addEventListener('click',e=>{if(e.target.matches('[data-dismiss], [data-close-modal]')||e.target.closest('[data-close-modal]'))closeModal()});
+ $('modal-root').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-action]');if(!b)return;const a=b.dataset.action,id=b.dataset.id;
+  try{
+   if(a==='vps-manage-refresh'){await openVpsManager(id);return}
+   if(a==='vps-power'){
+    const item=state.hosting.find(x=>x.id===id),power=b.dataset.power;
+    if(!['start','stop','reboot'].includes(power))return;
+    if(!confirm(power.toUpperCase()+' container '+(item?.vmid||'')+'?'))return;
+    const reason=prompt('Enter an audit reason for this power action:');
+    if(!reason||reason.trim().length<3)return;
+    await post('/api/admin/hosting-requests/'+encodeURIComponent(id)+'/action',{action:power,reason:reason.trim()});
+    toast('VPS '+power+' request completed.');await loadView('hosting');await openVpsManager(id);return;
+   }
+   if(a==='snapshot-create'){
+    const name=prompt('Snapshot name (letters, numbers, _ or -, max 40):');if(!name)return;
+    const reason=prompt('Reason for creating this snapshot:');if(!reason||reason.trim().length<3)return;
+    await post('/api/admin/hosting-requests/'+encodeURIComponent(id)+'/snapshots',{action:'create',name:name.trim(),reason:reason.trim()});
+    toast('Snapshot created.');await openVpsManager(id);return;
+   }
+   if(a==='snapshot-delete'){
+    const name=b.dataset.snapshot;if(!confirm('Permanently delete snapshot '+name+'?'))return;
+    const reason=prompt('Reason for deleting this snapshot:');if(!reason||reason.trim().length<3)return;
+    await post('/api/admin/hosting-requests/'+encodeURIComponent(id)+'/snapshots',{action:'delete',name,reason:reason.trim()});
+    toast('Snapshot deleted.');await openVpsManager(id);return;
+   }
+  }catch(err){toast(err.message||'VPS action failed',true)}
+ });
+
  $('modal-root').addEventListener('submit',async e=>{const form=e.target;if(form.id!=='vps-terminal-form')return;e.preventDefault();e.stopPropagation();const fd=new FormData(form),id=form.dataset.id,command=String(fd.get('command')||''),reason=String(fd.get('reason')||'').trim(),btn=form.querySelector('button[type=submit]'),output=$('vps-terminal-output');if(!command.trim()||reason.length<3)return;btn.disabled=true;btn.textContent='Running securely…';if(output)output.textContent='Executing command inside container…';try{const r=await post('/api/admin/hosting-requests/'+encodeURIComponent(id)+'/terminal',{command,reason});if(output)output.textContent=r.output||'(No output)';toast('Command completed successfully.')}catch(err){if(output)output.textContent='ERROR: '+(err.message||'Command failed');toast(err.message||'Terminal command failed',true)}finally{if(btn.isConnected){btn.disabled=false;btn.textContent='Run command securely →'}}});
 
  $('modal-root').addEventListener('submit',async e=>{e.preventDefault();const form=e.target,fd=new FormData(form);const btn=form.querySelector('button[type=submit]');if(btn)btn.disabled=true;try{
