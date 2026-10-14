@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#070709">
+<title>Sign in · HelzerX</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+:root{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:#f5f5f7;background:#070709;color-scheme:dark;--muted:#8e8e99;--line:rgba(255,255,255,.1)}
+*{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(103,124,180,.13),transparent 48%),#070709;color:#f5f5f7}
+.shell{width:min(100%,420px)}.brand{display:block;text-align:center;margin-bottom:34px;font-size:24px;font-weight:800;letter-spacing:-.06em;color:#fff;text-decoration:none}.brand span{color:#f5b041}
+.panel{padding:34px;background:rgba(17,17,22,.88);border:1px solid var(--line);border-radius:22px;box-shadow:0 28px 90px rgba(0,0,0,.45)}
+h1{font-size:27px;line-height:1.2;letter-spacing:-.045em;text-align:center;font-weight:800} .sub{margin:10px auto 26px;max-width:300px;text-align:center;color:var(--muted);font-size:13px;line-height:1.65}
+form{display:grid;gap:14px}label{display:grid;gap:7px;font-size:12px;font-weight:600;color:#d9d9e0}input{width:100%;min-height:46px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#09090c;color:#fff;font:inherit;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}input:focus{border-color:rgba(245,176,65,.75);box-shadow:0 0 0 3px rgba(245,176,65,.09)}input::placeholder{color:#62626e}
+button{min-height:46px;border:0;border-radius:999px;background:#fff;color:#070709;font:700 13px inherit;font-weight:700;font-size:13px;cursor:pointer;transition:transform .2s,background .2s;margin-top:4px}button:hover{background:#e9e9ed;transform:translateY(-1px)}button:disabled{opacity:.6;cursor:wait;transform:none}
+.status{min-height:20px;margin-top:14px;text-align:center;color:#f5b041;font-size:12px;line-height:1.5}.foot{margin-top:22px;text-align:center;color:#62626e;font-size:11px}.hidden{display:none!important}
+#console{width:min(100%,1040px);margin:0 auto}.console-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}.console-head h1{text-align:left}.console-head p{color:var(--muted);font-size:13px;margin-top:5px}.out{padding:10px 16px;background:#15151b;border:1px solid var(--line);color:#fff;border-radius:999px;font-weight:600}
+.queues{padding:24px;border:1px solid var(--line);border-radius:18px;background:#111116}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.tabs button{padding:9px 14px;min-height:36px;background:#1a1a22;color:#aaaab5;border:1px solid var(--line);margin:0}.tabs button.active{background:#fff;color:#070709}.item{padding:18px;border:1px solid var(--line);background:#09090d;border-radius:12px;margin-top:12px}.item h3{font-size:14px;margin-bottom:8px}.meta{font-size:12px;color:var(--muted);line-height:1.8;overflow-wrap:anywhere}.actions{display:flex;gap:8px;margin-top:12px}.actions button{padding:8px 13px;min-height:34px;margin:0}.approve{background:#153323;color:#6be0a0}.reject{background:#351b1b;color:#ff9189}.empty{text-align:center;color:var(--muted);padding:36px 12px;font-size:13px}
+@media(max-width:520px){.panel{padding:25px 20px}.console-head h1{font-size:23px}.queues{padding:16px}}
+</style>
+</head>
+<body>
+<main id="login-shell" class="shell">
+<a class="brand" href="/" aria-label="HelzerX home">helzerx<span>.</span></a>
+<section class="panel">
+<h1>Welcome back</h1>
+<p class="sub">Sign in to continue to your account.</p>
+<form id="login-form" autocomplete="on">
+<label>Email address<input id="email" name="username" type="email" autocomplete="username" placeholder="Enter your email" maxlength="254" required></label>
+<label>Password<input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" maxlength="1024" required></label>
+<label>Staff security code<input id="staff-secret" name="staff-secret" type="password" inputmode="numeric" autocomplete="off" pattern="[0-9]{6}" minlength="6" maxlength="6" placeholder="6-digit code" aria-describedby="status" required></label>
+<button id="sign-in" type="submit">Sign In</button>
+</form>
+<p id="status" class="status" role="status" aria-live="polite"></p>
+</section>
+<p class="foot">Secure sign-in · HelzerX Cloud</p>
+</main>
+<main id="console" class="hidden">
+<header class="console-head"><div><a class="brand" href="/" style="text-align:left;margin:0;font-size:20px">helzerx<span>.</span></a><h1 style="margin-top:18px">Review workspace</h1><p>Manage pending community claims and hosting requests.</p></div><button class="out" id="sign-out" type="button">Sign out</button></header>
+<section class="queues"><div class="tabs" role="tablist" aria-label="Queue"><button data-kind="invites" class="active" type="button">Invite claims</button><button data-kind="boosts" type="button">Boost claims</button><button data-kind="hosting" type="button">Hosting requests</button><button id="refresh" type="button">Refresh</button></div><p id="queue-status" class="status" role="status" aria-live="polite"></p><div id="items"><div class="empty">Loading…</div></div></section>
+</main>
+<script>
+(()=> {
+ const $=id=>document.getElementById(id);let authenticated=false,kind='invites',queues={invites:[],boosts:[],hosting:[]};
+ const status=s=>$('status').textContent=s,queueStatus=s=>$('queue-status').textContent=s;
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const date=s=>s?new Date(s).toLocaleString():'—';
+ async function api(url,opts={}){const r=await fetch(url,{...opts,credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json',...opts.headers}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||'Request failed.');return d}
+ async function load(){if(!authenticated)return;$('refresh').disabled=true;queueStatus('Loading…');try{const [i,b,h]=await Promise.all([api('/api/admin/invite-claims'),api('/api/admin/boost-claims'),api('/api/admin/hosting-requests')]);queues.invites=i.claims||[];queues.boosts=(b.claims||[]).filter(x=>x.status==='pending');queues.hosting=(h.requests||[]).filter(x=>x.status==='pending'||x.status==='provisioning-error');render();queueStatus('Queues refreshed.')}catch(e){queueStatus(e.message);if(/sign-in|required|expired/i.test(e.message))signOut(false)}finally{$('refresh').disabled=false}}
+ function render(){const arr=queues[kind]||[];if(!arr.length){$('items').innerHTML='<div class="empty">No pending items.</div>';return}$('items').innerHTML=arr.map(x=>{let title='',details='';if(kind==='invites'){title='Invite claim · '+esc(x.inviteeUsername);details='Referrer ID: '+esc(x.referrerId)+'<br>Invitee ID: '+esc(x.inviteeId)+'<br>Submitted: '+date(x.createdAt)}else if(kind==='boosts'){title='Boost claim · '+esc(x.boosts)+' boost(s)';details='Member: '+esc(x.username)+' ('+esc(x.userId)+')<br>Reward: '+esc(x.amount)+' HZL<br>Submitted: '+date(x.createdAt)}else{title=esc(x.service).toUpperCase()+' · '+esc(x.planName);details='Member: '+esc(x.username)+' ('+esc(x.userId)+')<br>Cost: '+esc(x.cost)+' HZL<br>Status: '+esc(x.status)+'<br>Submitted: '+date(x.createdAt)}return '<article class="item"><h3>'+title+'</h3><div class="meta">'+details+'</div><div class="actions"><button class="approve" data-action="approve" data-id="'+esc(x.id)+'">Approve</button><button class="reject" data-action="reject" data-id="'+esc(x.id)+'">Reject</button></div></article>'}).join('')}
+ $('login-form').addEventListener('submit',async e=>{e.preventDefault();const button=$('sign-in');button.disabled=true;status('Signing in…');try{await api('/api/admin/login',{method:'POST',body:JSON.stringify({email:$('email').value.trim(),password:$('password').value,staffSecret:$('staff-secret').value})});authenticated=true;$('password').value='';$('staff-secret').value='';$('login-shell').classList.add('hidden');$('console').classList.remove('hidden');await load()}catch(err){status(err.message)}finally{button.disabled=false}});
+ async function signOut(callServer=true){if(callServer){try{await api('/api/admin/logout',{method:'POST',body:'{}'})}catch{}}authenticated=false;queues={invites:[],boosts:[],hosting:[]};$('console').classList.add('hidden');$('login-shell').classList.remove('hidden');$('login-form').reset();$('items').innerHTML='<div class="empty">Sign in to view pending items.</div>';queueStatus('');status('You have been signed out.')}
+ $('sign-out').addEventListener('click',()=>signOut());$('refresh').addEventListener('click',load);
+ document.querySelectorAll('[data-kind]').forEach(b=>b.addEventListener('click',()=>{kind=b.dataset.kind;document.querySelectorAll('[data-kind]').forEach(x=>x.classList.toggle('active',x===b));render()}));
+ $('items').addEventListener('click',async e=>{const b=e.target.closest('button[data-action]');if(!b)return;const action=b.dataset.action,id=b.dataset.id;const label={invites:'invite claim',boosts:'boost claim',hosting:'hosting request'}[kind];if(!confirm((action==='approve'?'Approve':'Reject')+' this '+label+'?'))return;b.disabled=true;try{const base={invites:'/api/admin/invite-claims/',boosts:'/api/admin/boost-claims/',hosting:'/api/admin/hosting-requests/'}[kind];await api(base+encodeURIComponent(id)+'/review',{method:'POST',body:JSON.stringify({action})});queueStatus('Saved.');await load()}catch(err){queueStatus(err.message);b.disabled=false}});
+ api('/api/admin/session').then(async()=>{authenticated=true;$('login-shell').classList.add('hidden');$('console').classList.remove('hidden');await load()}).catch(()=>{});
+})();
+</script>
+</body></html>
