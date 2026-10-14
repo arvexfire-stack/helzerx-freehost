@@ -33,6 +33,11 @@ const upsert = db.prepare(`INSERT INTO app_records(collection, record_id, payloa
   VALUES (?, ?, ?, datetime('now'))
   ON CONFLICT(collection, record_id) DO UPDATE SET payload=excluded.payload, updated_at=datetime('now')`);
 const removeCollection = db.prepare('DELETE FROM app_records WHERE collection = ?');
+function transaction(fn, value) {
+  db.exec('BEGIN IMMEDIATE');
+  try { fn(value); db.exec('COMMIT'); }
+  catch (error) { try { db.exec('ROLLBACK'); } catch {} throw error; }
+}
 
 export function readCollection(name) {
   return selectAll.all(name).map(row => {
@@ -42,15 +47,14 @@ export function readCollection(name) {
 }
 
 export function replaceCollection(name, records) {
-  const transaction = db.transaction(items => {
+  transaction(items => {
     removeCollection.run(name);
     for (const item of items) {
       const id = String(item.id ?? '');
       if (!id || id.length > 200) throw new Error('Invalid database record identifier.');
       upsert.run(name, id, JSON.stringify(item.value));
     }
-  });
-  transaction(records);
+  }, records);
 }
 
 export function readState() {
@@ -65,7 +69,7 @@ export function readState() {
 }
 
 export function writeState(state) {
-  const transaction = db.transaction(value => {
+  transaction(value => {
     for (const name of ['users','claims','inviteClaims','hostingRequests','tickets','plans','auditLogs']) {
       const items = name === 'users'
         ? Object.entries(value[name] || {}).map(([id, record]) => ({ id, value: record }))
@@ -80,6 +84,5 @@ export function writeState(state) {
         upsert.run(name, id, JSON.stringify(item.value));
       }
     }
-  });
-  transaction(state);
+  }, state);
 }
