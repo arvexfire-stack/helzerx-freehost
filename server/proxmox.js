@@ -9,7 +9,6 @@ export function proxmoxConfig() {
     template: env('PROXMOX_TEMPLATE'),
     tokenId: env('PROXMOX_TOKEN_ID'),
     tokenSecret: env('PROXMOX_TOKEN_SECRET'),
-    sshPublicKeys: env('PROXMOX_SSH_PUBLIC_KEYS'),
     vmidMin: Number(env('PROXMOX_VMID_MIN', '2000')),
     vmidMax: Number(env('PROXMOX_VMID_MAX', '2999')),
     taskTimeoutMs: Number(env('PROXMOX_TASK_TIMEOUT_MS', '180000')),
@@ -28,7 +27,6 @@ export function proxmoxReadiness() {
   if (!c.template) missing.push('PROXMOX_TEMPLATE');
   if (!c.tokenId) missing.push('PROXMOX_TOKEN_ID');
   if (!c.tokenSecret) missing.push('PROXMOX_TOKEN_SECRET');
-  if (!c.sshPublicKeys) missing.push('PROXMOX_SSH_PUBLIC_KEYS (root SSH key required; passwords are not exposed or stored)');
   if (!Number.isInteger(c.vmidMin) || !Number.isInteger(c.vmidMax) || c.vmidMin < 100 || c.vmidMax < c.vmidMin) missing.push('PROXMOX_VMID_MIN/PROXMOX_VMID_MAX');
   if (!/^https:\/\//i.test(c.baseUrl)) missing.push('PROXMOX_API_URL must use HTTPS');
   return { enabled: c.enabled, ready: c.enabled && missing.length === 0, missing, network: c.network };
@@ -88,11 +86,12 @@ async function waitTask(c, upid) {
   throw new Error('Proxmox task is still running; task ID retained for safe reconciliation: ' + upid);
 }
 
-export async function provisionLxc({ requestId, plan, username }) {
+export async function provisionLxc({ requestId, plan, username, sshPublicKey }) {
   const readiness = proxmoxReadiness();
   if (!readiness.ready) throw new Error('Proxmox provisioning is not enabled or configured. Missing: ' + readiness.missing.join(', '));
   const c = proxmoxConfig();
   if (!/^[a-z0-9][a-z0-9-]{1,30}$/i.test(String(plan.id || ''))) throw new Error('Invalid hosting plan ID.');
+  if (String(plan.service || '').toLowerCase() !== 'lxc') throw new Error('Only explicitly labelled LXC plans can be provisioned. KVM and game-server plans are not supported by this adapter.');
   const resources = plan.proxmox;
   if (!resources || !Number.isInteger(Number(resources.cores)) || Number(resources.cores) < 1 ||
       !Number.isInteger(Number(resources.memory)) || Number(resources.memory) < 256 ||
@@ -102,8 +101,8 @@ export async function provisionLxc({ requestId, plan, username }) {
   if (c.network !== 'dhcp') throw new Error('Only DHCP network mode is currently supported by the provisioner. Configure a verified DHCP service or add static IP allocation before enabling.');
   const next = await allocateVmid(c);
   const hostname = ('hx-' + String(requestId).replace(/[^a-z0-9]/gi, '').slice(0, 10) + '-' + next).toLowerCase().slice(0, 63);
-  const sshKeys = String(resources.sshPublicKeys || c.sshPublicKeys).trim();
-  if (!sshKeys || !sshKeys.startsWith('ssh-') && !sshKeys.startsWith('ecdsa-') && !sshKeys.startsWith('sk-')) throw new Error('A valid administrator-managed SSH public key is required. Password-based credential delivery is intentionally disabled.');
+  const sshKeys = String(sshPublicKey || '').trim();
+  if (sshKeys.length > 2048 || !/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshKeys)) throw new Error('A valid single SSH public key is required for this user. Password-based credential delivery is intentionally disabled.');
   const net0 = 'name=eth0,bridge=' + c.bridge + ',ip=dhcp,ip6=auto';
   const upid = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc', {
     vmid: next,
