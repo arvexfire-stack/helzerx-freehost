@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# HelzerX restricted SSH forced-command wrapper.
+# Install as /usr/local/sbin/helzerx-pct-exec, owned by root and not writable by the SSH user.
+set -euo pipefail
+
+original="${SSH_ORIGINAL_COMMAND:-}"
+read -r action vmid encoded extra <<< "$original"
+extra="${extra:-}"
+
+[[ "$action" == "ct-exec" ]] || { echo "Denied: unsupported operation." >&2; exit 126; }
+[[ -z "$extra" ]] || { echo "Denied: unexpected arguments." >&2; exit 126; }
+[[ "$vmid" =~ ^[0-9]{1,5}$ ]] || { echo "Denied: invalid container ID." >&2; exit 126; }
+[[ "$encoded" =~ ^[A-Za-z0-9+/]+={0,2}$ ]] || { echo "Denied: invalid command payload." >&2; exit 126; }
+
+# Keep this range aligned with PROXMOX_VMID_MIN / PROXMOX_VMID_MAX in HelzerX.
+if (( 10#$vmid < 2000 || 10#$vmid > 2999 )); then
+  echo "Denied: container ID is outside the HelzerX range." >&2
+  exit 126
+fi
+
+command_text="$(printf '%s' "$encoded" | base64 --decode)" || { echo "Denied: invalid base64." >&2; exit 126; }
+[[ -n "$command_text" && ${#command_text} -le 4000 ]] || { echo "Denied: command is empty or too long." >&2; exit 126; }
+
+# The SSH account receives sudo only for pct exec. The requested shell runs inside the selected CT.
+exec sudo -n /usr/sbin/pct exec "$vmid" -- /bin/bash -lc "$command_text"
