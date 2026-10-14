@@ -1,7 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {Activity,ArrowDownRight,ArrowRight,ArrowUpRight,Check,ChevronDown,Cloud,Coins,Compass,Copy,ExternalLink,Gift,Globe,Layers,LogOut,Menu,MessageCircle,RefreshCw,Server,ShieldCheck,Sparkles,Users,Zap,Lock,Wallet,Star} from 'lucide-react';
 const money=n=>new Intl.NumberFormat('en-US').format(Number(n)||0);
-const loginUrl='/api/auth/discord';
+const referralParam=new URLSearchParams(window.location.search).get('ref');const loginUrl='/api/auth/discord'+(referralParam?'?ref='+encodeURIComponent(referralParam):'');
 function Brand(){return <a className="brand" href="/" aria-label="HelzerX Free Hosting"><span className="brand-mark">H<span>X</span></span><span className="brand-copy"><b>HelzerX</b><small>FREE HOSTING</small></span></a>}
 function Button({children,onClick,kind='primary',disabled=false}){return <button disabled={disabled} onClick={onClick} className={'button '+kind}>{children}</button>}
 function App(){
