@@ -519,6 +519,27 @@ app.post('/api/admin/hosting-requests/:id/snapshots',adminOnly,adminMutationOrig
   res.json({ok:true,...result});
  }catch(error){res.status(502).json({error:String(error.message||'Snapshot operation failed').slice(0,500)});}
 });
+app.post('/api/admin/hosting-requests/:id/remove-failed',adminOnly,adminMutationOrigin,async(req,res)=>{
+ const index=data.hostingRequests.findIndex(x=>x.id===req.params.id);
+ if(index<0)return res.status(404).json({error:'Hosting request not found.'});
+ const item=data.hostingRequests[index];
+ const status=String(item.status||'').toLowerCase();
+ const removableStatuses=new Set(['provisioning-error','failed','rejected','cancelled','error']);
+ if(!removableStatuses.has(status)&&item.provisioningStatus!=='needs-admin-reconciliation')return res.status(409).json({error:'Only failed, rejected, cancelled, or provisioning-error requests can be removed.'});
+ const reason=String(req.body?.reason||'').trim();
+ if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide an audit reason (3–300 characters).'});
+ const hasVmid=item.vmid!==undefined&&item.vmid!==null&&String(item.vmid).trim()!=='';
+ if(hasVmid){
+  const vmid=Number(item.vmid);
+  if(item.service!=='lxc'||!Number.isInteger(vmid)||vmid<2000||vmid>2999)return res.status(409).json({error:'This failed request has a resource ID that cannot be safely cleaned up automatically. Keep the record and reconcile the resource manually.'});
+  try{await manageLxc({vmid,action:'delete'});}
+  catch(error){item.lastActionError=String(error.message||'Proxmox cleanup failed').slice(0,500);item.updatedAt=new Date().toISOString();writeData();return res.status(502).json({error:'Proxmox cleanup failed. The request record was kept so you can retry safely. '+item.lastActionError});}
+ }
+ data.hostingRequests.splice(index,1);
+ auditAdmin(req,'failed_hosting_request_removed','hosting_request',item.id,{userId:item.userId,service:item.service,status:item.status,vmid:item.vmid??null,reason,proxmoxCleanup:hasVmid});
+ writeData();
+ res.json({ok:true,message:'Failed hosting request removed.',id:item.id});
+});
 app.post('/api/admin/hosting-requests/:id/action',adminOnly,adminMutationOrigin,async(req,res)=>{
  const item=data.hostingRequests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({error:'Hosting request not found.'});
  if(item.service!=='lxc'||!Number.isInteger(Number(item.vmid)))return res.status(409).json({error:'This record is not a managed LXC container.'});
