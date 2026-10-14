@@ -282,6 +282,103 @@ app.post('/api/admin/invite-claims/:id/review',adminOnly,adminMutationOrigin,(re
 app.get('/api/admin/hosting-requests',adminOnly,(_req,res)=>res.json({requests:data.hostingRequests.filter(x=>x.status==='pending'||x.status==='provisioning-error').map(({sshPublicKey,...x})=>x)}));
 app.post('/api/admin/hosting-requests/:id/review',adminOnly,adminMutationOrigin,async(req,res)=>{const item=data.hostingRequests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({error:'Hosting request not found'});if(item.status!=='pending')return res.status(409).json({error:'Hosting request has already been reviewed'});const action=req.body?.action;if(!['approve','reject'].includes(action))return res.status(400).json({error:'Action must be approve or reject'});const u=ensureUser(item.userId);if(action==='reject'){item.status='rejected';item.reviewedAt=new Date().toISOString();item.updatedAt=item.reviewedAt;writeData();return res.json({ok:true,request:item})}if(u.balance<item.cost)return res.status(409).json({error:'User balance is no longer sufficient'});const plan=data.plans.find(x=>x.enabled!==false&&x.id===item.planId&&x.service===item.service&&Number.isSafeInteger(x.cost)&&x.cost===item.cost);if(!plan||!plan.proxmox||plan.service!=='lxc')return res.status(409).json({error:'Only explicitly configured LXC plans can be provisioned. No HZL was deducted.'});const readiness=proxmoxReadiness();if(!readiness.ready)return res.status(503).json({error:'Proxmox provisioning is not ready. No HZL was deducted.',missing:readiness.missing});u.balance-=item.cost;item.status='provisioning';item.provisioningStatus='creating-container';item.reviewedAt=new Date().toISOString();item.updatedAt=item.reviewedAt;item.provisioningAttempts=(item.provisioningAttempts||0)+1;writeData();try{const created=await provisionLxc({requestId:item.id,plan,username:item.username,sshPublicKey:item.sshPublicKey});item.status='provisioned';item.provisioningStatus='container-start-requested';item.vmid=created.vmid;item.hostname=created.hostname;item.proxmoxTask=created.upid;item.updatedAt=new Date().toISOString();writeData();return res.json({ok:true,request:item})}catch(e){item.status='provisioning-error';item.provisioningStatus='needs-admin-reconciliation';item.error=String(e.message||'Provisioning failed').slice(0,500);item.updatedAt=new Date().toISOString();writeData();console.error('[proxmox provisioning]',item.id,item.error);return res.status(502).json({error:'Provisioning did not complete cleanly. The request is locked against duplicate provisioning and requires admin reconciliation; HZL was not automatically refunded to avoid double provisioning.',request:{id:item.id,status:item.status,provisioningStatus:item.provisioningStatus}})}});
 app.post('/api/admin/boost-claims/:id/review',adminOnly,adminMutationOrigin,(req,res)=>{const claim=data.claims.find(c=>c.id===req.params.id);if(!claim)return res.status(404).json({error:'Claim not found'});if(claim.status!=='pending')return res.status(409).json({error:'Claim has already been reviewed'});const action=req.body?.action;if(!['approve','reject'].includes(action))return res.status(400).json({error:'Action must be approve or reject'});claim.status=action==='approve'?'approved':'rejected';claim.reviewedAt=new Date().toISOString();if(action==='approve'){const u=ensureUser(claim.userId);u.balance+=claim.amount;u.activeBoosts=Math.max(u.activeBoosts,claim.boosts);}writeData();res.json({ok:true,claim});});
+
+function auditAdmin(req,action,targetType,targetId,details={}) {
+  data.auditLogs.unshift({id:crypto.randomUUID(),adminEmail:req.session.admin.email,action,targetType,targetId:String(targetId||''),details,createdAt:new Date().toISOString()});
+  if(data.auditLogs.length>5000)data.auditLogs.length=5000;
+}
+function safeAdminUser(id,u) {
+  return {id,username:u.username||u.global_name||'Unknown',email:u.email||null,balance:Number(u.balance)||0,verifiedInvites:Number(u.verifiedInvites)||0,activeBoosts:Number(u.activeBoosts)||0,createdAt:u.createdAt||null,status:u.status==='suspended'?'suspended':'active',avatar:u.avatar||null,referrer:u.referrer||null};
+}
+app.get('/api/tickets',auth,(req,res)=>{res.set('Cache-Control','no-store');res.json({tickets:data.tickets.filter(t=>t.userId===req.session.user.id).map(({messages=[],...t})=>({...t,messageCount:messages.length,lastMessageAt:messages.at(-1)?.createdAt||t.createdAt}))})});
+app.post('/api/tickets',auth,adminMutationOrigin,(req,res)=>{
+ const subject=String(req.body?.subject||'').trim(),message=String(req.body?.message||'').trim(),category=String(req.body?.category||'general');
+ if(subject.length<4||subject.length>120)return res.status(400).json({error:'Ticket subject must be 4–120 characters.'});
+ if(message.length<5||message.length>5000)return res.status(400).json({error:'Message must be 5–5000 characters.'});
+ if(!['general','billing','technical','vps','account'].includes(category))return res.status(400).json({error:'Invalid ticket category.'});
+ const openCount=data.tickets.filter(t=>t.userId===req.session.user.id&&t.status!=='closed').length;
+ if(openCount>=10)return res.status(429).json({error:'You have reached the limit of 10 open tickets.'});
+ const now=new Date().toISOString(),ticket={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username||'Member',subject,category,status:'open',priority:'normal',createdAt:now,updatedAt:now,messages:[{id:crypto.randomUUID(),authorId:req.session.user.id,authorName:req.session.user.username||'Member',authorRole:'user',message,createdAt:now}]};
+ data.tickets.push(ticket);writeData();res.status(201).json({ok:true,ticket:{...ticket}});
+});
+app.post('/api/tickets/:id/messages',auth,adminMutationOrigin,(req,res)=>{
+ const ticket=data.tickets.find(t=>t.id===req.params.id&&t.userId===req.session.user.id);
+ if(!ticket)return res.status(404).json({error:'Ticket not found.'});
+ if(ticket.status==='closed')return res.status(409).json({error:'This ticket is closed.'});
+ const message=String(req.body?.message||'').trim();if(message.length<1||message.length>5000)return res.status(400).json({error:'Message must be 1–5000 characters.'});
+ const now=new Date().toISOString();ticket.messages.push({id:crypto.randomUUID(),authorId:req.session.user.id,authorName:req.session.user.username||'Member',authorRole:'user',message,createdAt:now});ticket.updatedAt=now;ticket.status='open';writeData();res.json({ok:true,ticket});
+});
+app.get('/api/tickets/:id',auth,(req,res)=>{const ticket=data.tickets.find(t=>t.id===req.params.id&&t.userId===req.session.user.id);if(!ticket)return res.status(404).json({error:'Ticket not found.'});res.set('Cache-Control','no-store');res.json({ticket})});
+
+app.get('/api/admin/overview',adminOnly,(_req,res)=>{
+ const users=Object.values(data.users),requests=data.hostingRequests;
+ res.json({stats:{users:users.length,activeUsers:users.filter(u=>u.status!=='suspended').length,suspendedUsers:users.filter(u=>u.status==='suspended').length,openTickets:data.tickets.filter(t=>t.status!=='closed').length,pendingHosting:requests.filter(x=>x.status==='pending').length,activeVps:requests.filter(x=>['provisioned','suspended'].includes(x.status)).length,totalHzl:users.reduce((n,u)=>n+(Number(u.balance)||0),0)},proxmox:proxmoxReadiness()});
+});
+app.get('/api/admin/users',adminOnly,(req,res)=>{
+ const q=String(req.query.q||'').trim().toLowerCase(),status=String(req.query.status||'all');
+ const users=Object.entries(data.users).map(([id,u])=>safeAdminUser(id,u)).filter(u=>(!q||[u.id,u.username,u.email||''].some(v=>String(v).toLowerCase().includes(q)))&&(status==='all'||u.status===status)).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+ res.json({users,total:users.length});
+});
+app.post('/api/admin/users/:id/balance',adminOnly,adminMutationOrigin,(req,res)=>{
+ const user=data.users[req.params.id];if(!user)return res.status(404).json({error:'User not found.'});
+ const action=String(req.body?.action||''),amount=Number(req.body?.amount),reason=String(req.body?.reason||'').trim();
+ if(!['add','remove'].includes(action)||!Number.isSafeInteger(amount)||amount<1||amount>100000000)return res.status(400).json({error:'Choose add/remove and an integer HZL amount between 1 and 100,000,000.'});
+ if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide an audit reason (3–300 characters).'});
+ const before=Number(user.balance)||0;if(action==='remove'&&before<amount)return res.status(409).json({error:'User does not have enough HZL to remove.'});
+ user.balance=action==='add'?before+amount:before-amount;
+ auditAdmin(req,'balance_'+action,'user',req.params.id,{amount,before,after:user.balance,reason});writeData();
+ res.json({ok:true,user:safeAdminUser(req.params.id,user)});
+});
+app.post('/api/admin/users/:id/status',adminOnly,adminMutationOrigin,(req,res)=>{
+ const user=data.users[req.params.id];if(!user)return res.status(404).json({error:'User not found.'});
+ const status=String(req.body?.status||''),reason=String(req.body?.reason||'').trim();
+ if(!['active','suspended'].includes(status))return res.status(400).json({error:'Status must be active or suspended.'});
+ if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide a reason (3–300 characters).'});
+ user.status=status;user.statusReason=reason;user.statusUpdatedAt=new Date().toISOString();
+ auditAdmin(req,'user_'+status,'user',req.params.id,{reason});writeData();res.json({ok:true,user:safeAdminUser(req.params.id,user)});
+});
+app.get('/api/admin/plans',adminOnly,(_req,res)=>res.json({plans:data.plans}));
+app.post('/api/admin/plans',adminOnly,adminMutationOrigin,(req,res)=>{
+ const {id,service,name,cost,description,enabled=true,proxmox:resources}=req.body||{};
+ if(typeof id!=='string'||!/^[a-z0-9][a-z0-9-]{1,30}$/i.test(id)||data.plans.some(p=>p.id===id))return res.status(400).json({error:'Plan ID must be unique and 2–31 letters, numbers or hyphens.'});
+ if(!['lxc','minecraft','vps'].includes(service)||typeof name!=='string'||name.trim().length<2||name.trim().length>100||!Number.isSafeInteger(Number(cost))||Number(cost)<1||Number(cost)>100000000)return res.status(400).json({error:'Invalid plan service, name or HZL cost.'});
+ if(description!==undefined&&(typeof description!=='string'||description.length>1000))return res.status(400).json({error:'Description must be at most 1000 characters.'});
+ const plan={id,service,name:name.trim(),cost:Number(cost),description:String(description||''),enabled:Boolean(enabled)};
+ if(service==='lxc'&&resources){const cores=Number(resources.cores),memory=Number(resources.memory),disk=Number(resources.disk),swap=Number(resources.swap??512);if(!Number.isInteger(cores)||cores<1||cores>64||!Number.isInteger(memory)||memory<256||memory>1048576||!Number.isInteger(disk)||disk<2||disk>10000||!Number.isInteger(swap)||swap<0||swap>1048576)return res.status(400).json({error:'Invalid LXC resource limits.'});plan.proxmox={cores,memory,disk,swap};}
+ data.plans.push(plan);auditAdmin(req,'plan_create','plan',id,{service,cost:plan.cost});writeData();res.status(201).json({ok:true,plan});
+});
+app.put('/api/admin/plans/:id',adminOnly,adminMutationOrigin,(req,res)=>{
+ const plan=data.plans.find(p=>p.id===req.params.id);if(!plan)return res.status(404).json({error:'Plan not found.'});
+ const {name,cost,description,enabled,proxmox:resources}=req.body||{};
+ if(name!==undefined&&(typeof name!=='string'||name.trim().length<2||name.trim().length>100))return res.status(400).json({error:'Invalid plan name.'});
+ if(cost!==undefined&&(!Number.isSafeInteger(Number(cost))||Number(cost)<1||Number(cost)>100000000))return res.status(400).json({error:'Invalid HZL cost.'});
+ if(description!==undefined&&(typeof description!=='string'||description.length>1000))return res.status(400).json({error:'Description must be at most 1000 characters.'});
+ if(name!==undefined)plan.name=name.trim();if(cost!==undefined)plan.cost=Number(cost);if(description!==undefined)plan.description=description;if(enabled!==undefined)plan.enabled=Boolean(enabled);
+ if(resources!==undefined){if(plan.service!=='lxc'||!resources||!Number.isInteger(Number(resources.cores))||Number(resources.cores)<1||!Number.isInteger(Number(resources.memory))||Number(resources.memory)<256||!Number.isInteger(Number(resources.disk))||Number(resources.disk)<2)return res.status(400).json({error:'Invalid LXC resource mapping.'});plan.proxmox={cores:Number(resources.cores),memory:Number(resources.memory),disk:Number(resources.disk),swap:Number(resources.swap??512)};}
+ auditAdmin(req,'plan_update','plan',plan.id,{name:plan.name,cost:plan.cost,enabled:plan.enabled});writeData();res.json({ok:true,plan});
+});
+app.delete('/api/admin/plans/:id',adminOnly,adminMutationOrigin,(req,res)=>{
+ const idx=data.plans.findIndex(p=>p.id===req.params.id);if(idx<0)return res.status(404).json({error:'Plan not found.'});
+ if(data.hostingRequests.some(x=>x.planId===req.params.id&&['pending','provisioning','provisioned','suspended'].includes(x.status)))return res.status(409).json({error:'Plan is referenced by pending or active hosting requests. Disable it instead.'});
+ const [plan]=data.plans.splice(idx,1);auditAdmin(req,'plan_delete','plan',plan.id,{name:plan.name});writeData();res.json({ok:true});
+});
+app.get('/api/admin/tickets',adminOnly,(req,res)=>{
+ const status=String(req.query.status||'open'),q=String(req.query.q||'').toLowerCase();
+ const tickets=data.tickets.filter(t=>(status==='all'||t.status===status)&&( !q||[t.id,t.subject,t.username,t.userId].some(v=>String(v||'').toLowerCase().includes(q)))).map(t=>({...t,messages:t.messages||[]})).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
+ res.json({tickets,total:tickets.length});
+});
+app.post('/api/admin/tickets/:id/messages',adminOnly,adminMutationOrigin,(req,res)=>{
+ const ticket=data.tickets.find(t=>t.id===req.params.id);if(!ticket)return res.status(404).json({error:'Ticket not found.'});
+ const message=String(req.body?.message||'').trim();if(message.length<1||message.length>5000)return res.status(400).json({error:'Message must be 1–5000 characters.'});
+ const now=new Date().toISOString();ticket.messages=ticket.messages||[];ticket.messages.push({id:crypto.randomUUID(),authorId:req.session.admin.email,authorName:'HelzerX Support',authorRole:'admin',message,createdAt:now});ticket.updatedAt=now;if(ticket.status==='closed')ticket.status='open';auditAdmin(req,'ticket_reply','ticket',ticket.id,{});writeData();res.json({ok:true,ticket});
+});
+app.post('/api/admin/tickets/:id/status',adminOnly,adminMutationOrigin,(req,res)=>{
+ const ticket=data.tickets.find(t=>t.id===req.params.id);if(!ticket)return res.status(404).json({error:'Ticket not found.'});
+ const status=String(req.body?.status||''),priority=String(req.body?.priority||ticket.priority||'normal');
+ if(!['open','in_progress','waiting_user','closed'].includes(status)||!['low','normal','high','urgent'].includes(priority))return res.status(400).json({error:'Invalid ticket status or priority.'});
+ ticket.status=status;ticket.priority=priority;ticket.updatedAt=new Date().toISOString();auditAdmin(req,'ticket_status','ticket',ticket.id,{status,priority});writeData();res.json({ok:true,ticket});
+});
+app.get('/api/admin/audit-logs',adminOnly,(req,res)=>{const limit=Math.max(1,Math.min(500,Number(req.query.limit)||100));res.json({logs:data.auditLogs.slice(0,limit)});});
 app.get('/api/plans',(_q,r)=>r.json({plans:[{id:'minecraft',title:'Minecraft Hosting',description:'Explore eligible Minecraft hosting rewards.',features:['Multiple RAM options','High-performance CPU resources','NVMe storage','Available locations'],command:'.mc-plans'},{id:'vps',title:'KVM VPS',description:'Explore eligible KVM VPS rewards.',features:['Multiple RAM options','Dedicated vCPU resources','NVMe storage','Available locations'],command:'.vps-plans'}]}));
 app.use(express.static(path.join(root, 'public'), { index: false, maxAge: '1h' }));
 if (prod) {
