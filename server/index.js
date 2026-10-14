@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import session from 'express-session';
 import crypto from 'node:crypto';
-import { provisionLxc, proxmoxReadiness } from './proxmox.js';
+import { provisionLxc, proxmoxReadiness, manageLxc } from './proxmox.js';
 import { readState, writeState } from './database.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -102,7 +102,7 @@ function creditInviteMilestones(id){const u=ensureUser(id);for(const [count,amou
 function discordGuildMemberships(accessToken){return fetch('https://discord.com/api/users/@me/guilds',{headers:{Authorization:'Bearer '+accessToken,Accept:'application/json'},signal:AbortSignal.timeout(10000)});}
 
 function publicUser(u){return u?{id:u.id,username:u.username,global_name:u.global_name||u.username,avatar:u.avatar?'https://cdn.discordapp.com/avatars/'+u.id+'/'+u.avatar+'.'+(u.avatar.startsWith('a_')?'gif':'png')+'?size=128':null}:null;}
-function auth(req,res,next){if(!req.session.user)return res.status(401).json({error:'DISCORD_LOGIN_REQUIRED'});next();}
+function auth(req,res,next){if(!req.session.user)return res.status(401).json({error:'DISCORD_LOGIN_REQUIRED'});const account=data.users[req.session.user.id];if(account?.status==='suspended')return res.status(403).json({error:'ACCOUNT_SUSPENDED'});next();}
 async function rewardsFor(user){const u=ensureUser(user.id);return {connected:true,balance:u.balance,verifiedInvites:u.verifiedInvites,activeBoosts:u.activeBoosts,rewards:[],message:null,inviteTiers,boostTiers,referralCode:user.id};}
 app.get('/api/health',(_q,r)=>r.json({ok:true,service:'helzerx-freehost',discordConfigured:Boolean(process.env.DISCORD_CLIENT_ID&&process.env.DISCORD_CLIENT_SECRET),rewardsConfigured:Boolean(process.env.REWARDS_API_URL&&process.env.REWARDS_API_TOKEN),proxmox:{enabled:proxmoxReadiness().enabled,ready:proxmoxReadiness().ready}}));
 app.get('/api/auth/discord',(req,res)=>{if(!process.env.DISCORD_CLIENT_ID||!process.env.DISCORD_REDIRECT_URI)return res.status(503).send('Discord login is not configured yet.');const state=crypto.randomBytes(32).toString('hex');pendingOAuth.set(state,{createdAt:Date.now(),referral:typeof req.query.ref==='string'?req.query.ref:''});for(const [k,v] of pendingOAuth)if(Date.now()-v.createdAt>600000)pendingOAuth.delete(k);const u=new URL('https://discord.com/oauth2/authorize');u.searchParams.set('client_id',process.env.DISCORD_CLIENT_ID);u.searchParams.set('response_type','code');u.searchParams.set('redirect_uri',process.env.DISCORD_REDIRECT_URI);u.searchParams.set('scope','identify guilds');u.searchParams.set('state',state);res.redirect(u.toString());});
@@ -377,6 +377,38 @@ app.post('/api/admin/tickets/:id/status',adminOnly,adminMutationOrigin,(req,res)
  const status=String(req.body?.status||''),priority=String(req.body?.priority||ticket.priority||'normal');
  if(!['open','in_progress','waiting_user','closed'].includes(status)||!['low','normal','high','urgent'].includes(priority))return res.status(400).json({error:'Invalid ticket status or priority.'});
  ticket.status=status;ticket.priority=priority;ticket.updatedAt=new Date().toISOString();auditAdmin(req,'ticket_status','ticket',ticket.id,{status,priority});writeData();res.json({ok:true,ticket});
+});
+
+app.post('/api/admin/hosting-requests/manual',adminOnly,adminMutationOrigin,async(req,res)=>{
+ const userId=String(req.body?.userId||''),planId=String(req.body?.planId||''),sshPublicKey=String(req.body?.sshPublicKey||'').trim(),charge=req.body?.charge===true;
+ const user=data.users[userId];if(!user)return res.status(404).json({error:'User not found.'});
+ const plan=data.plans.find(p=>p.id===planId&&p.enabled!==false);
+ if(!plan||plan.service!=='lxc'||!plan.proxmox)return res.status(400).json({error:'Choose an enabled LXC plan with an explicit Proxmox resource mapping.'});
+ if(!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048)return res.status(400).json({error:'Provide a valid SSH public key. Private keys and passwords are not accepted.'});
+ if(charge&&(Number(user.balance)||0)<plan.cost)return res.status(409).json({error:'User does not have enough HZL.'});
+ const readiness=proxmoxReadiness();if(!readiness.ready)return res.status(503).json({error:'Proxmox provisioning is not ready.',missing:readiness.missing});
+ const now=new Date().toISOString(),request={id:crypto.randomUUID(),userId,username:user.username||user.global_name||userId,service:'lxc',planId:plan.id,planName:plan.name,cost:charge?plan.cost:0,status:'provisioning',sshPublicKey,manualCreated:true,createdAt:now,updatedAt:now,createdBy:req.session.admin.email};
+ data.hostingRequests.push(request);if(charge){user.balance-=plan.cost;auditAdmin(req,'balance_remove','user',userId,{amount:plan.cost,reason:'Manual LXC provisioning: '+request.id});}
+ request.provisioningAttempts=1;writeData();
+ try{const created=await provisionLxc({requestId:request.id,plan,username:request.username,sshPublicKey});request.status='provisioned';request.provisioningStatus='container-started';request.vmid=created.vmid;request.hostname=created.hostname;request.proxmoxTask=created.upid;request.updatedAt=new Date().toISOString();auditAdmin(req,'vps_manual_create','hosting_request',request.id,{userId,vmid:created.vmid,charged:charge?plan.cost:0});writeData();res.status(201).json({ok:true,request:{...request,sshPublicKey:undefined}});
+ }catch(error){request.status='provisioning-error';request.provisioningStatus='needs-admin-reconciliation';request.error=String(error.message||'Provisioning failed').slice(0,500);request.updatedAt=new Date().toISOString();auditAdmin(req,'vps_manual_create_failed','hosting_request',request.id,{userId,error:request.error});writeData();res.status(502).json({error:'Provisioning failed or needs reconciliation. Review the request before retrying to avoid duplicate containers.',request:{id:request.id,status:request.status,provisioningStatus:request.provisioningStatus}});}
+});
+app.post('/api/admin/hosting-requests/:id/action',adminOnly,adminMutationOrigin,async(req,res)=>{
+ const item=data.hostingRequests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({error:'Hosting request not found.'});
+ if(item.service!=='lxc'||!Number.isInteger(Number(item.vmid)))return res.status(409).json({error:'This record is not a managed LXC container.'});
+ const action=String(req.body?.action||'');
+ if(action==='delete'&&req.body?.confirm!==true)return res.status(400).json({error:'Explicit delete confirmation is required.'});
+ if(action==='suspend'&&!['provisioned','suspended'].includes(item.status))return res.status(409).json({error:'Only provisioned containers can be suspended.'});
+ if(action==='resume'&&item.status!=='suspended')return res.status(409).json({error:'Only suspended containers can be resumed.'});
+ if(action==='delete'&&!['provisioned','suspended','provisioning-error'].includes(item.status))return res.status(409).json({error:'This container cannot be deleted from its current state.'});
+ try{
+  const result=await manageLxc({vmid:item.vmid,action});
+  item.updatedAt=new Date().toISOString();
+  if(action==='suspend'){item.status='suspended';item.provisioningStatus='container-stopped';}
+  else if(action==='resume'){item.status='provisioned';item.provisioningStatus='container-running';}
+  else{item.status='deleted';item.provisioningStatus='container-deleted';item.deletedAt=item.updatedAt;item.deletedBy=req.session.admin.email;}
+  auditAdmin(req,'vps_'+action,'hosting_request',item.id,{vmid:item.vmid,userId:item.userId});writeData();res.json({ok:true,request:{id:item.id,status:item.status,vmid:item.vmid,hostname:item.hostname},proxmox:result});
+ }catch(error){item.updatedAt=new Date().toISOString();item.lastActionError=String(error.message||'Proxmox action failed').slice(0,500);writeData();res.status(502).json({error:item.lastActionError});}
 });
 app.get('/api/admin/audit-logs',adminOnly,(req,res)=>{const limit=Math.max(1,Math.min(500,Number(req.query.limit)||100));res.json({logs:data.auditLogs.slice(0,limit)});});
 app.get('/api/plans',(_q,r)=>r.json({plans:[{id:'minecraft',title:'Minecraft Hosting',description:'Explore eligible Minecraft hosting rewards.',features:['Multiple RAM options','High-performance CPU resources','NVMe storage','Available locations'],command:'.mc-plans'},{id:'vps',title:'KVM VPS',description:'Explore eligible KVM VPS rewards.',features:['Multiple RAM options','Dedicated vCPU resources','NVMe storage','Available locations'],command:'.vps-plans'}]}));
