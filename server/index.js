@@ -450,9 +450,9 @@ app.post('/api/admin/hosting-requests/:id/action',adminOnly,adminMutationOrigin,
  try{
   const result=await manageLxc({vmid:item.vmid,action});
   item.updatedAt=new Date().toISOString();
-  if(action==='suspend'){item.status='suspended';item.provisioningStatus='container-stopped';}
-  else if(action==='resume'){item.status='provisioned';item.provisioningStatus='container-running';}
-  else{item.status='deleted';item.provisioningStatus='container-deleted';item.deletedAt=item.updatedAt;item.deletedBy=req.session.admin.email;}
+  if(['suspend','stop'].includes(action)){item.status='suspended';item.provisioningStatus='container-stopped';}
+  else if(['resume','start','reboot'].includes(action)){item.status='provisioned';item.provisioningStatus='container-running';}
+  else if(action==='delete'){item.status='deleted';item.provisioningStatus='container-deleted';item.deletedAt=item.updatedAt;item.deletedBy=req.session.admin.email;}
   auditAdmin(req,'vps_'+action,'hosting_request',item.id,{vmid:item.vmid,userId:item.userId,reason});writeData();res.json({ok:true,request:{id:item.id,status:item.status,vmid:item.vmid,hostname:item.hostname},proxmox:result});
  }catch(error){item.updatedAt=new Date().toISOString();item.lastActionError=String(error.message||'Proxmox action failed').slice(0,500);writeData();res.status(502).json({error:item.lastActionError});}
 });
