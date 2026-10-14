@@ -202,7 +202,7 @@ export async function runLxcTerminal({ vmid, command }) {
     throw new Error('Terminal is not configured. Set the Proxmox SSH host, private key and verified SHA-256 host-key fingerprint.');
   }
   const text = String(command || '').trim();
-  if (!text || text.length > 4000 || /\\u0000/.test(text)) throw new Error('Enter a command of 1–4000 characters.');
+  if (!text || text.length > 4000 || text.includes('\u0000')) throw new Error('Enter a command of 1–4000 characters.');
   // The SSH key must be restricted to a host-side wrapper that accepts only:
   // ct-exec <VMID> <base64-command>. No arbitrary host shell is exposed.
   const payload = Buffer.from(text, 'utf8').toString('base64');
@@ -217,7 +217,7 @@ export async function runLxcTerminal({ vmid, command }) {
       client.end();
       if (error) reject(error); else resolve(value);
     };
-    const timer = setTimeout(() => finish(new Error('Terminal command timed out after 15 seconds.')), 15000);
+    const timer = setTimeout(() => finish(new Error('Terminal command timed out after 60 seconds.')), 60000);
     client.on('ready', () => {
       client.exec(remoteCommand, { pty:false }, (error, stream) => {
         if (error) return finish(error);
