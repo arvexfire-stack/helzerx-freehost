@@ -1,0 +1,8 @@
+{
+  "name": "HelzerX Hosting Rewards",
+  "description": "HelzerX community-supported cloud hosting rewards. Earn verified HZL credits for eligible hosting redemptions.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

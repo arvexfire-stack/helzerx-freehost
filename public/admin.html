@@ -4,95 +4,202 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="theme-color" content="#f4f4f1">
-  <title>HelzerX · Admin Review</title>
+  <meta name="theme-color" content="#070709">
+  <title>HelzerX · Admin Review Console</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-    :root{font-family:'DM Sans',sans-serif;color:#202020;background:#e0e0e0;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;--ink:#202020;--muted:#777;--line:#e8e8e8;--surface:#fafafa;--dark:#171717}
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;background:#e0e0e0}
-    button,input{font:inherit}
-    button:focus-visible,input:focus-visible{outline:2px solid #444;outline-offset:3px}
-    .wrap{max-width:1100px;min-height:calc(100vh - 44px);margin:22px auto;padding:27px 28px 45px;border:1px solid #f0f0f0;border-radius:16px;background:#fff;box-shadow:0 16px 48px rgba(0,0,0,.055)}
-    .top{display:flex;justify-content:space-between;gap:18px;align-items:center;flex-wrap:wrap}
-    .brand{font-size:13px;font-weight:700;letter-spacing:.09em}
-    .brand span{color:#777}
-    .eyebrow{margin:0 0 10px;color:#777;font-size:9px;font-weight:700;letter-spacing:.14em}
-    h1,h2,h3,p{margin-top:0}
-    h1{margin:0;font-size:clamp(30px,4vw,42px);font-weight:500;letter-spacing:-.065em;line-height:1}
-    h1 em{font:inherit;font-style:normal;letter-spacing:inherit}
-    h2{font-size:16px;letter-spacing:-.035em}
-    .muted{color:var(--muted);font-size:11px;line-height:1.8}
-    .intro{max-width:520px;margin:14px 0 0}
-    .top>button{min-height:39px}
-    .panel{margin-top:16px;padding:20px 21px;background:var(--surface);border:1px solid var(--line);border-radius:11px}
-    .access-panel{display:grid;grid-template-columns:.8fr 1.2fr;gap:28px;align-items:start;background:#f0f0f0}
-    .access-panel h2{margin:0 0 10px;font-size:17px}
-    .warning{font-size:10px;color:#686a62;line-height:1.8;margin:0}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    input{flex:1;min-width:220px;background:#fff;color:var(--ink);border:1px solid #ddd;border-radius:8px;padding:11px 12px;font-size:11px}
-    input::placeholder{color:#999b93}
-    button{cursor:pointer;border:1px solid var(--dark);background:var(--dark);color:#f7f7f2;padding:10px 14px;border-radius:999px;font-size:10px;font-weight:700;transition:background .18s ease,color .18s ease,border-color .18s ease}
-    button:hover{background:#484a43;border-color:#484a43}
-    button:disabled{opacity:.55;cursor:wait}
-    #forget{background:transparent;color:#555;border-color:#d4d4d4}
-    #forget:hover{background:#eee}
-    #refresh{background:transparent;color:var(--ink);border-color:#d4d4d4}
-    #refresh:hover{background:#eee}
-    .status{margin-top:12px;color:#505548;font-size:10px;line-height:1.7;white-space:pre-wrap}
-    .queue-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap}
-    .queue-head h2{margin:0 0 5px}
-    .queue-head p{margin:0}
-    .tabs{display:flex;gap:7px;flex-wrap:wrap;margin-top:19px;padding-bottom:13px;border-bottom:1px solid var(--line)}
-    .tabs button{background:transparent;color:#676767;border-color:#ddd;padding:9px 12px}
-    .tabs button:hover{background:#eee}
-    .tabs button.active{background:var(--dark);border-color:var(--dark);color:#f7f7f2}
-    .card{margin-top:11px;padding:17px 18px;background:#fafafa;border:1px solid var(--line);border-radius:9px}
-    .card h3{margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:-.02em}
-    .meta{color:#696b63;font-size:10px;line-height:1.8;overflow-wrap:anywhere}
-    .actions{display:flex;gap:7px;margin-top:13px}
-    .actions button{min-width:77px}
-    .actions .approve{background:#ededed;color:#333;border-color:#d6d6d6}
-    .actions .approve:hover{background:#e1e1e1}
-    .actions .reject{background:#f0f0f0;color:#555;border-color:#d6d6d6}
-    .actions .reject:hover{background:#e5e5e5}
-    .empty{padding:35px 15px;text-align:center;color:#777973;font-size:10px}
-    .security-foot{max-width:860px;margin:20px 0 0;padding-left:12px;border-left:2px solid #c8c8c8}
-    @media(max-width:700px){.wrap{min-height:calc(100vh - 16px);margin:8px;padding:20px 16px 35px;border-radius:13px}.access-panel{grid-template-columns:1fr;gap:16px}.panel{padding:16px}.top{align-items:flex-start}.queue-head{align-items:flex-start}}
-    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    :root {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #f5f5f7;
+      background: #070709;
+      --bg: #070709;
+      --card: #111116;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-muted: #8e8e99;
+      --accent: #f5b041;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; background: var(--bg); color: #f5f5f7; padding: 32px 20px; }
+    .wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; padding-bottom: 24px; border-bottom: 1px solid var(--card-border); }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+    h1 { font-size: clamp(28px, 4vw, 38px); font-weight: 800; letter-spacing: -0.04em; color: #fff; }
+    .intro { color: var(--text-muted); font-size: 14px; margin-top: 6px; max-width: 540px; }
+    .panel { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 28px; }
+    .access-panel { display: grid; grid-template-columns: 1fr 1.2fr; gap: 32px; align-items: start; }
+    .access-panel h2 { font-size: 18px; margin-bottom: 8px; color: #fff; }
+    .warning { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    input { flex: 1; min-width: 200px; background: #09090c; border: 1px solid var(--card-border); border-radius: 999px; padding: 10px 16px; color: #fff; font-size: 13px; outline: none; }
+    input:focus { border-color: var(--accent); }
+    button { cursor: pointer; border-radius: 999px; padding: 10px 20px; font-size: 12px; font-weight: 600; transition: all 0.2s ease; border: 1px solid transparent; }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    #connect { background: #fff; color: #070709; }
+    #connect:hover { background: #e5e5e5; }
+    #forget { background: transparent; color: var(--text-muted); border-color: var(--card-border); }
+    #forget:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
+    #refresh { background: rgba(255,255,255,0.06); color: #fff; border-color: var(--card-border); }
+    #refresh:hover { background: rgba(255,255,255,0.12); }
+    .status { margin-top: 12px; font-size: 12px; color: var(--accent); font-family: var(--font-mono); }
+    .tabs { display: flex; gap: 8px; margin-top: 20px; border-bottom: 1px solid var(--card-border); padding-bottom: 14px; }
+    .tabs button { background: rgba(255,255,255,0.04); color: var(--text-muted); border: 1px solid var(--card-border); padding: 8px 16px; }
+    .tabs button:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .tabs button.active { background: #fff; color: #070709; border-color: #fff; }
+    .card { background: #09090d; border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-top: 14px; }
+    .card h3 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .meta { font-size: 13px; color: var(--text-muted); line-height: 1.7; font-family: var(--font-mono); }
+    .actions { display: flex; gap: 10px; margin-top: 16px; }
+    .actions .approve { background: rgba(46, 204, 113, 0.15); border: 1px solid rgba(46, 204, 113, 0.4); color: #2ecc71; }
+    .actions .approve:hover { background: rgba(46, 204, 113, 0.25); }
+    .actions .reject { background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.4); color: #e74c3c; }
+    .actions .reject:hover { background: rgba(231, 76, 60, 0.25); }
+    .empty { padding: 48px 16px; text-align: center; color: var(--text-muted); font-size: 14px; }
+    .security-foot { font-size: 12px; color: var(--text-muted); line-height: 1.6; border-left: 2px solid var(--accent); padding-left: 14px; }
+    @media(max-width: 768px) {
+      .access-panel { grid-template-columns: 1fr; gap: 20px; }
+    }
   </style>
 </head>
 <body>
   <main class="wrap">
     <header class="top">
       <div>
-        <p class="eyebrow">HELZERX CLOUD / TRUST & SAFETY</p>
-        <h1>Review with<br><em>care.</em></h1>
-        <p class="muted intro">Administrator review console. Verify each submission before a reward or hosting request is approved.</p>
+        <p class="eyebrow">HELZERX CLOUD · TRUST & SAFETY</p>
+        <h1>Administrator Review Console</h1>
+        <p class="intro">Verify each invite attribution, active server boost claim, and Proxmox LXC provisioning request before approval.</p>
       </div>
-      <button id="refresh">Refresh queues</button>
+      <div style="display: flex; gap: 10px;">
+        <a href="/" style="display: inline-flex; align-items: center; padding: 10px 18px; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid var(--card-border); color: #fff; font-size: 12px; text-decoration: none; font-weight: 600;">← Back to App</a>
+        <button id="refresh">Refresh Queues</button>
+      </div>
     </header>
+
     <section class="panel access-panel">
-      <div><p class="eyebrow">PRIVATE ADMIN ACCESS</p><h2>Secure admin access</h2><p class="warning">Enter the ADMIN_REVIEW_KEY configured on the server. The key is kept only in this page's memory and is not written to localStorage. Use HTTPS and a trusted device only.</p></div>
-      <div><div class="row"><input id="key" type="password" autocomplete="current-password" placeholder="ADMIN_REVIEW_KEY" aria-label="Admin review key"><button id="connect">Connect</button><button id="forget">Forget key</button></div><div id="status" class="status" role="status" aria-live="polite"></div></div>
-    </section>
-    <section class="panel">
-      <div class="queue-head"><div><p class="eyebrow">REVIEW QUEUES</p><h2>Pending reviews</h2><p class="muted">Approve only after independently verifying the evidence.</p></div></div>
-      <div class="tabs" role="tablist" aria-label="Review queue">
-        <button data-kind="invites" class="active" role="tab" aria-selected="true">Invite claims</button>
-        <button data-kind="boosts" role="tab" aria-selected="false">Boost claims</button>
-        <button data-kind="hosting" role="tab" aria-selected="false">Hosting requests</button>
+      <div>
+        <p class="eyebrow">ADMIN AUTHENTICATION</p>
+        <h2>Secure Authorization</h2>
+        <p class="warning">Enter your configured <code>ADMIN_REVIEW_KEY</code>. It is retained strictly in volatile browser memory for this session.</p>
       </div>
-      <div id="items" aria-live="polite"><div class="empty">Connect to load pending reviews.</div></div>
+      <div>
+        <div class="row">
+          <input id="key" type="password" autocomplete="current-password" placeholder="ADMIN_REVIEW_KEY" aria-label="Admin review key">
+          <button id="connect">Authorize</button>
+          <button id="forget">Forget</button>
+        </div>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+      </div>
     </section>
-    <p class="muted security-foot">Approving a hosting request may deduct HZL and trigger Proxmox LXC provisioning when the integration is enabled and fully configured. Failed provisioning is locked for manual reconciliation; verify the request and Proxmox tasks before retrying.</p>
+
+    <section class="panel">
+      <div>
+        <p class="eyebrow">REVIEW WORKFLOW</p>
+        <h2 style="font-size: 20px; color: #fff;">Pending Review Queues</h2>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Review queue selection">
+        <button data-kind="invites" class="active" role="tab" aria-selected="true">Invite Attributions</button>
+        <button data-kind="boosts" role="tab" aria-selected="false">Boost Claims</button>
+        <button data-kind="hosting" role="tab" aria-selected="false">Hosting Deployments</button>
+      </div>
+
+      <div id="items" aria-live="polite">
+        <div class="empty">Authenticate to load pending reviews.</div>
+      </div>
+    </section>
+
+    <p class="security-foot">
+      Approving an LXC request will deduct HZL and initiate automated Proxmox LXC container provisioning if configured. Failed container tasks enter reconciliation lock to prevent duplicate provisioning.
+    </p>
   </main>
+
   <script>
-    (()=>{let key='',kind='invites',queues={invites:[],boosts:[],hosting:[]};const $=id=>document.getElementById(id);const status=s=>$('status').textContent=s;const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const date=s=>s?new Date(s).toLocaleString():'—';
-    async function api(url,opts={}){const r=await fetch(url,{...opts,headers:{'Content-Type':'application/json','x-admin-key':key,...opts.headers}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||'Request failed ('+r.status+')');return d}
-    function render(){const arr=queues[kind]||[];if(!arr.length){$('items').innerHTML='<div class="empty">No pending items in this queue.</div>';return}$('items').innerHTML=arr.map(x=>{let title='',details='',id=esc(x.id);if(kind==='invites'){title='Invite verification';details='Referrer ID: '+esc(x.referrerId)+'<br>New member: '+esc(x.inviteeUsername)+' ('+esc(x.inviteeId)+')<br>Submitted: '+date(x.createdAt)}else if(kind==='boosts'){title='Server boost claim · '+esc(x.boosts)+' boost(s)';details='Member: '+esc(x.username)+' ('+esc(x.userId)+')<br>Requested reward: '+esc(x.amount)+' HZL<br>Submitted: '+date(x.createdAt)}else{title=esc(x.service)+' · '+esc(x.planName);details='Member: '+esc(x.username)+' ('+esc(x.userId)+')<br>Cost: '+esc(x.cost)+' HZL<br>Submitted: '+date(x.createdAt)}return '<article class="card"><h3>'+title+'</h3><div class="meta">'+details+'</div><div class="actions"><button class="approve" data-action="approve" data-id="'+id+'">Approve</button><button class="reject" data-action="reject" data-id="'+id+'">Reject</button></div></article>'}).join('')}
-    async function load(){if(!key){status('Enter the admin key first.');return}$('refresh').disabled=true;status('Loading pending reviews…');try{const urls={invites:'/api/admin/invite-claims',boosts:'/api/admin/boost-claims',hosting:'/api/admin/hosting-requests'};const [i,b,h]=await Promise.all([api(urls.invites),api(urls.boosts),api(urls.hosting)]);queues.invites=i.claims.filter(x=>x.status==='pending');queues.boosts=b.claims.filter(x=>x.status==='pending');queues.hosting=h.requests.filter(x=>x.status==='pending');render();status('Connected. Pending: '+queues.invites.length+' invite · '+queues.boosts.length+' boost · '+queues.hosting.length+' hosting.')}catch(e){status(e.message)}finally{$('refresh').disabled=false}}
-    $('connect').addEventListener('click',async()=>{key=$('key').value.trim();await load()});$('key').addEventListener('keydown',e=>{if(e.key==='Enter')$('connect').click()});$('forget').addEventListener('click',()=>{key='';$('key').value='';queues={invites:[],boosts:[],hosting:[]};render();status('Admin key forgotten.')});$('refresh').addEventListener('click',load);document.querySelectorAll('[data-kind]').forEach(b=>b.addEventListener('click',()=>{kind=b.dataset.kind;document.querySelectorAll('[data-kind]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-selected',String(x===b))});render()}));$('items').addEventListener('click',async e=>{const b=e.target.closest('button[data-action]');if(!b)return;const action=b.dataset.action,id=b.dataset.id;const kindNow=kind;const labels={invites:'invite claim',boosts:'boost claim',hosting:'hosting request'};if(!confirm((action==='approve'?'Approve':'Reject')+' this '+labels[kindNow]+'?'))return;b.disabled=true;try{const endpoint={invites:'/api/admin/invite-claims/',boosts:'/api/admin/boost-claims/',hosting:'/api/admin/hosting-requests/'}[kindNow];await api(endpoint+encodeURIComponent(id)+'/review',{method:'POST',body:JSON.stringify({action})});status('Review saved.');await load()}catch(err){status(err.message);b.disabled=false}});render()})();
+    (()=>{
+      let key='', kind='invites', queues={invites:[], boosts:[], hosting:[]};
+      const $=id=>document.getElementById(id);
+      const status=s=>$('status').textContent=s;
+      const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const date=s=>s?new Date(s).toLocaleString():'—';
+
+      async function api(url,opts={}){
+        const r=await fetch(url,{...opts,headers:{'Content-Type':'application/json','x-admin-key':key,...opts.headers}});
+        let d={};
+        try{d=await r.json()}catch{}
+        if(!r.ok) throw new Error(d.error||'Request failed ('+r.status+')');
+        return d;
+      }
+
+      function render(){
+        const arr=queues[kind]||[];
+        if(!arr.length){
+          $('items').innerHTML='<div class="empty">No pending items in this queue. Everything is up to date.</div>';
+          return;
+        }
+        $('items').innerHTML=arr.map(x=>{
+          let title='',details='',id=esc(x.id);
+          if(kind==='invites'){
+            title='Invite Attribution · User: '+esc(x.inviteeUsername);
+            details='Referrer ID: '+esc(x.referrerId)+'<br>Invitee Discord ID: '+esc(x.inviteeId)+'<br>Timestamp: '+date(x.createdAt);
+          }else if(kind==='boosts'){
+            title='Discord Server Boost Claim · '+esc(x.boosts)+' Boost(s)';
+            details='Member: '+esc(x.username)+' ('+esc(x.userId)+')<br>Reward Amount: '+esc(x.amount)+' HZL<br>Submitted: '+date(x.createdAt);
+          }else{
+            title=esc(x.service).toUpperCase()+' · '+esc(x.planName);
+            details='Member: '+esc(x.username)+' ('+esc(x.userId)+')<br>Cost: '+esc(x.cost)+' HZL<br>Submitted: '+date(x.createdAt);
+          }
+          return '<article class="card"><h3>'+title+'</h3><div class="meta">'+details+'</div><div class="actions"><button class="approve" data-action="approve" data-id="'+id+'">Approve & Credit</button><button class="reject" data-action="reject" data-id="'+id+'">Reject</button></div></article>';
+        }).join('');
+      }
+
+      async function load(){
+        if(!key){status('Enter the admin review key above.');return}
+        $('refresh').disabled=true;
+        status('Loading pending queues…');
+        try{
+          const urls={invites:'/api/admin/invite-claims',boosts:'/api/admin/boost-claims',hosting:'/api/admin/hosting-requests'};
+          const [i,b,h]=await Promise.all([api(urls.invites),api(urls.boosts),api(urls.hosting)]);
+          queues.invites=(i.claims||[]).filter(x=>x.status==='pending');
+          queues.boosts=(b.claims||[]).filter(x=>x.status==='pending');
+          queues.hosting=(h.requests||[]).filter(x=>x.status==='pending');
+          render();
+          status('Authorized. Pending: '+queues.invites.length+' invites · '+queues.boosts.length+' boosts · '+queues.hosting.length+' hosting.');
+        }catch(e){status(e.message)}
+        finally{$('refresh').disabled=false}
+      }
+
+      $('connect').addEventListener('click',async()=>{key=$('key').value.trim();await load()});
+      $('key').addEventListener('keydown',e=>{if(e.key==='Enter')$('connect').click()});
+      $('forget').addEventListener('click',()=>{key='';$('key').value='';queues={invites:[],boosts:[],hosting:[]};render();status('Key forgotten.')});
+      $('refresh').addEventListener('click',load);
+
+      document.querySelectorAll('[data-kind]').forEach(b=>b.addEventListener('click',()=>{
+        kind=b.dataset.kind;
+        document.querySelectorAll('[data-kind]').forEach(x=>{
+          x.classList.toggle('active',x===b);
+          x.setAttribute('aria-selected',String(x===b));
+        });
+        render();
+      }));
+
+      $('items').addEventListener('click',async e=>{
+        const b=e.target.closest('button[data-action]');
+        if(!b)return;
+        const action=b.dataset.action,id=b.dataset.id;
+        const kindNow=kind;
+        const labels={invites:'invite attribution',boosts:'boost claim',hosting:'hosting deployment'};
+        if(!confirm((action==='approve'?'Approve':'Reject')+' this '+labels[kindNow]+'?')) return;
+        b.disabled=true;
+        try{
+          const endpoint={invites:'/api/admin/invite-claims/',boosts:'/api/admin/boost-claims/',hosting:'/api/admin/hosting-requests/'}[kindNow];
+          await api(endpoint+encodeURIComponent(id)+'/review',{method:'POST',body:JSON.stringify({action})});
+          status('Review action saved.');
+          await load();
+        }catch(err){
+          status(err.message);
+          b.disabled=false;
+        }
+      });
+    })();
   </script>
 </body>
 </html>

@@ -1,21 +1,19 @@
 import 'dotenv/config';
 import express from 'express';
 import session from 'express-session';
-import SQLiteStoreFactory from 'connect-sqlite3';
 import crypto from 'node:crypto';
 import { provisionLxc, proxmoxReadiness } from './proxmox.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const app=express(),__dirname=path.dirname(fileURLToPath(import.meta.url)),root=path.resolve(__dirname,'..');
-const PORT=Number(process.env.PORT||8787),prod=process.env.NODE_ENV==='production';
+const PORT=Number(process.env.PORT||3000),prod=process.env.NODE_ENV==='production';
 fs.mkdirSync(path.join(root,'data'),{recursive:true});
 const required=['SESSION_SECRET','DISCORD_CLIENT_ID','DISCORD_CLIENT_SECRET','DISCORD_REDIRECT_URI'];
 const missing=required.filter(k=>!process.env[k]);if(prod&&missing.length)console.error('[startup] Missing environment variables:',missing.join(', '));
 if(prod&&(!process.env.SESSION_SECRET||process.env.SESSION_SECRET.length<32))throw new Error('SESSION_SECRET must be at least 32 characters in production.');
-const SQLiteStore=SQLiteStoreFactory(session);
 app.disable('x-powered-by');app.set('trust proxy',1);app.use(express.json({limit:'20kb'}));
-app.use(session({name:'hx_freehost_sid',store:new SQLiteStore({dir:path.join(root,'data'),db:'sessions.sqlite'}),secret:process.env.SESSION_SECRET||'development-only-change-me',resave:false,saveUninitialized:false,rolling:true,cookie:{httpOnly:true,secure:prod,sameSite:'lax',maxAge:604800000}}));
+app.use(session({name:'hx_freehost_sid',secret:process.env.SESSION_SECRET||'development-only-change-me',resave:false,saveUninitialized:false,rolling:true,cookie:{httpOnly:true,secure:prod,sameSite:'lax',maxAge:604800000}}));
 const pendingOAuth=new Map();
 const DATA_FILE=path.join(root,'data','rewards.json');
 function readData(){
@@ -69,5 +67,17 @@ app.get('/api/admin/hosting-requests',adminOnly,(_req,res)=>res.json({requests:d
 app.post('/api/admin/hosting-requests/:id/review',adminOnly,async(req,res)=>{const item=data.hostingRequests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({error:'Hosting request not found'});if(item.status!=='pending')return res.status(409).json({error:'Hosting request has already been reviewed'});const action=req.body?.action;if(!['approve','reject'].includes(action))return res.status(400).json({error:'Action must be approve or reject'});const u=ensureUser(item.userId);if(action==='reject'){item.status='rejected';item.reviewedAt=new Date().toISOString();item.updatedAt=item.reviewedAt;writeData();return res.json({ok:true,request:item})}if(u.balance<item.cost)return res.status(409).json({error:'User balance is no longer sufficient'});let options=[];try{options=JSON.parse(process.env.HOSTING_REDEMPTION_OPTIONS||'[]')}catch{}const plan=options.find(x=>x.id===item.planId&&x.service===item.service&&Number.isSafeInteger(x.cost)&&x.cost===item.cost);if(!plan||!plan.proxmox||plan.service!=='lxc')return res.status(409).json({error:'Only explicitly configured LXC plans can be provisioned. No HZL was deducted.'});const readiness=proxmoxReadiness();if(!readiness.ready)return res.status(503).json({error:'Proxmox provisioning is not ready. No HZL was deducted.',missing:readiness.missing});u.balance-=item.cost;item.status='provisioning';item.provisioningStatus='creating-container';item.reviewedAt=new Date().toISOString();item.updatedAt=item.reviewedAt;item.provisioningAttempts=(item.provisioningAttempts||0)+1;writeData();try{const created=await provisionLxc({requestId:item.id,plan,username:item.username,sshPublicKey:item.sshPublicKey});item.status='provisioned';item.provisioningStatus='container-start-requested';item.vmid=created.vmid;item.hostname=created.hostname;item.proxmoxTask=created.upid;item.updatedAt=new Date().toISOString();writeData();return res.json({ok:true,request:item})}catch(e){item.status='provisioning-error';item.provisioningStatus='needs-admin-reconciliation';item.error=String(e.message||'Provisioning failed').slice(0,500);item.updatedAt=new Date().toISOString();writeData();console.error('[proxmox provisioning]',item.id,item.error);return res.status(502).json({error:'Provisioning did not complete cleanly. The request is locked against duplicate provisioning and requires admin reconciliation; HZL was not automatically refunded to avoid double provisioning.',request:{id:item.id,status:item.status,provisioningStatus:item.provisioningStatus}})}});
 app.post('/api/admin/boost-claims/:id/review',adminOnly,(req,res)=>{const claim=data.claims.find(c=>c.id===req.params.id);if(!claim)return res.status(404).json({error:'Claim not found'});if(claim.status!=='pending')return res.status(409).json({error:'Claim has already been reviewed'});const action=req.body?.action;if(!['approve','reject'].includes(action))return res.status(400).json({error:'Action must be approve or reject'});claim.status=action==='approve'?'approved':'rejected';claim.reviewedAt=new Date().toISOString();if(action==='approve'){const u=ensureUser(claim.userId);u.balance+=claim.amount;u.activeBoosts=Math.max(u.activeBoosts,claim.boosts);}writeData();res.json({ok:true,claim});});
 app.get('/api/plans',(_q,r)=>r.json({plans:[{id:'minecraft',title:'Minecraft Hosting',description:'Explore eligible Minecraft hosting rewards.',features:['Multiple RAM options','High-performance CPU resources','NVMe storage','Available locations'],command:'.mc-plans'},{id:'vps',title:'KVM VPS',description:'Explore eligible KVM VPS rewards.',features:['Multiple RAM options','Dedicated vCPU resources','NVMe storage','Available locations'],command:'.vps-plans'}]}));
-if(prod){app.use(express.static(path.join(root,'dist'),{index:false,maxAge:'1h'}));app.get('*',(req,res)=>res.sendFile(path.join(root,'dist','index.html')));}else app.get('/',(_q,r)=>r.send('HelzerX Free Hosting API is running. Start Vite on port 5173.'));
-app.listen(PORT,'0.0.0.0',()=>console.log('HelzerX Free Hosting server listening on '+PORT));
+app.use(express.static(path.join(root, 'public')));
+if (prod) {
+  app.use(express.static(path.join(root, 'dist'), { index: false, maxAge: '1h' }));
+  app.get('*', (req, res) => res.sendFile(path.join(root, 'dist', 'index.html')));
+} else {
+  const { createServer: createViteServer } = await import('vite');
+  const vite = await createViteServer({
+    server: { middlewareMode: true, host: '0.0.0.0' },
+    appType: 'spa',
+    root,
+  });
+  app.use(vite.middlewares);
+}
+app.listen(PORT, '0.0.0.0', () => console.log('HelzerX Free Hosting server listening on ' + PORT));

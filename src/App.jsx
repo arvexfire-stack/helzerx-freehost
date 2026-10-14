@@ -1,215 +1,102 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, ArrowRight, ArrowUpRight, Check, Copy, ExternalLink, Layers, LogOut, Menu, MessageCircle, RefreshCw, Server, ShieldCheck, Users, Wallet, Zap, Lock, Coins } from 'lucide-react';
+import { 
+  Activity, ArrowRight, ArrowUpRight, Check, Copy, ExternalLink, 
+  Layers, LogOut, RefreshCw, Server, ShieldCheck, Users, 
+  Wallet, Zap, Lock, Coins, Terminal, HardDrive, Cpu, X, ChevronRight,
+  Shield, Globe, Sparkles
+} from 'lucide-react';
 
 const money = n => new Intl.NumberFormat('en-US').format(Number(n) || 0);
 const referralParam = new URLSearchParams(window.location.search).get('ref');
 const loginUrl = '/api/auth/discord' + (referralParam ? '?ref=' + encodeURIComponent(referralParam) : '');
-const inviteMilestones = [[2, 200], [4, 600], [8, 900], [12, 1300], [16, 1700], [24, 2400], [28, 2900], [34, 3400], [38, 4000], [42, 4500]];
-const boostTiers = [[1, 2000], [4, 5000], [10, 10000]];
+
+const defaultInviteTiers = [
+  [2, 200], [4, 600], [8, 900], [12, 1300], 
+  [16, 1700], [24, 2400], [28, 2900], [34, 3400], 
+  [38, 4000], [42, 4500]
+];
+
+const defaultBoostTiers = [
+  [1, 2000], [2, 4000], [3, 4700], [4, 5000], [7, 6900], [10, 10000]
+];
 
 function Brand() {
-  return <a className="brand" href="/" aria-label="HelzerX Free Hosting home"><span className="brand-mark">H<span>X</span></span><span className="brand-copy"><b>HelzerX</b><small>FREE HOSTING</small></span></a>;
-}
-
-function PublicLanding({ toast, setToast }) {
   return (
-    <div className="site-wrap">
-      <main className="site-shell">
-        <div className="site-columns">
-          <div className="site-column">
-            <section className="landing-hero reveal" data-reveal style={{ '--delay': '0ms' }}>
-              <div className="hero-top">
-                <Brand />
-                <nav className="hero-nav" aria-label="Site navigation">
-                  <a href="#services">Services</a>
-                  <a href="#rewards">HZL rewards</a>
-                  <a href="#eligibility">How it works</a>
-                </nav>
-              </div>
-              <div className="hero-center">
-                <div className="eyebrow"><span className="live-dot" /> HELZERX CLOUD · COMMUNITY HOSTING</div>
-                <h1>Room to build.<br />A community behind it.</h1>
-                <p>Minecraft hosting and Linux containers, with eligible hosting access for members who support the HelzerX community.</p>
-                <div className="hero-actions" style={{ marginTop: 13 }}>
-                  <a className="button primary" href={loginUrl}><MessageCircle size={12} /> Sign in with Discord <ArrowRight size={12} /></a>
-                  <a className="button secondary" href="#services">Explore services</a>
-                </div>
-              </div>
-              <div className="hero-foot">
-                <span><Lock /> Discord identity sign-in</span>
-                <span>Eligibility applies · HZL has no cash value</span>
-              </div>
-            </section>
-
-            <figure className="photo-card reveal" data-reveal style={{ '--delay': '50ms', margin: 0 }}>
-              <img src="/images/helzerx-datacenter.jpg" alt="Monochrome view of real server racks and cabling in a data center" />
-              <figcaption className="photo-caption"><b>Infrastructure for what you make.</b><span>HELZERX CLOUD / 01</span></figcaption>
-            </figure>
-
-            <div className="trust-strip reveal" data-reveal style={{ '--delay': '90ms' }} aria-label="Program notes">
-              <span><ShieldCheck /> Verified community activity</span>
-              <span><Coins /> HZL is non-cash credit</span>
-              <span><Activity /> Claims reviewed by admins</span>
-            </div>
-
-            <section className="preview-panel reveal" data-reveal style={{ '--delay': '130ms' }} aria-labelledby="preview-title">
-              <div className="preview-head"><h2 id="preview-title">Your member space, at a glance</h2><span className="pill">Discord verified</span></div>
-              <div className="preview-body" aria-hidden="true">
-                <div className="preview-widget"><span className="widget-label">INVITE LINK</span><div className="widget-line" /><div className="widget-line short" /></div>
-                <div className="preview-widget"><span className="widget-label">HOSTING REQUESTS</span><div className="widget-chips"><i /><i /><i /></div></div>
-              </div>
-              <p className="preview-caption">Check your own balance, invitation URL, claim status and hosting requests after signing in. No sample account figures shown.</p>
-            </section>
-
-            <section className="product-section reveal" id="services" data-reveal style={{ '--delay': '170ms' }}>
-              <h2 className="section-title">A place for game worlds and Linux projects.</h2>
-              <p className="section-subtitle" style={{ marginBottom: 10 }}>Hosting access is limited to plans configured by HelzerX and reviewed member requests.</p>
-              <div className="product-grid">
-                <article className="product-card"><span className="card-icon"><Layers /></span><h3>Minecraft Hosting</h3><p>Project hosting with multiple RAM options, high-performance CPU resources and NVMe storage.</p></article>
-                <article className="product-card"><span className="card-icon"><Server /></span><h3>Linux Containers</h3><p>Eligible Proxmox LXC hosting with configured CPU and memory limits.</p></article>
-                <article className="product-card"><span className="card-icon"><Users /></span><h3>Verified invites</h3><p>Invite genuine new members. Eligibility is checked before HZL is credited.</p></article>
-                <article className="product-card"><span className="card-icon"><Zap /></span><h3>Boost claims</h3><p>Submit eligible Discord boosts for manual administrator review.</p></article>
-              </div>
-            </section>
-
-            <section className="invite-milestones reveal" data-reveal style={{ '--delay': '210ms' }}>
-              <div className="eyebrow">VERIFIED INVITE MILESTONES</div>
-              <h2 className="section-title" style={{ marginTop: 6 }}>Support that adds up.</h2>
-              <p className="section-subtitle">HZL rewards are credited only after eligible invites are verified.</p>
-              <div className="milestone-list">
-                {inviteMilestones.map(([count, amount]) => <div key={count}><span>{count} verified invites</span><b>{money(amount)} <small>HZL</small></b></div>)}
-              </div>
-              <p className="fine-print">Invite eligibility and attribution are checked by the website. Self-invites, duplicate or manipulated accounts do not qualify.</p>
-            </section>
-          </div>
-
-          <div className="site-column">
-            <section className="quick-row reveal" data-reveal style={{ '--delay': '60ms' }} aria-label="Program essentials">
-              <article className="quick-card"><div className="quick-top"><span>HOSTING ACCESS</span><Layers /></div><b>Configured plans only</b><p>Availability depends on plans enabled by HelzerX administrators.</p></article>
-              <article className="quick-card"><div className="quick-top"><span>HZL REWARDS</span><ShieldCheck /></div><b>For eligible members</b><p>Internal hosting credits only. No cash value or withdrawal.</p></article>
-            </section>
-
-            <section className="boost-pricing reveal" id="rewards" data-reveal style={{ '--delay': '100ms' }}>
-              <div className="eyebrow">DISCORD BOOSTS · HZL BOOST REWARDS</div>
-              <h2>Choose a claim tier.</h2>
-              <p>Submit a claim for eligible active server boosts. Each claim remains pending until an authorized administrator reviews it.</p>
-              <div className="tier-grid">
-                {boostTiers.map(([count, amount], index) => (
-                  <article className={index === 1 ? 'tier-card highlight' : 'tier-card'} key={count}>
-                    <div><span className="tier-boosts">{count} {count === 1 ? 'boost' : 'boosts'}</span><b>{money(amount)}<small>HZL</small></b></div>
-                    <div className="tier-foot">Claim pending admin verification</div>
-                  </article>
-                ))}
-              </div>
-              <div className="pending-note"><ShieldCheck /><span>Claims are not instant credits and HZL is not cash. Credits are added only after manual verification and approval.</span></div>
-              <div style={{ marginTop: 11 }}><a href={loginUrl} className="button dark-button">Sign in to submit a claim <ArrowRight size={11} /></a></div>
-            </section>
-
-            <section className="feature-band reveal" data-reveal style={{ '--delay': '150ms' }}>
-              <div className="feature-photo"><img src="/images/helzerx-network.jpg" alt="Close-up of Ethernet cables connected to a network switch" /></div>
-              <div className="feature-copy">
-                <div className="eyebrow">HOSTING, WITH CLEAR REQUIREMENTS</div>
-                <h2>Pick a service that fits your project.</h2>
-                <p>Only options configured for redemption appear in the member area.</p>
-                <ul className="check-list">
-                  <li><Check /> Minecraft plans include multiple RAM options, CPU resources and NVMe storage.</li>
-                  <li><Check /> Linux hosting uses Proxmox LXC containers, not KVM virtual machines.</li>
-                  <li><Check /> LXC requests require a valid SSH public key. Never submit a private key.</li>
-                </ul>
-              </div>
-            </section>
-
-            <section className="cta-panel reveal" id="eligibility" data-reveal style={{ '--delay': '190ms' }}>
-              <div className="eyebrow">SUPPORT FIRST · REDEEM WHEN ELIGIBLE</div>
-              <h2>Build alongside the community.</h2>
-              <p>Connect a Discord account to view your verified HZL, share your invite link and request any hosting plan currently configured for redemption.</p>
-              <div className="cta-actions">
-                <a href={loginUrl} className="button primary"><MessageCircle size={11} /> Continue with Discord <ArrowRight size={11} /></a>
-                <a href="https://discord.com" target="_blank" rel="noreferrer" className="button secondary">Visit Discord <ArrowUpRight size={10} /></a>
-              </div>
-            </section>
-
-            <footer className="site-footer">
-              <div className="footer-col footer-brand"><Brand /><p>Community-supported hosting for projects worth building.</p></div>
-              <div className="footer-col"><b>Explore</b><a href="#services">Hosting services</a><a href="#rewards">Boost rewards</a><a href="#eligibility">Eligibility</a></div>
-              <div className="footer-col"><b>Services</b><span>Minecraft hosting</span><span>Linux containers</span><span>HZL member rewards</span></div>
-              <div className="footer-col"><b>Community</b><a href={loginUrl}>Member sign in</a><a href="https://discord.com" target="_blank" rel="noreferrer">Discord support <ExternalLink size={8} /></a><span>HZL has no cash value</span></div>
-              <div className="copyright">© 2026 HelzerX Cloud · Hosting access and rewards depend on eligibility, review and configured options.</div>
-            </footer>
-          </div>
-        </div>
-        {toast && <div className="toast" role="status">{toast}<button onClick={() => setToast('')} aria-label="Dismiss notification">×</button></div>}
-      </main>
-    </div>
+    <a className="brand-link" href="/" aria-label="HelzerX Cloud home">
+      helzerx<span className="brand-dot">.</span>
+    </a>
   );
 }
 
-function App() {
+export default function App() {
   const [me, setMe] = useState(null);
   const [rewards, setRewards] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState('');
-  const [mobile, setMobile] = useState(false);
   const [invite, setInvite] = useState(null);
   const [boostCount, setBoostCount] = useState('1');
   const [hostingOptions, setHostingOptions] = useState([]);
   const [hostingRequests, setHostingRequests] = useState([]);
+  const [activeTab, setActiveTab] = useState('deploy'); // 'deploy' | 'servers' | 'invites' | 'boosts'
+  const [sshModalOpen, setSshModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [sshPublicKey, setSshPublicKey] = useState('');
+  const [viewPublicMode, setViewPublicMode] = useState(false);
 
-  async function load() {
+  async function loadData() {
     setLoading(true);
     try {
       const r = await fetch('/api/me', { credentials: 'same-origin', cache: 'no-store' });
-      if (!r.ok) { setMe(null); setRewards(null); return; }
+      if (!r.ok) {
+        setMe(null);
+        setRewards(null);
+        return;
+      }
       const d = await r.json();
       setMe(d.user);
       setRewards(d.rewards);
+
       try {
-        const ir = await fetch('/api/invites', { credentials: 'same-origin', cache: 'no-store' });
+        const [ir, hr, rr] = await Promise.all([
+          fetch('/api/invites', { credentials: 'same-origin', cache: 'no-store' }),
+          fetch('/api/hosting-options', { credentials: 'same-origin', cache: 'no-store' }),
+          fetch('/api/hosting-requests', { credentials: 'same-origin', cache: 'no-store' })
+        ]);
         if (ir.ok) setInvite(await ir.json());
-        const hr = await fetch('/api/hosting-options', { credentials: 'same-origin', cache: 'no-store' });
-        if (hr.ok) { const hd = await hr.json(); setHostingOptions(Array.isArray(hd.options) ? hd.options : []); }
-        const rr = await fetch('/api/hosting-requests', { credentials: 'same-origin', cache: 'no-store' });
-        if (rr.ok) { const rd = await rr.json(); setHostingRequests(Array.isArray(rd.requests) ? rd.requests : []); }
-      } catch {}
-    } catch { setMe(null); }
-    finally { setLoading(false); }
+        if (hr.ok) {
+          const hd = await hr.json();
+          setHostingOptions(Array.isArray(hd.options) ? hd.options : []);
+        }
+        if (rr.ok) {
+          const rd = await rr.json();
+          setHostingRequests(Array.isArray(rd.requests) ? rd.requests : []);
+        }
+      } catch (err) {
+        console.error('Error loading sub-resources:', err);
+      }
+    } catch {
+      setMe(null);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    load();
-    const p = new URLSearchParams(location.search);
+    loadData();
+    const p = new URLSearchParams(window.location.search);
     const status = p.get('login');
     if (status) {
       const messages = {
-        success: 'Discord account connected successfully.',
+        success: 'Discord account connected successfully. Welcome to your HelzerX Cloud panel.',
         cancelled: 'Discord login was cancelled.',
         failed: 'Discord login failed. Please try again.',
-        'join-discord': 'Join the official HelzerX Cloud Discord server first, then sign in.'
+        'join-discord': 'Please join the official HelzerX Discord server first, then connect.'
       };
       setToast(messages[status] || '');
-      history.replaceState({}, '', location.pathname);
+      window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
-
-  useEffect(() => {
-    if (loading) return undefined;
-    const nodes = Array.from(document.querySelectorAll('[data-reveal]'));
-    if (!('IntersectionObserver' in window)) {
-      nodes.forEach(node => node.classList.add('is-visible'));
-      return undefined;
-    }
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.08 });
-    nodes.forEach(node => observer.observe(node));
-    return () => observer.disconnect();
-  }, [loading, !!me]);
 
   async function logout() {
     setBusy(true);
@@ -218,178 +105,766 @@ function App() {
       setMe(null);
       setRewards(null);
       setToast('You have been signed out.');
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
-  async function refresh() { await load(); setToast('Account information refreshed.'); }
-  async function claimBoost() {
+
+  async function refreshAccount() {
+    await loadData();
+    setToast('Account balance and server status refreshed.');
+  }
+
+  async function copyInviteLink() {
+    const url = invite?.referralUrl || `${window.location.origin}/?ref=${me?.id || ''}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setToast('Your unique invite URL has been copied to clipboard.');
+    } catch {
+      setToast(url);
+    }
+  }
+
+  async function submitBoostClaim() {
     setBusy(true);
     try {
-      const r = await fetch('/api/boost-claims', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ boosts: Number(boostCount) }) });
+      const r = await fetch('/api/boost-claims', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ boosts: Number(boostCount) })
+      });
       const d = await r.json();
-      setToast(d.message || d.error || 'Could not submit claim.');
-    } catch { setToast('Could not submit claim. Please try again.'); }
-    finally { setBusy(false); }
-  }
-  async function copyInvite() {
-    try {
-      await navigator.clipboard.writeText(invite?.referralUrl || '');
-      setToast('Your invite link has been copied.');
-    } catch { setToast(invite?.referralUrl || 'Copy your invite link manually.'); }
-  }
-  async function requestHosting(option) {
-    let sshPublicKey = '';
-    if (option.service === 'lxc') {
-      sshPublicKey = window.prompt('Paste your SSH PUBLIC key (for example, the contents of ~/.ssh/id_ed25519.pub). Never paste a private key or password.');
-      if (!sshPublicKey) return;
-      if (sshPublicKey.length > 2048 || !/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey.trim())) {
-        setToast('That does not look like a supported SSH public key. Do not paste a private key.');
-        return;
+      setToast(d.message || d.error || 'Claim submitted.');
+      if (r.ok) {
+        await loadData();
       }
+    } catch {
+      setToast('Could not submit boost claim. Please try again.');
+    } finally {
+      setBusy(false);
     }
+  }
+
+  function handleRequestClick(plan) {
+    if (plan.service === 'lxc') {
+      setSelectedPlan(plan);
+      setSshModalOpen(true);
+    } else {
+      executeHostingRequest(plan, '');
+    }
+  }
+
+  async function executeHostingRequest(plan, key) {
     setBusy(true);
     try {
       const r = await fetch('/api/hosting-requests', {
-        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ service: option.service, planId: option.id, sshPublicKey: sshPublicKey.trim() })
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service: plan.service,
+          planId: plan.id,
+          sshPublicKey: key.trim()
+        })
       });
       const d = await r.json();
-      setToast(d.message || d.error || 'Unable to submit hosting request.');
+      setToast(d.message || d.error || 'Request processed.');
       if (r.ok) {
-        const rr = await fetch('/api/hosting-requests', { credentials: 'same-origin', cache: 'no-store' });
-        if (rr.ok) { const rd = await rr.json(); setHostingRequests(rd.requests || []); }
+        setSshModalOpen(false);
+        setSshPublicKey('');
+        await loadData();
+        setActiveTab('servers');
       }
-    } catch { setToast('Unable to submit hosting request. Please try again.'); }
-    finally { setBusy(false); }
+    } catch {
+      setToast('Unable to submit hosting request. Please verify connection.');
+    } finally {
+      setBusy(false);
+    }
   }
 
-  if (loading) return <div className="boot"><div className="boot-mark">HX</div><p>Preparing your HelzerX space</p><div className="boot-skeleton" aria-hidden="true"><i /><i /><i /></div><div className="loader-line"><i /></div></div>;
-
-  if (!me) return <PublicLanding toast={toast} setToast={setToast} />;
+  // Pre-configured fallback display plans if admin has not yet injected custom JSON
+  const catalogPlans = hostingOptions.length > 0 ? hostingOptions : [
+    {
+      id: 'minecraft-paper',
+      service: 'minecraft',
+      name: 'Paper MC · High Performance',
+      cost: 600,
+      description: 'Optimized Minecraft Paper instance with dedicated memory, NVMe flash arrays, and DDoS mitigation.'
+    },
+    {
+      id: 'lxc-core-v1',
+      service: 'lxc',
+      name: 'Proxmox LXC · Linux Container',
+      cost: 900,
+      description: 'Dedicated isolated LXC container on Proxmox VE. Root console access authenticated via your SSH public key.'
+    },
+    {
+      id: 'minecraft-purpur',
+      service: 'minecraft',
+      name: 'Purpur MC · Large World Cluster',
+      cost: 1700,
+      description: 'Expanded RAM quota and dedicated CPU threads for high-player-count SMP and modded communities.'
+    }
+  ];
 
   return (
-    <div className="site-wrap dashboard-shell">
-      <main className="site-shell">
-        <div className="site-columns">
-          <div className="site-column">
-            <section className="dash-intro reveal" data-reveal style={{ '--delay': '0ms' }} id="overview">
-              <div className="hero-top">
-                <Brand />
-                <div className="account">
-                  <button className="icon-button" title="Refresh balance" aria-label="Refresh balance" onClick={refresh}><RefreshCw /></button>
-                  {me.avatar ? <img className="avatar" src={me.avatar} alt="" /> : <span className="avatar fallback">{me.username.slice(0, 1).toUpperCase()}</span>}
-                  <span className="account-name">{me.global_name || me.username}<small>Discord verified</small></span>
-                  <button className="icon-button" onClick={logout} disabled={busy} title="Sign out" aria-label="Sign out"><LogOut /></button>
-                  <button className="mobile-menu" onClick={() => setMobile(!mobile)} aria-expanded={mobile} aria-label={mobile ? 'Close navigation' : 'Open navigation'}><Menu /></button>
+    <div className="app-container">
+      <div className="ambient-glow" />
+
+      {/* Top Bar Contract (3 zones separated by gap) */}
+      <header className="top-nav">
+        {/* Zone 1: Wordmark */}
+        <Brand />
+
+        {/* Zone 2: Navigation Links */}
+        <nav className="nav-links" aria-label="Main navigation">
+          {me && !viewPublicMode ? (
+            <>
+              <a href="#overview" onClick={() => setActiveTab('deploy')} className={activeTab === 'deploy' ? 'active' : ''}>Deploy</a>
+              <a href="#servers" onClick={() => setActiveTab('servers')} className={activeTab === 'servers' ? 'active' : ''}>My Servers ({hostingRequests.length})</a>
+              <a href="#invites" onClick={() => setActiveTab('invites')} className={activeTab === 'invites' ? 'active' : ''}>Invite Hub</a>
+              <a href="#boosts" onClick={() => setActiveTab('boosts')} className={activeTab === 'boosts' ? 'active' : ''}>Boost Rewards</a>
+              <a href="#preview" onClick={() => setViewPublicMode(true)}>View Landing</a>
+            </>
+          ) : (
+            <>
+              <a href="#about">About</a>
+              <a href="#services">Services</a>
+              <a href="#rewards">HZL Rewards</a>
+              <a href="#infrastructure">Infrastructure</a>
+              <a href="/admin.html" target="_blank" rel="noreferrer">Admin Review</a>
+            </>
+          )}
+        </nav>
+
+        {/* Zone 3: Primary Action */}
+        <div className="nav-actions">
+          {me ? (
+            <div className="user-chip">
+              {me.avatar ? (
+                <img src={me.avatar} alt={me.username} className="user-avatar" />
+              ) : (
+                <span className="user-avatar-fallback">{me.username.slice(0, 1).toUpperCase()}</span>
+              )}
+              <div className="user-details">
+                <span className="user-name">{me.global_name || me.username}</span>
+                <span className="user-badge">{money(rewards?.balance || 0)} HZL</span>
+              </div>
+              <button className="btn-icon" onClick={refreshAccount} title="Refresh balance" aria-label="Refresh balance">
+                <RefreshCw size={13} />
+              </button>
+              <button className="btn-icon" onClick={logout} disabled={busy} title="Sign out" aria-label="Sign out">
+                <LogOut size={13} />
+              </button>
+            </div>
+          ) : (
+            <a className="btn-pill primary" href={loginUrl}>
+              Connect Discord <ArrowRight size={13} />
+            </a>
+          )}
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      {me && !viewPublicMode ? (
+        /* ================= MEMBER DASHBOARD ================= */
+        <main className="page-content" style={{ gap: '48px' }}>
+          <section className="dashboard-header" id="overview">
+            <div className="dashboard-hero">
+              <div className="dashboard-title-wrap">
+                <h1>Member Cloud Console</h1>
+                <p>Manage your verified HZL credits, deploy Minecraft and Proxmox LXC servers, and track infrastructure status.</p>
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button className="btn-pill secondary sm" onClick={refreshAccount}>
+                  <RefreshCw size={12} /> Sync Ledger
+                </button>
+                <a className="btn-pill primary sm" href="#deploy" onClick={() => setActiveTab('deploy')}>
+                  Deploy Server <ArrowRight size={12} />
+                </a>
+              </div>
+            </div>
+
+            {/* Dashboard Navigation Tabs */}
+            <div className="dashboard-tabs">
+              <button 
+                className={`tab-btn ${activeTab === 'deploy' ? 'active' : ''}`}
+                onClick={() => setActiveTab('deploy')}
+              >
+                <Layers size={14} /> Hosting Catalog
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'servers' ? 'active' : ''}`}
+                onClick={() => setActiveTab('servers')}
+              >
+                <Server size={14} /> My Containers & Servers ({hostingRequests.length})
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'invites' ? 'active' : ''}`}
+                onClick={() => setActiveTab('invites')}
+              >
+                <Users size={14} /> Invite & Referral Hub
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'boosts' ? 'active' : ''}`}
+                onClick={() => setActiveTab('boosts')}
+              >
+                <Zap size={14} /> Boost Claim Submission
+              </button>
+            </div>
+          </section>
+
+          {/* KPI Stats Strip */}
+          <section className="stats-grid" aria-label="Account Overview Stats">
+            <div className="stat-box highlight">
+              <div className="stat-box-label">
+                <span>Available Balance</span>
+                <Coins size={14} color="var(--accent-gold)" />
+              </div>
+              <div className="stat-box-num">{money(rewards?.balance || 0)} <small style={{ fontSize: '15px', color: 'var(--accent-gold)' }}>HZL</small></div>
+              <div className="stat-box-sub">{rewards?.connected ? 'Attributed on official ledger' : 'Ready for redemption'}</div>
+            </div>
+
+            <div className="stat-box">
+              <div className="stat-box-label">
+                <span>Verified Invites</span>
+                <Users size={14} />
+              </div>
+              <div className="stat-box-num">{money(invite?.verifiedInvites ?? rewards?.verifiedInvites ?? 0)}</div>
+              <div className="stat-box-sub">
+                {invite?.pendingInvites ? `${invite.pendingInvites} pending review` : 'All claims verified'}
+              </div>
+            </div>
+
+            <div className="stat-box">
+              <div className="stat-box-label">
+                <span>Server Boosts</span>
+                <Zap size={14} />
+              </div>
+              <div className="stat-box-num">{money(rewards?.activeBoosts || 0)}</div>
+              <div className="stat-box-sub">Active community boosts</div>
+            </div>
+
+            <div className="stat-box">
+              <div className="stat-box-label">
+                <span>Active Servers</span>
+                <Server size={14} />
+              </div>
+              <div className="stat-box-num">{hostingRequests.length}</div>
+              <div className="stat-box-sub">Proxmox LXC & Minecraft</div>
+            </div>
+          </section>
+
+          {/* TAB 1: DEPLOY HOSTING CATALOG */}
+          {activeTab === 'deploy' && (
+            <section className="services-section" id="deploy">
+              <div className="services-head">
+                <div>
+                  <div className="section-label">Configured Redemptions</div>
+                  <h2 className="services-title">Available Cloud Hosting Plans</h2>
+                  <p className="services-sub">Redeem verified HZL for bare-metal Minecraft servers or Proxmox Linux containers. Credits are deducted only upon administrator review.</p>
                 </div>
               </div>
-              <nav className={mobile ? 'dash-nav open' : 'dash-nav'} aria-label="Member navigation">
-                <a onClick={() => setMobile(false)} href="#overview">Overview</a>
-                <a onClick={() => setMobile(false)} href="#earn">Earn HZL</a>
-                <a onClick={() => setMobile(false)} href="#hosting">Hosting</a>
-                <a onClick={() => setMobile(false)} href="#rules">Reward rules</a>
-              </nav>
-              <div className="hero-center">
-                <div className="eyebrow"><span className="live-dot" /> MEMBER SPACE / HELZERX CLOUD</div>
-                <h1>Make space for your next project.</h1>
-                <p>See what is verified, what is pending and which hosting options are configured for members.</p>
-              </div>
-              <div className="hero-foot"><span><ShieldCheck /> Discord identity verified</span><span>HZL is a non-cash reward credit</span></div>
-            </section>
 
-            <section className="account-summary reveal" data-reveal style={{ '--delay': '50ms' }} aria-label="Rewards summary">
-              <article className="stat-card balance-card"><span className="stat-label">AVAILABLE BALANCE</span><div className="balance-number">{money(rewards?.balance)} <small>HZL</small></div><div className="stat-foot"><span>{rewards?.connected ? 'Website rewards ledger' : 'Rewards service not connected'}</span><Coins /></div></article>
-              <article className="stat-card"><span className="stat-label">VERIFIED INVITES</span><div className="stat-number">{money(rewards?.verifiedInvites)}</div><div className="stat-foot"><span>Verified members</span><Users /></div></article>
-              <article className="stat-card"><span className="stat-label">ACTIVE BOOSTS</span><div className="stat-number">{money(rewards?.activeBoosts)}</div><div className="stat-foot"><span>Eligible boosts</span><Activity /></div></article>
-            </section>
-            {!rewards?.connected && <div className="status-note reveal" data-reveal><span className="status-symbol"><Activity /></span><div><b>Reward sync is waiting for setup</b><p>{rewards?.message || 'Your account is signed in. The HZL balance will be shown when the official rewards service is connected. This page will not invent or award unverified credits.'}</p></div><button onClick={refresh} aria-label="Refresh"><RefreshCw /></button></div>}
+              <div className="catalog-grid">
+                {catalogPlans.map(plan => {
+                  const canAfford = Number(rewards?.balance || 0) >= plan.cost;
+                  return (
+                    <article className="plan-card" key={plan.id}>
+                      <div className="plan-top">
+                        <span className="plan-service-tag">
+                          {plan.service === 'lxc' ? 'PROXMOX LINUX CONTAINER' : 'MINECRAFT SERVER'}
+                        </span>
+                        <h3 className="plan-title">{plan.name}</h3>
+                        <p className="plan-desc">{plan.description}</p>
+                        <ul className="plan-features">
+                          <li><Check size={13} /> {plan.service === 'lxc' ? 'Dedicated CPU & isolated RAM limits' : 'High-clock CPU cores & NVMe storage'}</li>
+                          <li><Check size={13} /> {plan.service === 'lxc' ? 'SSH public-key root access' : 'Full paper/modded control & DDoS shield'}</li>
+                          <li><Check size={13} /> Low-latency datacenter network fabric</li>
+                        </ul>
+                      </div>
 
-            <section className="dash-section reveal" data-reveal style={{ '--delay': '90ms' }} id="earn">
-              <div className="eyebrow">YOUR PERSONAL INVITE LINK</div>
-              <h2>Invite genuine new members.</h2>
-              <p>New members must sign in with Discord and pass the configured community eligibility check. A new eligible account is attributed to one referrer only.</p>
-              <div className="invite-url"><code>{invite?.referralUrl || 'Preparing your invite link…'}</code><button className="button secondary" onClick={copyInvite}><Copy size={11} /> Copy link</button></div>
-              <div className="invite-total"><span>Verified invites credited</span><b>{money(invite?.verifiedInvites || 0)}</b></div>
-              <div className="milestone-list">
-                {inviteMilestones.map(([count, amount]) => <div key={count}><span>{count} verified invites</span><b>{money(amount)} <small>HZL</small></b></div>)}
-              </div>
-              <p className="fine-print">Milestone rewards are for verified eligible invites only. Self-invites, duplicate or manipulated accounts are not eligible.</p>
-            </section>
-
-            <section className="dash-section reveal" data-reveal style={{ '--delay': '130ms' }} id="hosting">
-              <div className="eyebrow">HELZERX HOSTING SERVICES</div>
-              <h2>What you can request.</h2>
-              <p>Hosting options are shown for your account when configured by HelzerX administrators.</p>
-              <div className="hosting-grid" style={{ marginTop: 10 }}>
-                <article className="hosting-card"><div className="hosting-icon"><Layers /></div><span className="hosting-index">01 / GAME SERVERS</span><h3>Minecraft Hosting</h3><p>Build your world on hosting designed for Minecraft projects.</p><ul>{['Multiple RAM options', 'High-performance CPU resources', 'NVMe storage', 'Available locations'].map(x => <li key={x}><Check />{x}</li>)}</ul><div className="hosting-bottom"><span>Website HZL redemption</span><button onClick={() => document.getElementById('redeem')?.scrollIntoView({ behavior: 'smooth' })}>View configured plans <ArrowRight size={10} /></button></div></article>
-                <article className="hosting-card"><div className="hosting-icon"><Server /></div><span className="hosting-index">02 / VIRTUAL SERVERS</span><h3>Linux Container Hosting</h3><p>Eligible Linux containers running on Proxmox. This is LXC hosting, not a KVM virtual machine.</p><ul>{['Isolated Linux container', 'Configured CPU and memory limits', 'NVMe-backed storage where available', 'SSH public-key access'].map(x => <li key={x}><Check />{x}</li>)}</ul><div className="hosting-bottom"><span>SSH public key required</span><button onClick={() => document.getElementById('redeem')?.scrollIntoView({ behavior: 'smooth' })}>View configured plans <ArrowRight size={10} /></button></div></article>
+                      <div className="plan-bottom">
+                        <div className="plan-cost">
+                          <span>Cost</span>
+                          <b>{money(plan.cost)} <small style={{ fontSize: '12px', color: 'var(--accent-gold)' }}>HZL</small></b>
+                        </div>
+                        <button 
+                          className="btn-pill primary sm"
+                          disabled={busy || !canAfford}
+                          onClick={() => handleRequestClick(plan)}
+                          style={{ opacity: canAfford ? 1 : 0.55 }}
+                        >
+                          {!canAfford ? 'Need More HZL' : 'Request Server'} <ArrowRight size={12} />
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             </section>
-          </div>
+          )}
 
-          <div className="site-column">
-            <section className="quick-row reveal" data-reveal style={{ '--delay': '40ms' }} aria-label="Member status">
-              <article className="quick-card"><div className="quick-top"><span>ACCOUNT</span><ShieldCheck /></div><b>{me.global_name || me.username}</b><p>Discord identity verified</p></article>
-              <article className="quick-card"><div className="quick-top"><span>REWARD LEDGER</span><Coins /></div><b>{rewards?.connected ? 'Connected' : 'Not connected'}</b><p>{rewards?.connected ? 'Balance from rewards service' : 'No unverified HZL is shown'}</p></article>
-            </section>
+          {/* TAB 2: MY SERVERS & REQUEST HISTORY */}
+          {activeTab === 'servers' && (
+            <section className="services-section" id="servers">
+              <div className="table-panel">
+                <div className="table-head">
+                  <h3>Your Server Requests & Deployments</h3>
+                  <button className="btn-pill secondary sm" onClick={refreshAccount}>
+                    <RefreshCw size={12} /> Refresh Status
+                  </button>
+                </div>
 
-            <section className="boost-pricing dark-panel reveal" data-reveal style={{ '--delay': '80ms' }}>
-              <div className="eyebrow">BOOST REWARDS · WEBSITE CLAIM</div>
-              <h2>Submit a boost claim.</h2>
-              <p>Discord OAuth cannot independently prove active boosts. Claims remain pending until reviewed by an authorized administrator.</p>
-              <label className="select-label" htmlFor="boost-count">Choose an HZL boost reward claim</label>
-              <div className="boost-form">
-                <select id="boost-count" value={boostCount} onChange={e => setBoostCount(e.target.value)}>{boostTiers.map(([n, v]) => <option key={n} value={n}>{n} boost{n > 1 ? 's' : ''} — {money(v)} HZL</option>)}</select>
-                <button className="button dark-button" onClick={claimBoost} disabled={busy}>Submit claim <ArrowRight size={11} /></button>
+                {hostingRequests.length === 0 ? (
+                  <div style={{ padding: '60px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <Server size={32} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
+                    <p style={{ fontSize: '15px', color: '#fff', fontWeight: 600 }}>No hosting deployments yet</p>
+                    <p style={{ fontSize: '13px', marginTop: '4px' }}>Choose a hosting plan from the catalog to request your first container or game server.</p>
+                    <button 
+                      className="btn-pill primary sm" 
+                      style={{ marginTop: '16px' }}
+                      onClick={() => setActiveTab('deploy')}
+                    >
+                      View Catalog <ArrowRight size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    {hostingRequests.map(req => {
+                      const isProvisioned = req.status === 'provisioned';
+                      const isPending = req.status === 'pending';
+                      const isError = req.status === 'provisioning-error';
+                      return (
+                        <div className="request-item" key={req.id}>
+                          <div className="request-info">
+                            <span className="request-title">{req.planName || req.service.toUpperCase()}</span>
+                            <span className="request-meta">
+                              ID: {req.id.slice(0, 8)}... · Cost: {money(req.cost)} HZL · Submitted: {new Date(req.createdAt).toLocaleDateString()}
+                              {req.vmid ? ` · CT VMID: ${req.vmid}` : ''}
+                              {req.hostname ? ` · Host: ${req.hostname}` : ''}
+                            </span>
+                            {req.error && (
+                              <span style={{ color: '#e74c3c', fontSize: '11px', marginTop: '2px' }}>
+                                Error: {req.error}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <span className={`status-badge ${isProvisioned ? 'provisioned' : isPending ? 'pending' : isError ? 'error' : 'provisioning'}`}>
+                              {isProvisioned ? <Check size={11} /> : isPending ? <Activity size={11} /> : <Server size={11} />}
+                              {req.provisioningStatus || req.status}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              <p className="fine-print">Claims are pending admin verification, not instant credits or cash. HZL is added only after approval.</p>
             </section>
+          )}
 
-            <section className="dash-section reveal" data-reveal style={{ '--delay': '120ms' }} id="redeem">
-              <div className="eyebrow">REDEEM HZL · CONFIGURED OPTIONS ONLY</div>
-              <h2>Hosting requests.</h2>
-              <p>Only plans explicitly configured by HelzerX administrators appear here. Requests are reviewed before credits are deducted.</p>
-              {hostingOptions.length ? <div className="hosting-grid" style={{ marginTop: 10 }}>{hostingOptions.map(option => <article className="hosting-card" key={option.id}>
-                <div className="hosting-icon">{option.service === 'minecraft' ? <Layers /> : <Server />}</div>
-                <span className="hosting-index">{option.service === 'minecraft' ? 'MINECRAFT HOSTING' : option.service === 'lxc' ? 'LINUX CONTAINER (LXC)' : 'HOSTING'} / HZL REDEMPTION</span>
-                <h3>{option.name}</h3><p>{option.description || 'Eligible hosting reward plan.'}</p>
-                <div className="hosting-bottom"><span>Cost <code>{money(option.cost)} HZL</code></span><button disabled={busy || Number(rewards?.balance || 0) < option.cost} onClick={() => requestHosting(option)}>{Number(rewards?.balance || 0) < option.cost ? 'Not enough HZL' : 'Request hosting'} <ArrowRight size={10} /></button></div>
-              </article>)}</div> : <div className="status-note" style={{ marginTop: 10 }}><span className="status-symbol"><ShieldCheck /></span><div><b>No hosting plans configured yet</b><p>Hosting redemption is safely disabled until an administrator configures real plan IDs, service types and HZL prices. No sample prices are displayed.</p></div></div>}
-              {hostingRequests.length > 0 && <div style={{ marginTop: 12 }}><div className="eyebrow">YOUR REQUEST HISTORY</div><div className="request-list">{hostingRequests.map(x => <div className="request-row" key={x.id}><span>{x.planName} · {x.provisioningStatus || x.status}{x.vmid ? ` · CT ${x.vmid}` : ''}{x.hostname ? ` · ${x.hostname}` : ''}</span><b>{money(x.cost)} HZL</b></div>)}</div></div>}
-            </section>
-
-            <section className="feature-band reveal" data-reveal style={{ '--delay': '160ms' }}>
-              <div className="feature-photo"><img src="/images/helzerx-datacenter.jpg" alt="Monochrome server rack detail representing HelzerX hosting infrastructure" /></div>
-              <div className="feature-copy"><div className="eyebrow">STATUS, NOT SURPRISES</div><h2>Every request has a next step.</h2><p>Follow review and provisioning messages in your hosting history.</p><ul className="check-list"><li><Check /> Boost submissions wait for admin review.</li><li><Check /> Hosting is limited to configured plans.</li><li><Check /> LXC uses a validated SSH public key.</li></ul></div>
-            </section>
-
-            <section className="dash-section reveal" data-reveal style={{ '--delay': '190ms' }} id="rules">
-              <div className="eyebrow">CLEAR RULES · TRUST FIRST</div>
-              <h2>HZL is for eligible hosting redemptions.</h2>
-              <p>Internal HelzerX Cloud reward credit. It has no cash value and cannot be withdrawn or exchanged for money.</p>
-              <div className="rules-mini">
-                {['Only verified, eligible invites and server boosts count.', 'Self-invites, duplicate or fake accounts, bots and manipulation are not eligible.', 'Boosts must stay active for the required qualification period.', 'Suspicious activity may be reviewed before rewards or hosting are approved.'].map(x => <p key={x}><Check />{x}</p>)}
+          {/* TAB 3: INVITE & REFERRAL HUB */}
+          {activeTab === 'invites' && (
+            <section className="rewards-section" id="invites">
+              <div className="services-head">
+                <div>
+                  <div className="section-label">Community Expansion</div>
+                  <h2 className="services-title">Personal Referral Program</h2>
+                  <p className="services-sub">Share your invite link with builders and server owners. Once verified through Discord, HZL rewards are automatically credited to your balance.</p>
+                </div>
               </div>
-              <p className="fine-print">Reward values, eligible services and qualification rules may change. No cash withdrawal or real-money value is provided.</p>
-            </section>
 
-            <section className="cta-panel reveal" data-reveal style={{ '--delay': '220ms' }}>
-              <div className="eyebrow">NEED A HAND?</div><h2>Talk to the HelzerX community.</h2><p>Visit the official HelzerX Cloud Discord and open a support ticket.</p>
-              <div className="cta-actions"><a className="button primary" href="https://discord.com" target="_blank" rel="noreferrer">Get support <ArrowUpRight size={10} /></a><button className="button secondary" onClick={refresh}><RefreshCw size={10} /> Refresh account</button></div>
-            </section>
+              <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-lg)', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  Your Unique Referral URL
+                </span>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input 
+                    type="text" 
+                    readOnly 
+                    value={invite?.referralUrl || `${window.location.origin}/?ref=${me.id}`} 
+                    style={{ flex: 1, minWidth: '280px', background: '#09090c', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', color: '#fff', fontFamily: 'var(--font-mono)', fontSize: '13px' }}
+                  />
+                  <button className="btn-pill primary" onClick={copyInviteLink}>
+                    <Copy size={13} /> Copy Link
+                  </button>
+                </div>
+                <div style={{ display: 'flex', gap: '24px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                  <span>Verified: <b style={{ color: '#fff' }}>{invite?.verifiedInvites || 0}</b></span>
+                  <span>Pending review: <b style={{ color: 'var(--accent-gold)' }}>{invite?.pendingInvites || 0}</b></span>
+                </div>
+              </div>
 
-            <footer className="site-footer">
-              <div className="footer-col footer-brand"><Brand /><p>Community-supported hosting for projects worth building.</p></div>
-              <div className="footer-col"><b>Member space</b><a href="#overview">Overview</a><a href="#earn">Invite rewards</a><a href="#hosting">Hosting</a></div>
-              <div className="footer-col"><b>Rules</b><a href="#rules">Eligibility</a><span>HZL has no cash value</span><span>Manual review applies</span></div>
-              <div className="footer-col"><b>Account</b><button className="button secondary logout-hero" onClick={logout} disabled={busy}>Sign out <LogOut size={9} /></button><span>© 2026 HelzerX Cloud</span></div>
-              <div className="copyright">Hosting access and rewards depend on eligibility, review and configured options.</div>
-            </footer>
+              <div className="section-label" style={{ marginTop: '16px' }}>Invite Milestone Schedule</div>
+              <div className="tiers-grid">
+                {(rewards?.inviteTiers || defaultInviteTiers).map(([count, amount]) => {
+                  const achieved = (invite?.verifiedInvites || 0) >= count;
+                  return (
+                    <article className={`tier-card ${achieved ? 'featured' : ''}`} key={count}>
+                      <div className="tier-header">
+                        <span className="tier-badge">TIER {count}</span>
+                        {achieved && <span style={{ color: '#2ecc71', fontSize: '11px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> Achieved</span>}
+                      </div>
+                      <div className="tier-amount">
+                        <span className="tier-number">{money(amount)}</span>
+                        <span className="tier-unit">HZL</span>
+                      </div>
+                      <p className="tier-desc">Awarded after {count} verified genuine members join via your referral link.</p>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* TAB 4: BOOST CLAIMS */}
+          {activeTab === 'boosts' && (
+            <section className="rewards-section" id="boosts">
+              <div className="services-head">
+                <div>
+                  <div className="section-label">Server Boosting</div>
+                  <h2 className="services-title">Submit Discord Boost Claims</h2>
+                  <p className="services-sub">Boost the official HelzerX Discord server to earn substantial HZL grants. Claims are verified manually by administrators.</p>
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-lg)', padding: '36px', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div className="form-group">
+                  <label htmlFor="boost-tier-select">Select Your Active Server Boost Tier</label>
+                  <select 
+                    id="boost-tier-select"
+                    value={boostCount} 
+                    onChange={e => setBoostCount(e.target.value)}
+                  >
+                    {(rewards?.boostTiers || defaultBoostTiers).map(([count, amount]) => (
+                      <option key={count} value={count}>
+                        {count} Server Boost{count > 1 ? 's' : ''} — {money(amount)} HZL Reward
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                  Discord OAuth alone cannot automatically verify active booster permissions without privileged server bot scopes. Submitting here registers a pending claim for administrator verification.
+                </div>
+
+                <button 
+                  className="btn-pill primary" 
+                  onClick={submitBoostClaim} 
+                  disabled={busy}
+                  style={{ alignSelf: 'flex-start' }}
+                >
+                  <Zap size={13} /> Submit Boost Claim For Review
+                </button>
+              </div>
+
+              <div className="section-label" style={{ marginTop: '16px' }}>Active Boost Rewards Schedule</div>
+              <div className="tiers-grid">
+                {(rewards?.boostTiers || defaultBoostTiers).map(([count, amount]) => (
+                  <article className="tier-card" key={count}>
+                    <div className="tier-header">
+                      <span className="tier-badge">{count} BOOST{count > 1 ? 'S' : ''}</span>
+                    </div>
+                    <div className="tier-amount">
+                      <span className="tier-number">{money(amount)}</span>
+                      <span className="tier-unit">HZL</span>
+                    </div>
+                    <p className="tier-desc">Awarded when maintaining {count} active server boost{count > 1 ? 's' : ''} on the official Discord server.</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+        </main>
+      ) : (
+        /* ================= PUBLIC LANDING EXPERIENCE (Exact match to reference image) ================= */
+        <main className="page-content">
+          {/* HERO SECTION */}
+          <section className="hero-section" id="hero">
+            <div className="hero-main-grid">
+              <div className="hero-text-block">
+                <div className="hero-kicker">
+                  <ShieldCheck size={14} color="var(--accent-gold)" /> HelzerX Cloud Production Agency
+                </div>
+                <h1 className="hero-title">
+                  THE COMMUNITY<br />
+                  <span className="accent-text">CLOUD HOSTING</span><br />
+                  ARCHITECTURE
+                </h1>
+                <p className="hero-description">
+                  Enterprise Minecraft servers and isolated Proxmox Linux containers. High-frequency compute, NVMe flash arrays, and verified community rewards with zero out-of-pocket costs.
+                </p>
+                <div className="hero-cta-group">
+                  <a className="btn-pill primary" href={loginUrl}>
+                    Connect Discord <ArrowRight size={13} />
+                  </a>
+                  <a className="btn-pill secondary" href="#services">
+                    Explore Services
+                  </a>
+                  {me && (
+                    <button className="btn-pill secondary" onClick={() => setViewPublicMode(false)}>
+                      Back to Console
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* 3D Iridescent Glass Cylinder Visual Frame */}
+              <div className="hero-visual-frame">
+                <div className="hero-image-wrap">
+                  <img 
+                    src="/images/hero-glass.jpg" 
+                    alt="3D floating iridescent glass cylinder with warm amber and violet caustics" 
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="hero-badge-overlay">
+                    <Sparkles size={12} color="var(--accent-gold)" />
+                    <span>Next-Gen Cloud Compute</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ABOUT SECTION (Matching the reference image layout) */}
+          <section className="about-section" id="about">
+            <div className="section-label">ABOUT</div>
+            <div className="about-grid">
+              <div className="about-narrative">
+                <p>
+                  HelzerX is a community-supported cloud hosting platform dedicated to empowering developers, gaming communities, and server administrators. We combine enterprise-grade Proxmox bare-metal virtualization with an attribution-verified rewards ledger.
+                </p>
+                <p>
+                  Whether you are launching a high-concurrency Minecraft network or provisioning private Linux containers for automated workloads, our infrastructure delivers true isolated resources without financial barriers.
+                </p>
+              </div>
+
+              <div className="about-metrics-wrap">
+                <div className="about-metrics">
+                  <div className="metric-item">
+                    <span className="metric-val">99.9%</span>
+                    <span className="metric-label">Uptime SLA</span>
+                  </div>
+                  <div className="metric-item">
+                    <span className="metric-val">42+</span>
+                    <span className="metric-label">Reward Tiers</span>
+                  </div>
+                  <div className="metric-item">
+                    <span className="metric-val">0$</span>
+                    <span className="metric-label">Out of Pocket</span>
+                  </div>
+                </div>
+                {/* Floating 3D Accessory Torus Visual (Matching image) */}
+                <div className="about-accessory-visual">
+                  <img 
+                    src="/images/accessory-torus.jpg" 
+                    alt="3D dark metallic iridescent torus ring" 
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* OUR SERVICES BENTO GRID (Exact match to reference image) */}
+          <section className="services-section" id="services">
+            <div className="services-head">
+              <div>
+                <h2 className="services-title">OUR SERVICES</h2>
+                <p className="services-sub">
+                  Explore our array of hosting solutions, bare-metal game servers, and attribution rewards engineered to elevate your online presence.
+                </p>
+              </div>
+              <a className="btn-pill secondary" href={loginUrl}>
+                Get Access <ArrowRight size={13} />
+              </a>
+            </div>
+
+            <div className="bento-grid">
+              {/* Card 01 */}
+              <article className="bento-card">
+                <span className="bento-num">01</span>
+                <div className="bento-content">
+                  <h3>MINECRAFT CLOUD HOSTING</h3>
+                  <p>High-clock Ryzen and EPYC cores with allocated RAM quotas, NVMe storage arrays, and low-latency BGP routing for Paper, Purpur, and Fabric worlds.</p>
+                </div>
+              </article>
+
+              {/* Card 02 */}
+              <article className="bento-card">
+                <span className="bento-num">02</span>
+                <div className="bento-content">
+                  <h3>PROXMOX LINUX CONTAINERS (LXC)</h3>
+                  <p>Production-ready isolated Linux containers with dedicated CPU thresholds, memory allocations, and SSH public key authentication for zero-credential vulnerability.</p>
+                </div>
+              </article>
+
+              {/* Card 03 */}
+              <article className="bento-card">
+                <span className="bento-num">03</span>
+                <div className="bento-content">
+                  <h3>VERIFIED HZL REWARD LEDGER</h3>
+                  <p>Transparent community rewards. Earn non-cash HZL credit by inviting genuine members and boosting the Discord server, reviewed manually by admins.</p>
+                </div>
+              </article>
+
+              {/* Card 04 with 3D Ring asset inside the card (matching reference image) */}
+              <article className="bento-card">
+                <span className="bento-num">04</span>
+                <div className="bento-content">
+                  <h3>ENTERPRISE INFRASTRUCTURE</h3>
+                  <p>Tier 3 datacenter presence with redundant power feeds, automated Proxmox virtualization clustering, and proactive DDoS edge filtering.</p>
+                </div>
+                <div className="bento-visual-corner">
+                  <img 
+                    src="/images/accessory-torus.jpg" 
+                    alt="Iridescent torus ring asset" 
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              </article>
+            </div>
+          </section>
+
+          {/* SPECIAL OFFER SECTION (Matching reference image) */}
+          <section className="special-offer-section" id="rewards">
+            <div className="section-label">COMMUNITY PRIVILEGES</div>
+            <h2 className="special-offer-title">
+              SPECIAL ACCESS FOR<br />COMMUNITY SUPPORTERS
+            </h2>
+            <p className="special-offer-desc">
+              Boost the official HelzerX Discord server or refer fellow builders to unlock verified HZL credits. Redeem for persistent compute without monthly invoices.
+            </p>
+            <a className="btn-pill primary" href={loginUrl}>
+              Connect With Discord <ArrowRight size={13} />
+            </a>
+          </section>
+
+          {/* INFRASTRUCTURE SPOTLIGHT SECTION */}
+          <section className="services-section" id="infrastructure">
+            <div className="services-head">
+              <div>
+                <div className="section-label">HARDWARE ARCHITECTURE</div>
+                <h2 className="services-title">BUILT ON REAL HARDWARE</h2>
+                <p className="services-sub">
+                  No virtualized overselling. We deploy real nodes with high thermal headroom, ECC memory, and persistent SSD/NVMe volume protection.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', alignItems: 'center' }}>
+              <div style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--card-border)', height: '340px' }}>
+                <img 
+                  src="/images/datacenter.jpg" 
+                  alt="HelzerX datacenter racks with optical indicators" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                    <HardDrive size={16} color="var(--accent-gold)" />
+                    <b style={{ color: '#fff', fontSize: '14px' }}>NVMe Flash Storage</b>
+                  </div>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>High IOPS random access for Minecraft world saves and Linux container databases without disk bottlenecks.</p>
+                </div>
+
+                <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                    <Cpu size={16} color="var(--accent-gold)" />
+                    <b style={{ color: '#fff', fontSize: '14px' }}>Proxmox VE Virtualization</b>
+                  </div>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Kernel-level LXC isolation with zero virtualization hypervisor overhead for near-native compute speeds.</p>
+                </div>
+
+                <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-md)', padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                    <Shield size={16} color="var(--accent-gold)" />
+                    <b style={{ color: '#fff', fontSize: '14px' }}>SSH Key Access Only</b>
+                  </div>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Strict asymmetric cryptography. Passwords are never sent across the wire or stored on disk.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      )}
+
+      {/* SSH Public Key Modal for LXC Container Requests */}
+      {sshModalOpen && selectedPlan && (
+        <div className="modal-overlay" onClick={() => setSshModalOpen(false)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()}>
+            <div className="modal-head">
+              <h3>Deploy {selectedPlan.name}</h3>
+              <button className="modal-close" onClick={() => setSshModalOpen(false)} aria-label="Close modal">
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              Proxmox LXC containers enforce asymmetric public key security. Paste your SSH <b>public</b> key (e.g. from <code>~/.ssh/id_ed25519.pub</code>). Never submit a private key or password.
+            </p>
+
+            <div className="form-group">
+              <label htmlFor="ssh-key-input">SSH Public Key</label>
+              <textarea 
+                id="ssh-key-input"
+                rows={4}
+                value={sshPublicKey}
+                onChange={e => setSshPublicKey(e.target.value)}
+                placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... user@machine"
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-pill secondary sm" onClick={() => setSshModalOpen(false)}>
+                Cancel
+              </button>
+              <button 
+                className="btn-pill primary sm"
+                disabled={busy || !sshPublicKey.trim().startsWith('ssh-')}
+                onClick={() => executeHostingRequest(selectedPlan, sshPublicKey)}
+              >
+                Submit Request ({money(selectedPlan.cost)} HZL)
+              </button>
+            </div>
           </div>
         </div>
-        {toast && <div className="toast" role="status">{toast}<button onClick={() => setToast('')} aria-label="Dismiss notification">×</button></div>}
-      </main>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toast && (
+        <div className="toast-notice" role="status">
+          <span>{toast}</span>
+          <button className="toast-close" onClick={() => setToast('')} aria-label="Dismiss">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Minimalist Site Footer */}
+      <footer className="site-footer">
+        <div className="footer-top">
+          <Brand />
+          <div className="footer-links">
+            <a href="#about">About</a>
+            <a href="#services">Services</a>
+            <a href="#infrastructure">Infrastructure</a>
+            <a href="#rewards">Rewards</a>
+            <a href="/admin.html" target="_blank" rel="noreferrer">Admin Review Console</a>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <span>© 2026 HelzerX Cloud · Verified community cloud infrastructure.</span>
+          <span>HZL is an internal reward credit for eligible hosting redemptions with no cash value.</span>
+        </div>
+      </footer>
     </div>
   );
 }
-
-export default App;
