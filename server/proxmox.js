@@ -60,6 +60,19 @@ async function api(c, method, endpoint, params) {
 }
 const enc = (v) => encodeURIComponent(String(v));
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+let allocationQueue = Promise.resolve();
+async function allocateVmid(c) {
+  let release;
+  const previous = allocationQueue;
+  allocationQueue = new Promise(resolve => { release = resolve; });
+  await previous;
+  try {
+    const resources = await api(c, 'GET', '/cluster/resources', { type: 'vm' });
+    const occupied = new Set((Array.isArray(resources) ? resources : []).map(x => Number(x.vmid)));
+    for (let id = c.vmidMin; id <= c.vmidMax; id++) if (!occupied.has(id)) return id;
+    throw new Error('No free VMID remains in configured range ' + c.vmidMin + '-' + c.vmidMax + '.');
+  } finally { release(); }
+}
 
 async function waitTask(c, upid) {
   const deadline = Date.now() + c.taskTimeoutMs;
@@ -86,10 +99,7 @@ export async function provisionLxc({ requestId, plan, username }) {
     throw new Error('This hosting plan has no valid Proxmox resource mapping (cores, memory MB, disk GB).');
   }
   if (c.network !== 'dhcp') throw new Error('Only DHCP network mode is currently supported by the provisioner. Configure a verified DHCP service or add static IP allocation before enabling.');
-  const next = Number(await api(c, 'GET', '/cluster/nextid'));
-  if (!Number.isInteger(next) || next < c.vmidMin || next > c.vmidMax) {
-    throw new Error('Proxmox next VMID is outside the configured safe range ' + c.vmidMin + '-' + c.vmidMax + '. Configure a dedicated VMID range/pool before provisioning.');
-  }
+  const next = await allocateVmid(c);
   const hostname = ('hx-' + String(requestId).replace(/[^a-z0-9]/gi, '').slice(0, 10) + '-' + next).toLowerCase().slice(0, 63);
   const sshKeys = String(resources.sshPublicKeys || c.sshPublicKeys).trim();
   if (!sshKeys || !sshKeys.startsWith('ssh-') && !sshKeys.startsWith('ecdsa-') && !sshKeys.startsWith('sk-')) throw new Error('A valid administrator-managed SSH public key is required. Password-based credential delivery is intentionally disabled.');
@@ -111,6 +121,8 @@ export async function provisionLxc({ requestId, plan, username }) {
   });
   if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid task ID; manual reconciliation required.');
   await waitTask(c, upid);
-  await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc/' + next + '/status/start');
-  return { vmid: next, hostname, upid, status: 'provisioning' };
+  const startTask = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc/' + next + '/status/start');
+  if (typeof startTask !== 'string' || !startTask.startsWith('UPID:')) throw new Error('Container was created but Proxmox did not return a valid start task. Manual reconciliation required.');
+  await waitTask(c, startTask);
+  return { vmid: next, hostname, upid, startTask, status: 'running' };
 }
