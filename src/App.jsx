@@ -327,7 +327,6 @@ export default function App() {
               <a href="#services">Services</a>
               <a href="#rewards">HZL Rewards</a>
               <a href="#infrastructure">Infrastructure</a>
-              <a href="/admin.html" target="_blank" rel="noreferrer">Admin Review</a>
             </>
           )}
         </nav>
