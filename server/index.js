@@ -197,7 +197,8 @@ app.post('/api/boost-claims',auth,(req,res)=>{const count=Number(req.body?.boost
 app.get('/api/boost-claims',auth,(req,res)=>res.json({claims:data.claims.filter(c=>c.userId===req.session.user.id).map(({id,boosts,amount,status,createdAt})=>({id,boosts,amount,status,createdAt}))}));
 function adminOnly(req,res,next){
  if(!process.env.ADMIN_EMAIL||!process.env.ADMIN_PASSWORD)return res.status(503).json({error:'Admin authentication is not configured.'});
- if(!req.session?.admin?.authenticated||!req.session.admin.email||req.session.admin.email!==process.env.ADMIN_EMAIL.toLowerCase())return res.status(401).json({error:'Admin sign-in required.'});
+ if(!req.session?.admin?.authenticated||!req.session.admin.email||req.session.admin.email!==String(process.env.ADMIN_EMAIL||'').trim().toLowerCase())return res.status(401).json({error:'Admin sign-in required.'});
+ if(Date.now()-Number(req.session.admin.loggedAt||0)>2*60*60*1000){req.session.destroy(()=>{});res.clearCookie('hx_freehost_sid',{httpOnly:true,secure:prod,sameSite:'lax',path:'/'});return res.status(401).json({error:'Admin session expired. Sign in again.'});}
  res.set('Cache-Control','no-store');next();
 }
 app.post('/api/admin/login',adminLoginLimiter,adminMutationOrigin,async(req,res)=>{
