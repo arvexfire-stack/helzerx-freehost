@@ -24,17 +24,83 @@ app.use(session({name:'hx_freehost_sid',secret:process.env.SESSION_SECRET||'deve
 const PRE_RELEASE_ALLOWED_DISCORD_IDS = new Set(['1536553900474114091']);
 const PRE_RELEASE_LAUNCH_DATE = '2026-10-17';
 const PRE_RELEASE_MAINTENANCE_HTML = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#08090d">
-<title>HelzerX FreeHost — Pre-release</title>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#070910">
+<title>HelzerX FreeHost — Preparing for launch</title>
 <style>
-:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#08090d;color:#f5f5f7}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(244,176,65,.13),transparent 48%),#08090d}
-main{width:min(100%,680px);padding:clamp(28px,6vw,56px);border:1px solid rgba(255,255,255,.1);border-radius:28px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));box-shadow:0 30px 100px rgba(0,0,0,.42);text-align:center}
-.brand{font-size:14px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#f5b94e}.mark{width:62px;height:62px;display:grid;place-items:center;margin:34px auto 24px;border:1px solid rgba(245,185,78,.35);border-radius:20px;color:#f5b94e;background:rgba(245,185,78,.08);font-size:26px}
-.tag{display:inline-flex;padding:7px 11px;border-radius:999px;border:1px solid rgba(245,185,78,.28);background:rgba(245,185,78,.07);color:#f5c46d;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
-h1{margin:20px 0 14px;font-size:clamp(30px,6vw,48px);letter-spacing:-.045em;line-height:1.08}p{margin:0 auto;color:#a7a8b2;font-size:15px;line-height:1.8;max-width:490px}.date{margin:28px 0 0;padding:16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(0,0,0,.16)}.date small{display:block;color:#858793;font-size:11px;letter-spacing:.12em;text-transform:uppercase}.date strong{display:block;margin-top:7px;color:#f5c46d;font-size:20px}.foot{margin-top:28px;color:#686b76;font-size:12px}
-</style></head><body><main><div class="brand">HelzerX FreeHost</div><div class="mark" aria-hidden="true">HX</div><span class="tag">Private pre-release</span><h1>We’re getting ready for launch.</h1><p>HelzerX FreeHost is currently in a private testing phase while we finish final checks and infrastructure preparation. Public access is temporarily unavailable. Thank you for your patience.</p><div class="date"><small>Planned public release</small><strong>17 October 2026</strong></div><div class="foot">HelzerX Technologies · Built carefully. Launching soon.</div></main></body></html>`;
+:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#070910;color:#f6f7fb;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+html{min-height:100%;background:#070910}
+body{margin:0;min-height:100svh;overflow-x:hidden;display:grid;place-items:center;padding:clamp(18px,4vw,44px);position:relative;isolation:isolate;background:radial-gradient(ellipse at 50% 0%,rgba(39,104,255,.16),transparent 48%),radial-gradient(ellipse at 100% 80%,rgba(143,67,255,.11),transparent 38%),#070910}
+body:before,body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1}
+body:before{opacity:.22;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:52px 52px;mask-image:linear-gradient(to bottom,black,transparent 90%)}
+body:after{background:radial-gradient(circle at 50% 45%,transparent 0,rgba(3,5,12,.15) 55%,#070910 100%)}
+.scene{width:min(100%,940px);perspective:1200px;animation:scene-in 1s cubic-bezier(.2,.75,.2,1) both}
+.panel{position:relative;overflow:hidden;isolation:isolate;padding:clamp(28px,6vw,68px) clamp(22px,6vw,76px) clamp(26px,4vw,48px);border:1px solid rgba(172,193,255,.16);border-radius:32px;background:linear-gradient(145deg,rgba(21,27,47,.9),rgba(10,13,25,.91) 58%,rgba(13,13,28,.94));box-shadow:0 40px 120px rgba(0,0,0,.52),inset 0 1px 0 rgba(255,255,255,.07);text-align:center;transform-style:preserve-3d}
+.panel:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% -5%,rgba(75,123,255,.18),transparent 48%),linear-gradient(115deg,transparent 25%,rgba(255,255,255,.025) 50%,transparent 75%);background-size:auto,220% 100%;animation:panel-shimmer 9s ease-in-out infinite}
+.panel:after{content:"";position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,rgba(131,171,255,.65),rgba(190,143,255,.6),transparent);filter:blur(.3px)}
+.brand{display:inline-flex;align-items:center;gap:11px;font-size:12px;font-weight:850;letter-spacing:.2em;text-transform:uppercase;color:#e8edff}
+.brand-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;border:1px solid rgba(142,177,255,.4);background:linear-gradient(145deg,rgba(99,142,255,.28),rgba(107,67,208,.14));box-shadow:0 0 28px rgba(80,120,255,.16),inset 0 1px 0 rgba(255,255,255,.2);font-size:13px;letter-spacing:-.08em;color:#fff}
+.art{height:228px;max-width:430px;margin:0 auto 2px;position:relative;display:grid;place-items:center;perspective:850px;transform-style:preserve-3d}
+.glow{position:absolute;width:180px;height:180px;border-radius:50%;background:#386aff;filter:blur(68px);opacity:.27;animation:glow-pulse 4s ease-in-out infinite}
+.core{position:relative;width:104px;height:104px;border-radius:30px;display:grid;place-items:center;transform:rotateX(13deg) rotateY(-18deg) rotateZ(-7deg);transform-style:preserve-3d;background:linear-gradient(145deg,#8bb4ff 0%,#4c72ee 28%,#292a78 70%,#171a3b 100%);border:1px solid rgba(212,226,255,.75);box-shadow:inset 5px 5px 14px rgba(255,255,255,.26),inset -10px -12px 20px rgba(3,5,28,.58),0 24px 55px rgba(42,78,226,.32);animation:core-float 5s ease-in-out infinite}
+.core:before{content:"";position:absolute;inset:9px;border:1px solid rgba(230,239,255,.38);border-radius:23px;transform:translateZ(13px);box-shadow:inset 0 0 20px rgba(255,255,255,.06)}
+.core:after{content:"HX";font-size:31px;font-weight:900;letter-spacing:-.12em;padding-right:4px;color:#fff;text-shadow:0 2px 18px rgba(255,255,255,.42);transform:translateZ(22px)}
+.orbit{position:absolute;width:235px;height:82px;border:1px solid rgba(133,166,255,.58);border-radius:50%;transform-style:preserve-3d;box-shadow:0 0 22px rgba(82,121,255,.1);animation:orbit-spin 10s linear infinite}
+.orbit.one{transform:rotateX(68deg) rotateZ(-26deg)}
+.orbit.two{width:270px;height:100px;border-color:rgba(183,139,255,.48);transform:rotateX(68deg) rotateZ(48deg);animation-duration:14s;animation-direction:reverse}
+.orbit.three{width:190px;height:62px;border-color:rgba(126,206,255,.32);transform:rotateX(72deg) rotateZ(90deg);animation-duration:18s}
+.node{position:absolute;width:11px;height:11px;border-radius:50%;background:#c8d8ff;box-shadow:0 0 15px 4px rgba(112,155,255,.6)}
+.node.n1{top:40px;left:calc(50% - 128px)}.node.n2{right:calc(50% - 135px);bottom:54px;background:#d9baff;box-shadow:0 0 16px 4px rgba(169,111,255,.6)}.node.n3{top:36px;right:calc(50% - 85px);width:7px;height:7px}
+.spark{position:absolute;width:4px;height:4px;border-radius:50%;background:#d9e5ff;box-shadow:0 0 12px 2px rgba(150,180,255,.8);animation:spark-drift 4s ease-in-out infinite}
+.spark.s1{top:24px;left:24%;animation-delay:-1s}.spark.s2{right:21%;top:57px;animation-delay:-2.2s}.spark.s3{bottom:22px;left:33%;animation-delay:-.7s}.spark.s4{bottom:44px;right:28%;animation-delay:-3s}
+.tag{display:inline-flex;align-items:center;gap:9px;padding:8px 12px;border:1px solid rgba(119,158,255,.25);border-radius:999px;background:rgba(81,119,225,.09);color:#b8cbff;font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.pulse{width:6px;height:6px;border-radius:50%;background:#8aaaff;box-shadow:0 0 0 4px rgba(111,151,255,.12);animation:status-pulse 2s ease-out infinite}
+h1{max-width:700px;margin:22px auto 16px;font-size:clamp(34px,6.4vw,62px);font-weight:780;letter-spacing:-.065em;line-height:1.02;text-wrap:balance}
+h1 span{display:block;background:linear-gradient(100deg,#fff 12%,#c8d7ff 48%,#a9a5ff 82%);background-clip:text;-webkit-background-clip:text;color:transparent}
+.copy{max-width:520px;margin:0 auto;color:#a9b0c5;font-size:clamp(14px,2vw,16px);line-height:1.85;text-wrap:pretty}
+.release{display:flex;align-items:center;justify-content:center;gap:14px;max-width:410px;margin:30px auto 0;padding:16px 20px;border:1px solid rgba(157,176,255,.16);border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.018));box-shadow:inset 0 1px 0 rgba(255,255,255,.04);text-align:left}
+.calendar{flex:0 0 42px;height:42px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(145deg,rgba(105,145,255,.2),rgba(125,83,224,.13));border:1px solid rgba(145,171,255,.2);color:#c9d6ff}
+.calendar svg{width:20px;height:20px}
+.release small{display:block;margin-bottom:5px;color:#7f8aa8;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.release strong{display:block;color:#eef1ff;font-size:15px;font-weight:750;letter-spacing:.01em}
+.footer{margin-top:30px;color:#69738e;font-size:11px;letter-spacing:.04em}
+.footer b{color:#9aa8cc;font-weight:700}
+@keyframes scene-in{from{opacity:0;transform:translateY(24px) rotateX(5deg) scale(.985);filter:blur(8px)}to{opacity:1;transform:translateY(0) rotateX(0) scale(1);filter:blur(0)}}
+@keyframes core-float{0%,100%{transform:translateY(0) rotateX(13deg) rotateY(-18deg) rotateZ(-7deg)}50%{transform:translateY(-10px) rotateX(18deg) rotateY(-8deg) rotateZ(-3deg)}}
+@keyframes orbit-spin{from{rotate:0deg}to{rotate:360deg}}
+@keyframes glow-pulse{0%,100%{opacity:.2;transform:scale(.9)}50%{opacity:.38;transform:scale(1.12)}}
+@keyframes status-pulse{0%{box-shadow:0 0 0 0 rgba(111,151,255,.4)}75%,100%{box-shadow:0 0 0 7px rgba(111,151,255,0)}}
+@keyframes spark-drift{0%,100%{transform:translate3d(0,0,0);opacity:.25}50%{transform:translate3d(5px,-11px,14px);opacity:1}}
+@keyframes panel-shimmer{0%,70%,100%{background-position:0 0,100% 0}35%{background-position:0 0,0 0}}
+@media(max-width:560px){body{padding:14px}.panel{border-radius:25px;padding:26px 21px 25px}.art{height:190px;transform:scale(.9);margin-top:-4px;margin-bottom:-3px}.core{width:88px;height:88px;border-radius:26px}.core:before{border-radius:19px}.core:after{font-size:27px}.orbit{width:205px;height:74px}.orbit.two{width:235px;height:88px}.orbit.three{width:165px;height:56px}h1{font-size:clamp(34px,10vw,48px)}.copy{font-size:14px}.release{margin-top:24px;padding:14px 15px}.footer{margin-top:24px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="scene">
+<section class="panel" aria-labelledby="headline">
+<div class="brand"><span class="brand-mark" aria-hidden="true">HX</span><span>HelzerX FreeHost</span></div>
+<div class="art" aria-hidden="true">
+<div class="glow"></div><div class="orbit one"></div><div class="orbit two"></div><div class="orbit three"></div>
+<div class="node n1"></div><div class="node n2"></div><div class="node n3"></div>
+<div class="spark s1"></div><div class="spark s2"></div><div class="spark s3"></div><div class="spark s4"></div>
+<div class="core"></div>
+</div>
+<div class="tag"><span class="pulse"></span> Private pre-release</div>
+<h1 id="headline">Something great is <span>taking shape.</span></h1>
+<p class="copy">We’re putting the finishing touches on HelzerX FreeHost. Our infrastructure is in private testing while we complete final checks for a smoother, more reliable launch. Public access will open soon.</p>
+<div class="release">
+<div class="calendar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 10h17"/></svg></div>
+<div><small>Planned public release</small><strong>17 October 2026</strong></div>
+</div>
+<div class="footer"><b>HelzerX Technologies</b> <span aria-hidden="true">·</span> Built carefully. Launching soon.</div>
+</section>
+</main>
+</body>
+</html>`;
 function isAllowedPreReleaseSession(req) {
   const discordId = String(req.session?.user?.id || '');
   const adminEmail = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
