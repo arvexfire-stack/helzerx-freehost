@@ -140,7 +140,7 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey }) 
   const startTask = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc/' + next + '/status/start');
   if (typeof startTask !== 'string' || !startTask.startsWith('UPID:')) throw new Error('Container was created but Proxmox did not return a valid start task. Manual reconciliation required.');
   await waitTask(c, startTask);
-  return { vmid: next, hostname, upid, startTask, status: 'running' };
+  return { vmid: next, hostname, upid, startTask, status: 'running', ...(generatedSshPrivateKey ? { generatedSshPrivateKey } : {}) };
 }
 
 /**
