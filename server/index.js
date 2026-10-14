@@ -319,6 +319,11 @@ app.get('/api/admin/users',adminOnly,(req,res)=>{
  const users=Object.entries(data.users).map(([id,u])=>safeAdminUser(id,u)).filter(u=>(!q||[u.id,u.username,u.email||''].some(v=>String(v).toLowerCase().includes(q)))&&(status==='all'||u.status===status)).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
  res.json({users,total:users.length});
 });
+app.get('/api/admin/users/:id',adminOnly,(req,res)=>{
+ const u=data.users[req.params.id];if(!u)return res.status(404).json({error:'User not found.'});
+ const id=req.params.id,hosting=data.hostingRequests.filter(x=>x.userId===id).map(({sshPublicKey,...x})=>x),tickets=data.tickets.filter(x=>x.userId===id).map(({messages,...x})=>({...x,messageCount:(messages||[]).length})),invites=data.inviteClaims.filter(x=>x.referrerId===id||x.inviteeId===id),boosts=data.claims.filter(x=>x.userId===id);
+ res.set('Cache-Control','no-store');res.json({user:{...safeAdminUser(id,u),globalName:u.global_name||u.username,avatar:u.avatar||null,referrer:u.referrer||null,pendingReferrer:u.pendingReferrer||null,creditedMilestones:u.creditedMilestones||[],statusReason:u.statusReason||null,statusUpdatedAt:u.statusUpdatedAt||null},hosting,tickets,inviteClaims:invites,boostClaims:boosts});
+});
 app.post('/api/admin/users/:id/balance',adminOnly,adminMutationOrigin,(req,res)=>{
  const user=data.users[req.params.id];if(!user)return res.status(404).json({error:'User not found.'});
  const action=String(req.body?.action||''),amount=Number(req.body?.amount),reason=String(req.body?.reason||'').trim();
@@ -396,7 +401,8 @@ app.post('/api/admin/hosting-requests/manual',adminOnly,adminMutationOrigin,asyn
 app.post('/api/admin/hosting-requests/:id/action',adminOnly,adminMutationOrigin,async(req,res)=>{
  const item=data.hostingRequests.find(x=>x.id===req.params.id);if(!item)return res.status(404).json({error:'Hosting request not found.'});
  if(item.service!=='lxc'||!Number.isInteger(Number(item.vmid)))return res.status(409).json({error:'This record is not a managed LXC container.'});
- const action=String(req.body?.action||'');
+ const action=String(req.body?.action||''),reason=String(req.body?.reason||'').trim();
+ if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide an audit reason (3–300 characters).'});
  if(action==='delete'&&req.body?.confirm!==true)return res.status(400).json({error:'Explicit delete confirmation is required.'});
  if(action==='suspend'&&!['provisioned','suspended'].includes(item.status))return res.status(409).json({error:'Only provisioned containers can be suspended.'});
  if(action==='resume'&&item.status!=='suspended')return res.status(409).json({error:'Only suspended containers can be resumed.'});
@@ -407,7 +413,7 @@ app.post('/api/admin/hosting-requests/:id/action',adminOnly,adminMutationOrigin,
   if(action==='suspend'){item.status='suspended';item.provisioningStatus='container-stopped';}
   else if(action==='resume'){item.status='provisioned';item.provisioningStatus='container-running';}
   else{item.status='deleted';item.provisioningStatus='container-deleted';item.deletedAt=item.updatedAt;item.deletedBy=req.session.admin.email;}
-  auditAdmin(req,'vps_'+action,'hosting_request',item.id,{vmid:item.vmid,userId:item.userId});writeData();res.json({ok:true,request:{id:item.id,status:item.status,vmid:item.vmid,hostname:item.hostname},proxmox:result});
+  auditAdmin(req,'vps_'+action,'hosting_request',item.id,{vmid:item.vmid,userId:item.userId,reason});writeData();res.json({ok:true,request:{id:item.id,status:item.status,vmid:item.vmid,hostname:item.hostname},proxmox:result});
  }catch(error){item.updatedAt=new Date().toISOString();item.lastActionError=String(error.message||'Proxmox action failed').slice(0,500);writeData();res.status(502).json({error:item.lastActionError});}
 });
 app.get('/api/admin/audit-logs',adminOnly,(req,res)=>{const limit=Math.max(1,Math.min(500,Number(req.query.limit)||100));res.json({logs:data.auditLogs.slice(0,limit)});});
