@@ -325,15 +325,13 @@ app.get('/api/hosting-requests',auth,(req,res)=>{res.set('Cache-Control','no-sto
 app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
  const service=String(req.body?.service||'');
  const planId=String(req.body?.planId||'');
- const sshPublicKey=typeof req.body?.sshPublicKey==='string'?req.body.sshPublicKey.trim():'';
  const option=data.plans.find(x=>x.enabled!==false&&x.id===planId&&x.service===service&&Number.isSafeInteger(x.cost)&&x.cost>0&&typeof x.name==='string');
  if(!option)return res.status(400).json({error:'This hosting plan is not currently configured for HZL redemption.'});
- if(service==='lxc'&&(!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048))return res.status(400).json({error:'Provide a valid SSH public key for your LXC account. Never submit a private key or password.'});
  const u=ensureUser(req.session.user.id);
  if(u.balance<option.cost)return res.status(400).json({error:'Not enough HZL for this hosting plan.'});
  if(data.hostingRequests.some(x=>x.userId===req.session.user.id&&['pending','provisioning'].includes(x.status)))return res.status(409).json({error:'You already have a pending or provisioning hosting request.'});
  const now=new Date().toISOString();
- const request={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,service,planId:option.id,planName:option.name,cost:option.cost,planSnapshot:{id:option.id,service:option.service,name:option.name,cost:option.cost,...(option.proxmox?{proxmox:{...option.proxmox}}:{})},status:service==='lxc'?'provisioning':'pending',...(service==='lxc'?{sshPublicKey,provisioningAttempts:1}:{}),createdAt:now,updatedAt:now};
+ const request={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,service,planId:option.id,planName:option.name,cost:option.cost,planSnapshot:{id:option.id,service:option.service,name:option.name,cost:option.cost,...(option.proxmox?{proxmox:{...option.proxmox}}:{})},status:service==='lxc'?'provisioning':'pending',...(service==='lxc'?{provisioningAttempts:1}:{}),createdAt:now,updatedAt:now};
  if(service!=='lxc'){
   data.hostingRequests.push(request);writeData();
   return res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status},message:'Hosting request submitted for review. HZL is not deducted until an administrator approves it.'});
@@ -348,12 +346,12 @@ app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
  if(data.auditLogs.length>5000)data.auditLogs.length=5000;
  writeData();
  try{
-  const created=await provisionLxc({requestId:request.id,plan:request.planSnapshot,username:request.username,sshPublicKey});
+  const created=await provisionLxc({requestId:request.id,plan:request.planSnapshot,username:request.username});
   request.status='provisioned';request.provisioningStatus='container-started';request.vmid=created.vmid;request.hostname=created.hostname;request.proxmoxTask=created.upid;request.proxmoxStartTask=created.startTask;request.updatedAt=new Date().toISOString();
   data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_vps_created',targetType:'hosting_request',targetId:request.id,details:{vmid:created.vmid,planId:option.id,cost:option.cost},createdAt:request.updatedAt});
   if(data.auditLogs.length>5000)data.auditLogs.length=5000;
   writeData();
-  return res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status,vmid:request.vmid,hostname:request.hostname},message:'Your LXC VPS has been created successfully. '+option.cost+' HZL has been deducted from your balance.'});
+  return res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status,vmid:request.vmid,hostname:request.hostname},...(created.generatedSshPrivateKey?{generatedSshPrivateKey:created.generatedSshPrivateKey}:{}),message:'Your LXC VPS has been created successfully. '+option.cost+' HZL has been deducted from your balance.'});
  }catch(error){
   request.updatedAt=new Date().toISOString();
   request.error=String(error?.message||'Proxmox provisioning failed').slice(0,500);
@@ -514,17 +512,16 @@ app.post('/api/admin/tickets/:id/status',adminOnly,adminMutationOrigin,(req,res)
 });
 
 app.post('/api/admin/hosting-requests/manual',adminOnly,adminMutationOrigin,async(req,res)=>{
- const userId=String(req.body?.userId||''),planId=String(req.body?.planId||''),sshPublicKey=String(req.body?.sshPublicKey||'').trim(),charge=req.body?.charge===true;
+ const userId=String(req.body?.userId||''),planId=String(req.body?.planId||''),charge=req.body?.charge===true;
  const user=data.users[userId];if(!user)return res.status(404).json({error:'User not found.'});
  const plan=data.plans.find(p=>p.id===planId&&p.enabled!==false);
  if(!plan||plan.service!=='lxc'||!plan.proxmox)return res.status(400).json({error:'Choose an enabled LXC plan with an explicit Proxmox resource mapping.'});
- if(sshPublicKey && (!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048))return res.status(400).json({error:'Provide a valid SSH public key or leave it empty to generate a new key automatically.'});
  if(charge&&(Number(user.balance)||0)<plan.cost)return res.status(409).json({error:'User does not have enough HZL.'});
  const readiness=proxmoxReadiness();if(!readiness.ready)return res.status(503).json({error:'Proxmox provisioning is not ready.',missing:readiness.missing});
- const now=new Date().toISOString(),request={id:crypto.randomUUID(),userId,username:user.username||user.global_name||userId,service:'lxc',planId:plan.id,planName:plan.name,cost:charge?plan.cost:0,status:'provisioning',sshPublicKey,manualCreated:true,createdAt:now,updatedAt:now,createdBy:req.session.admin.email};
+ const now=new Date().toISOString(),request={id:crypto.randomUUID(),userId,username:user.username||user.global_name||userId,service:'lxc',planId:plan.id,planName:plan.name,cost:charge?plan.cost:0,status:'provisioning',manualCreated:true,createdAt:now,updatedAt:now,createdBy:req.session.admin.email};
  data.hostingRequests.push(request);if(charge){user.balance-=plan.cost;auditAdmin(req,'balance_remove','user',userId,{amount:plan.cost,reason:'Manual LXC provisioning: '+request.id});}
  request.provisioningAttempts=1;writeData();
- try{const created=await provisionLxc({requestId:request.id,plan,username:request.username,sshPublicKey});request.status='provisioned';request.provisioningStatus='container-started';request.vmid=created.vmid;request.hostname=created.hostname;request.proxmoxTask=created.upid;request.updatedAt=new Date().toISOString();auditAdmin(req,'vps_manual_create','hosting_request',request.id,{userId,vmid:created.vmid,charged:charge?plan.cost:0});writeData();res.status(201).json({ok:true,request:{...request,sshPublicKey:undefined},...(created.generatedSshPrivateKey?{generatedSshPrivateKey:created.generatedSshPrivateKey}:{} )});
+ try{const created=await provisionLxc({requestId:request.id,plan,username:request.username});request.status='provisioned';request.provisioningStatus='container-started';request.vmid=created.vmid;request.hostname=created.hostname;request.proxmoxTask=created.upid;request.updatedAt=new Date().toISOString();auditAdmin(req,'vps_manual_create','hosting_request',request.id,{userId,vmid:created.vmid,charged:charge?plan.cost:0});writeData();res.status(201).json({ok:true,request:{...request,sshPublicKey:undefined},...(created.generatedSshPrivateKey?{generatedSshPrivateKey:created.generatedSshPrivateKey}:{} )});
  }catch(error){request.status='provisioning-error';request.provisioningStatus='needs-admin-reconciliation';request.error=String(error?.message||'Provisioning failed').slice(0,500);request.updatedAt=new Date().toISOString();try{auditAdmin(req,'vps_manual_create_failed','hosting_request',request.id,{userId,error:request.error});writeData();}catch(persistError){console.error('[manual LXC provisioning] Failed to persist error state for request '+request.id+':',persistError);}console.error('[manual LXC provisioning] Request '+request.id+' failed:',error?.stack||request.error);return res.status(502).json({error:'Manual LXC provisioning failed: '+request.error+'. Do not retry until the existing request and Proxmox VMID have been reconciled.',request:{id:request.id,status:request.status,provisioningStatus:request.provisioningStatus}});}
 });
 app.get('/api/admin/hosting-requests/:id/inspect',adminOnly,async(req,res)=>{
