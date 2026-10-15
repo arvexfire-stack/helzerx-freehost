@@ -349,7 +349,7 @@ app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
   if(!/^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/.test(displayName)||displayName.length<2)return res.status(400).json({error:'VPS name must be 2–30 lowercase letters, numbers or hyphens.'});
   if(!selectedNode)return res.status(400).json({error:'Selected Proxmox node is not in the server allowlist.'});
   if(!selectedOs)return res.status(400).json({error:'Selected operating system is not configured on the server.'});
-  if(rootPassword.length<10||rootPassword.length>128||/[\\u0000-\\u001f\\u007f]/.test(rootPassword))return res.status(400).json({error:'Root password must be 10–128 characters without control characters.'});
+  if(rootPassword.length<10||rootPassword.length>128||/[\x00-\x1f\x7f]/.test(rootPassword))return res.status(400).json({error:'Root password must be 10–128 characters without control characters.'});
  }
  const effectiveCost=option.cost+(service==='lxc'?(selectedNode?.surcharge||0)+(selectedOs?.surcharge||0):0);
  if(!Number.isSafeInteger(effectiveCost)||effectiveCost<=0)return res.status(400).json({error:'Invalid VPS price configuration.'});
