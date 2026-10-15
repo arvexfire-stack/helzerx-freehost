@@ -80,10 +80,10 @@ async function allocateVmid(c) {
   } finally { release(); }
 }
 
-async function waitTask(c, upid) {
+async function waitTask(c, upid, taskNode = c.node) {
   const deadline = Date.now() + c.taskTimeoutMs;
   while (Date.now() < deadline) {
-    const status = await api(c, 'GET', '/nodes/' + enc(c.node) + '/tasks/' + enc(upid) + '/status');
+    const status = await api(c, 'GET', '/nodes/' + enc(taskNode) + '/tasks/' + enc(upid) + '/status');
     if (status.status === 'stopped') {
       const exitstatus = String(status.exitstatus || 'unknown').trim();
 
@@ -172,10 +172,10 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey, no
       description: 'HelzerX Free Hosting request ' + String(requestId).slice(0, 80) + ' / user ' + String(username || '').slice(0, 80)
     });
     if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid task ID; manual reconciliation required.');
-    await waitTask(c, upid);
+    await waitTask(c, upid, targetNode);
     const startTask = await api(c, 'POST', '/nodes/' + enc(targetNode) + '/lxc/' + next + '/status/start');
     if (typeof startTask !== 'string' || !startTask.startsWith('UPID:')) throw new Error('Container was created but Proxmox did not return a valid start task. Manual reconciliation required.');
-    await waitTask(c, startTask);
+    await waitTask(c, startTask, targetNode);
     return { vmid: next, hostname, node:targetNode, template:targetTemplate, upid, startTask, status: 'running', ...(generatedSshPrivateKey ? { generatedSshPrivateKey } : {}) };
   } catch (error) {
     // If the create task was attempted, retain the chosen VMID so the caller can
