@@ -331,7 +331,7 @@ app.post('/api/hosting-requests/:id/remove-failed',auth,adminMutationOrigin,(req
  writeData();
  res.json({ok:true,message:'Failed hosting request removed.',id:item.id});
 });
-app.get('/api/hosting-requests',auth,(req,res)=>{res.set('Cache-Control','no-store');res.json({requests:data.hostingRequests.filter(x=>x.userId===req.session.user.id).map(({id,service,planName,cost,status,createdAt,updatedAt,vmid,hostname,provisioningStatus,error})=>({id,service,planName,cost,status,createdAt,updatedAt,vmid,hostname,provisioningStatus,error}))})});
+app.get('/api/hosting-requests',auth,(req,res)=>{res.set('Cache-Control','no-store');res.json({requests:data.hostingRequests.filter(x=>x.userId===req.session.user.id).map(({id,service,planName,cost,status,createdAt,updatedAt,vmid,hostname,nodeId,osId,osLabel,displayName,provisioningStatus,error})=>({id,service,planName,cost,status,createdAt,updatedAt,vmid,hostname,nodeId,osId,osLabel,displayName,provisioningStatus,error}))})});
 app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
  const service=String(req.body?.service||'');
  const planId=String(req.body?.planId||'');
