@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Activity, Cpu, HardDrive, KeyRound, LockKeyhole, Server, ShieldCheck, Sparkles, X, ChevronDown } from 'lucide-react';
 import './VpsDeployModal.css';
 const money = n => new Intl.NumberFormat('en-US').format(Number(n) || 0);
@@ -14,6 +14,7 @@ export default function VpsDeployModal({ plan, nodes = [], osOptions = [], balan
   const [mode, setMode] = useState('auto');
   const [password, setPassword] = useState(makePassword());
   const [visible, setVisible] = useState(false);
+  useEffect(() => { if (!nodeId && nodes[0]) setNodeId(nodes[0].id); if (!osId && osOptions[0]) setOsId(osOptions[0].id); }, [nodes, osOptions, nodeId, osId]);
   if (!plan) return null;
   const node = nodes.find(x => x.id === nodeId);
   const os = osOptions.find(x => x.id === osId);
