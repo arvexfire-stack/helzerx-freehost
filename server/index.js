@@ -275,7 +275,7 @@ function recordUserVpsAction(req,item,action,details={}){
 }
 app.get('/api/control/instances/:id/inspect',auth,async(req,res)=>{
  const item=ownedLxcRequest(req,res,['provisioned','suspended','provisioning-error']);if(!item)return;
- try{const live=await inspectLxc({vmid:item.vmid});res.set('Cache-Control','no-store');res.json({ok:true,request:{id:item.id,vmid:item.vmid,hostname:item.hostname,planName:item.planName,status:item.status,createdAt:item.createdAt,updatedAt:item.updatedAt},live});}
+ try{const live=await inspectLxc({vmid:item.vmid,node:item.nodeId});res.set('Cache-Control','no-store');res.json({ok:true,request:{id:item.id,vmid:item.vmid,hostname:item.hostname,planName:item.planName,status:item.status,createdAt:item.createdAt,updatedAt:item.updatedAt},live});}
  catch(error){res.status(502).json({error:String(error.message||'Could not inspect instance').slice(0,400)});}
 });
 app.post('/api/control/instances/:id/action',auth,adminMutationOrigin,async(req,res)=>{
@@ -285,7 +285,7 @@ app.post('/api/control/instances/:id/action',auth,adminMutationOrigin,async(req,
  const item=ownedLxcRequest(req,res,allowed);if(!item)return;
  if(['start','resume'].includes(action)&&item.status==='provisioned'&&action==='start')return res.status(409).json({error:'Instance is already marked as running.'});
  try{
-  const result=await manageLxc({vmid:item.vmid,action});
+  const result=await manageLxc({vmid:item.vmid,action,node:item.nodeId});
   item.updatedAt=new Date().toISOString();
   if(['suspend','stop'].includes(action)){item.status='suspended';item.provisioningStatus='container-stopped';}
   else {item.status='provisioned';item.provisioningStatus='container-running';}
@@ -298,9 +298,9 @@ app.post('/api/control/instances/:id/terminal',auth,adminMutationOrigin,async(re
  const command=String(req.body?.command||'');
  if(!command.trim()||command.length>4000)return res.status(400).json({error:'Command must be 1–4000 characters.'});
  try{
-  const live=await inspectLxc({vmid:item.vmid});
+  const live=await inspectLxc({vmid:item.vmid,node:item.nodeId});
   if(live.status?.status!=='running')return res.status(409).json({error:'Instance is not running. Start it before using the terminal.'});
-  const result=await runLxcTerminal({vmid:item.vmid,command});
+  const result=await runLxcTerminal({vmid:item.vmid,command,node:item.nodeId});
   recordUserVpsAction(req,item,'user_vps_terminal_command',{vmid:item.vmid,commandLength:command.length});writeData();
   res.json({ok:true,...result});
  }catch(error){res.status(502).json({error:String(error.message||'Terminal command failed').slice(0,400)});}
@@ -311,8 +311,8 @@ app.post('/api/control/instances/:id/snapshots',auth,adminMutationOrigin,async(r
  if(!['create','delete'].includes(action))return res.status(400).json({error:'Snapshot action must be create or delete.'});
  if(action==='delete'&&!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(name))return res.status(400).json({error:'Invalid snapshot name.'});
  try{
-  if(action==='delete'){const live=await inspectLxc({vmid:item.vmid});if(!(live.snapshots||[]).some(x=>x.name===name))return res.status(404).json({error:'Snapshot not found.'});}
-  const result=await manageLxcSnapshot({vmid:item.vmid,action,name});
+  if(action==='delete'){const live=await inspectLxc({vmid:item.vmid,node:item.nodeId});if(!(live.snapshots||[]).some(x=>x.name===name))return res.status(404).json({error:'Snapshot not found.'});}
+  const result=await manageLxcSnapshot({vmid:item.vmid,action,name,node:item.nodeId});
   recordUserVpsAction(req,item,'user_vps_snapshot_'+action,{vmid:item.vmid,name});writeData();
   res.json({ok:true,...result});
  }catch(error){res.status(502).json({error:String(error.message||'Snapshot operation failed').slice(0,400)});}
@@ -365,7 +365,7 @@ app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
  const readiness=proxmoxReadiness();
  if(!readiness.ready)return res.status(503).json({error:'Automatic LXC provisioning is not ready yet. Please try again later or contact support.',missing:readiness.missing});
  // Reserve HZL before starting the external Proxmox operation to prevent double-spending.
- u.balance-=option.cost;
+ u.balance-=effectiveCost;
  data.hostingRequests.push(request);
  data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_hzl_reserved_for_vps',targetType:'hosting_request',targetId:request.id,details:{planId:option.id,cost:effectiveCost,nodeId:service==='lxc'?nodeId:null,osId:service==='lxc'?osId:null},createdAt:now});
  if(data.auditLogs.length>5000)data.auditLogs.length=5000;
@@ -373,7 +373,7 @@ app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
  try{
   const created=await provisionLxc({requestId:request.id,plan:request.planSnapshot,username:request.username,node:nodeId,template:selectedOs.template,hostname:displayName,rootPassword});
   request.status='provisioned';request.provisioningStatus='container-started';request.vmid=created.vmid;request.hostname=created.hostname;request.proxmoxTask=created.upid;request.proxmoxStartTask=created.startTask;request.nodeId=nodeId;request.osId=osId;request.updatedAt=new Date().toISOString();
-  data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_vps_created',targetType:'hosting_request',targetId:request.id,details:{vmid:created.vmid,planId:option.id,cost:option.cost},createdAt:request.updatedAt});
+  data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_vps_created',targetType:'hosting_request',targetId:request.id,details:{vmid:created.vmid,planId:option.id,cost:effectiveCost,nodeId,osId},createdAt:request.updatedAt});
   if(data.auditLogs.length>5000)data.auditLogs.length=5000;
   writeData();
   return res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status,vmid:request.vmid,hostname:request.hostname,nodeId,osId},rootPassword,...(created.generatedSshPrivateKey?{generatedSshPrivateKey:created.generatedSshPrivateKey}:{}),message:'Your LXC VPS has been created successfully. '+effectiveCost+' HZL has been deducted from your balance.'});
@@ -384,8 +384,8 @@ app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
    request.status='provisioning-error';request.provisioningStatus='needs-admin-reconciliation';request.vmid=Number(error.vmid);
    request.error+=' HZL remains charged while this Proxmox VMID is checked to avoid duplicate resources.';
   }else{
-   request.status='failed';request.provisioningStatus='failed-before-resource-allocation';u.balance+=option.cost;
-   request.refundAmount=option.cost;request.refundedAt=request.updatedAt;
+   request.status='failed';request.provisioningStatus='failed-before-resource-allocation';u.balance+=effectiveCost;
+   request.refundAmount=effectiveCost;request.refundedAt=request.updatedAt;
   }
   data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_vps_provision_failed',targetType:'hosting_request',targetId:request.id,details:{planId:option.id,vmid:request.vmid??null,refunded:!request.vmid,error:request.error},createdAt:request.updatedAt});
   if(data.auditLogs.length>5000)data.auditLogs.length=5000;
@@ -553,7 +553,7 @@ app.get('/api/admin/hosting-requests/:id/inspect',adminOnly,async(req,res)=>{
  const item=data.hostingRequests.find(x=>x.id===req.params.id);
  if(!item)return res.status(404).json({error:'Hosting request not found.'});
  if(item.service!=='lxc'||!Number.isInteger(Number(item.vmid))||!['provisioned','suspended','provisioning-error'].includes(item.status))return res.status(409).json({error:'This record is not an inspectable managed LXC container.'});
- try{const live=await inspectLxc({vmid:item.vmid});res.set('Cache-Control','no-store');res.json({ok:true,request:{id:item.id,vmid:item.vmid,hostname:item.hostname,planName:item.planName,username:item.username,status:item.status,createdAt:item.createdAt,updatedAt:item.updatedAt},live});}
+ try{const live=await inspectLxc({vmid:item.vmid,node:item.nodeId});res.set('Cache-Control','no-store');res.json({ok:true,request:{id:item.id,vmid:item.vmid,hostname:item.hostname,planName:item.planName,username:item.username,status:item.status,createdAt:item.createdAt,updatedAt:item.updatedAt},live});}
  catch(error){res.status(502).json({error:String(error.message||'Could not inspect container').slice(0,500)});}
 });
 app.post('/api/admin/hosting-requests/:id/terminal',adminOnly,adminMutationOrigin,async(req,res)=>{
@@ -564,9 +564,9 @@ app.post('/api/admin/hosting-requests/:id/terminal',adminOnly,adminMutationOrigi
  if(!command.trim()||command.length>4000)return res.status(400).json({error:'Command must be 1–4000 characters.'});
  if(reason.length<3||reason.length>300)return res.status(400).json({error:'Provide an audit reason (3–300 characters).'});
  try{
-  const live=await inspectLxc({vmid:item.vmid});
+  const live=await inspectLxc({vmid:item.vmid,node:item.nodeId});
   if(live.status?.status!=='running')return res.status(409).json({error:'Container is not running. Start it before using the terminal.'});
-  const result=await runLxcTerminal({vmid:item.vmid,command});
+  const result=await runLxcTerminal({vmid:item.vmid,command,node:item.nodeId});
   auditAdmin(req,'vps_terminal_command','hosting_request',item.id,{vmid:item.vmid,commandLength:command.length,reason});
   writeData();res.json({ok:true,...result});
  }catch(error){res.status(502).json({error:String(error.message||'Terminal command failed').slice(0,500)});}
@@ -581,10 +581,10 @@ app.post('/api/admin/hosting-requests/:id/snapshots',adminOnly,adminMutationOrig
  if(action==='delete'&&!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(name))return res.status(400).json({error:'Invalid snapshot name.'});
  try{
   if(action==='delete'){
-   const live=await inspectLxc({vmid:item.vmid});
+   const live=await inspectLxc({vmid:item.vmid,node:item.nodeId});
    if(!(live.snapshots||[]).some(x=>x.name===name))return res.status(404).json({error:'Snapshot not found.'});
   }
-  const result=await manageLxcSnapshot({vmid:item.vmid,action,name});
+  const result=await manageLxcSnapshot({vmid:item.vmid,action,name,node:item.nodeId});
   auditAdmin(req,'vps_snapshot_'+action,'hosting_request',item.id,{vmid:item.vmid,name,reason});writeData();
   res.json({ok:true,...result});
  }catch(error){res.status(502).json({error:String(error.message||'Snapshot operation failed').slice(0,500)});}
@@ -620,7 +620,7 @@ app.post('/api/admin/hosting-requests/:id/action',adminOnly,adminMutationOrigin,
  if(['start','resume'].includes(action)&&!['suspended','provisioned'].includes(item.status))return res.status(409).json({error:'Only suspended containers can be resumed.'});
  if(action==='delete'&&!['provisioned','suspended','provisioning-error'].includes(item.status))return res.status(409).json({error:'This container cannot be deleted from its current state.'});
  try{
-  const result=await manageLxc({vmid:item.vmid,action});
+  const result=await manageLxc({vmid:item.vmid,action,node:item.nodeId});
   item.updatedAt=new Date().toISOString();
   if(['suspend','stop'].includes(action)){item.status='suspended';item.provisioningStatus='container-stopped';}
   else if(['resume','start','reboot'].includes(action)){item.status='provisioned';item.provisioningStatus='container-running';}
