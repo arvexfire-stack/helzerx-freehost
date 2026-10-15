@@ -322,7 +322,55 @@ app.post('/api/hosting-requests/:id/remove-failed',auth,adminMutationOrigin,(req
  res.json({ok:true,message:'Failed hosting request removed.',id:item.id});
 });
 app.get('/api/hosting-requests',auth,(req,res)=>{res.set('Cache-Control','no-store');res.json({requests:data.hostingRequests.filter(x=>x.userId===req.session.user.id).map(({id,service,planName,cost,status,createdAt,updatedAt,vmid,hostname,provisioningStatus,error})=>({id,service,planName,cost,status,createdAt,updatedAt,vmid,hostname,provisioningStatus,error}))})});
-app.post('/api/hosting-requests',auth,(req,res)=>{const service=String(req.body?.service||'');const planId=String(req.body?.planId||'');const sshPublicKey=typeof req.body?.sshPublicKey==='string'?req.body.sshPublicKey.trim():'';const option=data.plans.find(x=>x.enabled!==false&&x.id===planId&&x.service===service&&Number.isSafeInteger(x.cost)&&x.cost>0&&typeof x.name==='string');if(!option)return res.status(400).json({error:'This hosting plan is not currently configured for HZL redemption.'});if(service==='lxc'&&!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048)return res.status(400).json({error:'Provide a valid SSH public key for your LXC account. Never submit a private key or password.'});const u=ensureUser(req.session.user.id);if(u.balance<option.cost)return res.status(400).json({error:'Not enough HZL for this hosting plan.'});if(data.hostingRequests.some(x=>x.userId===req.session.user.id&&x.status==='pending'))return res.status(409).json({error:'You already have a pending hosting request.'});const request={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,service,planId:option.id,planName:option.name,cost:option.cost,planSnapshot:{id:option.id,service:option.service,name:option.name,cost:option.cost,...(option.proxmox?{proxmox:{...option.proxmox}}:{})},status:'pending',...(service==='lxc'?{sshPublicKey}:{}),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};data.hostingRequests.push(request);writeData();res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status},message:'Hosting request submitted for review. HZL is not deducted until an administrator approves it.'});});
+app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
+ const service=String(req.body?.service||'');
+ const planId=String(req.body?.planId||'');
+ const sshPublicKey=typeof req.body?.sshPublicKey==='string'?req.body.sshPublicKey.trim():'';
+ const option=data.plans.find(x=>x.enabled!==false&&x.id===planId&&x.service===service&&Number.isSafeInteger(x.cost)&&x.cost>0&&typeof x.name==='string');
+ if(!option)return res.status(400).json({error:'This hosting plan is not currently configured for HZL redemption.'});
+ if(service==='lxc'&&(!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\\.com|sk-ecdsa-sha2-nistp256@openssh\\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048))return res.status(400).json({error:'Provide a valid SSH public key for your LXC account. Never submit a private key or password.'});
+ const u=ensureUser(req.session.user.id);
+ if(u.balance<option.cost)return res.status(400).json({error:'Not enough HZL for this hosting plan.'});
+ if(data.hostingRequests.some(x=>x.userId===req.session.user.id&&['pending','provisioning'].includes(x.status)))return res.status(409).json({error:'You already have a pending or provisioning hosting request.'});
+ const now=new Date().toISOString();
+ const request={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,service,planId:option.id,planName:option.name,cost:option.cost,planSnapshot:{id:option.id,service:option.service,name:option.name,cost:option.cost,...(option.proxmox?{proxmox:{...option.proxmox}}:{})},status:service==='lxc'?'provisioning':'pending',...(service==='lxc'?{sshPublicKey,provisioningAttempts:1}:{}),createdAt:now,updatedAt:now};
+ if(service!=='lxc'){
+  data.hostingRequests.push(request);writeData();
+  return res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status},message:'Hosting request submitted for review. HZL is not deducted until an administrator approves it.'});
+ }
+ if(!option.proxmox||!Number.isInteger(Number(option.proxmox.cores))||Number(option.proxmox.cores)<1||!Number.isInteger(Number(option.proxmox.memory))||Number(option.proxmox.memory)<256||!Number.isInteger(Number(option.proxmox.disk))||Number(option.proxmox.disk)<2)return res.status(400).json({error:'This LXC plan is missing valid Proxmox resource settings. Please contact support.'});
+ const readiness=proxmoxReadiness();
+ if(!readiness.ready)return res.status(503).json({error:'Automatic LXC provisioning is not ready yet. Please try again later or contact support.',missing:readiness.missing});
+ // Reserve HZL before starting the external Proxmox operation to prevent double-spending.
+ u.balance-=option.cost;
+ data.hostingRequests.push(request);
+ data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_hzl_reserved_for_vps',targetType:'hosting_request',targetId:request.id,details:{planId:option.id,cost:option.cost},createdAt:now});
+ if(data.auditLogs.length>5000)data.auditLogs.length=5000;
+ writeData();
+ try{
+  const created=await provisionLxc({requestId:request.id,plan:request.planSnapshot,username:request.username,sshPublicKey});
+  request.status='provisioned';request.provisioningStatus='container-started';request.vmid=created.vmid;request.hostname=created.hostname;request.proxmoxTask=created.upid;request.proxmoxStartTask=created.startTask;request.updatedAt=new Date().toISOString();
+  data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_vps_created',targetType:'hosting_request',targetId:request.id,details:{vmid:created.vmid,planId:option.id,cost:option.cost},createdAt:request.updatedAt});
+  if(data.auditLogs.length>5000)data.auditLogs.length=5000;
+  writeData();
+  return res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status,vmid:request.vmid,hostname:request.hostname},message:'Your LXC VPS has been created successfully. '+option.cost+' HZL has been deducted from your balance.'});
+ }catch(error){
+  request.updatedAt=new Date().toISOString();
+  request.error=String(error?.message||'Proxmox provisioning failed').slice(0,500);
+  if(Number.isInteger(Number(error?.vmid))&&Number(error.vmid)>0){
+   request.status='provisioning-error';request.provisioningStatus='needs-admin-reconciliation';request.vmid=Number(error.vmid);
+   request.error+=' HZL remains charged while this Proxmox VMID is checked to avoid duplicate resources.';
+  }else{
+   request.status='failed';request.provisioningStatus='failed-before-resource-allocation';u.balance+=option.cost;
+   request.refundAmount=option.cost;request.refundedAt=request.updatedAt;
+  }
+  data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_vps_provision_failed',targetType:'hosting_request',targetId:request.id,details:{planId:option.id,vmid:request.vmid??null,refunded:!request.vmid,error:request.error},createdAt:request.updatedAt});
+  if(data.auditLogs.length>5000)data.auditLogs.length=5000;
+  try{writeData();}catch(persistError){console.error('[self-service LXC] Failed to persist error state for '+request.id+':',persistError);}
+  console.error('[self-service LXC] Request '+request.id+' failed:',error?.stack||request.error);
+  return res.status(502).json({error:request.vmid?'VPS provisioning needs a safety check. Your HZL is reserved and support must reconcile the Proxmox resource before retrying.':'VPS provisioning failed before a VMID was allocated; your HZL has been refunded.',request:{id:request.id,status:request.status,vmid:request.vmid??null}});
+ }
+});
 app.get('/api/boost-rewards',auth,(_req,res)=>res.json({tiers:boostTiers,verification:'Boost rewards are submitted as claims and must be reviewed. Discord OAuth alone cannot verify active server boosts without a privileged integration.'}));
 app.post('/api/boost-claims',auth,(req,res)=>{const count=Number(req.body?.boosts);if(![1,2,3,4,7,10].includes(count))return res.status(400).json({error:'Choose an eligible boost tier.'});const duplicate=data.claims.some(c=>c.userId===req.session.user.id&&c.status==='pending');if(duplicate)return res.status(409).json({error:'You already have a pending boost claim.'});const tier=boostTiers.find(x=>x[0]===count);data.claims.push({id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,boosts:count,amount:tier[1],status:'pending',createdAt:new Date().toISOString()});writeData();res.status(201).json({ok:true,message:'Claim submitted for manual verification. HZL will only be credited after approval.'});});
 app.get('/api/boost-claims',auth,(req,res)=>res.json({claims:data.claims.filter(c=>c.userId===req.session.user.id).map(({id,boosts,amount,status,createdAt})=>({id,boosts,amount,status,createdAt}))}));
