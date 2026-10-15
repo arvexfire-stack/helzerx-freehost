@@ -189,14 +189,18 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey, no
  * Read live status/configuration/snapshots for a managed LXC. Each read is independent so
  * a missing optional permission does not hide the other diagnostics.
  */
-export async function inspectLxc({ vmid }) {
+export async function inspectLxc({ vmid, node }) {
   const readiness = proxmoxReadiness();
   if (!readiness.ready) throw new Error('Proxmox management is not enabled or configured. Missing: ' + readiness.missing.join(', '));
   const c = proxmoxConfig();
   const id = Number(vmid);
+  let configuredNodes=[];try{configuredNodes=JSON.parse(env('PROXMOX_NODES','[]'))}catch{}
+  const allowedNodes=Array.isArray(configuredNodes)&&configuredNodes.length?configuredNodes.map(x=>String(x?.id||'')):[c.node];
+  const targetNode=String(node||c.node);
+  if(!allowedNodes.includes(targetNode))throw new Error('Selected Proxmox node is not allowlisted.');
   if (!Number.isInteger(id) || id < c.vmidMin || id > c.vmidMax) throw new Error('Container ID is outside the configured HelzerX VMID range.');
-  const base = '/nodes/' + enc(c.node) + '/lxc/' + id;
-  const result = { vmid:id, node:c.node, terminalReady:Boolean(c.sshHost && c.sshPrivateKey && c.sshHostKeySha256), terminalReason:null };
+  const base = '/nodes/' + enc(targetNode) + '/lxc/' + id;
+  const result = { vmid:id, node:targetNode, terminalReady:Boolean(c.sshHost && c.sshPrivateKey && c.sshHostKeySha256), terminalReason:null };
   const reads = await Promise.allSettled([
     api(c, 'GET', base + '/status/current'),
     api(c, 'GET', base + '/config'),
@@ -212,11 +216,15 @@ export async function inspectLxc({ vmid }) {
   return result;
 }
 
-export async function runLxcTerminal({ vmid, command }) {
+export async function runLxcTerminal({ vmid, command, node }) {
   const readiness = proxmoxReadiness();
   if (!readiness.ready) throw new Error('Proxmox management is not enabled or configured.');
   const c = proxmoxConfig();
   const id = Number(vmid);
+  let configuredNodes=[];try{configuredNodes=JSON.parse(env('PROXMOX_NODES','[]'))}catch{}
+  const allowedNodes=Array.isArray(configuredNodes)&&configuredNodes.length?configuredNodes.map(x=>String(x?.id||'')):[c.node];
+  const targetNode=String(node||c.node);
+  if(!allowedNodes.includes(targetNode))throw new Error('Selected Proxmox node is not allowlisted.');
   if (!Number.isInteger(id) || id < c.vmidMin || id > c.vmidMax) throw new Error('Container ID is outside the configured HelzerX VMID range.');
   if (!c.sshHost || !c.sshPrivateKey || !c.sshHostKeySha256 || !Number.isInteger(c.sshPort) || c.sshPort < 1 || c.sshPort > 65535) {
     throw new Error('Terminal is not configured. Set the Proxmox SSH host, private key and verified SHA-256 host-key fingerprint.');
@@ -262,19 +270,23 @@ export async function runLxcTerminal({ vmid, command }) {
   });
 }
 
-export async function manageLxcSnapshot({ vmid, action, name }) {
+export async function manageLxcSnapshot({ vmid, action, name, node }) {
   const readiness = proxmoxReadiness();
   if (!readiness.ready) throw new Error('Proxmox management is not enabled or configured.');
   const c = proxmoxConfig();
   const id = Number(vmid);
+  let configuredNodes=[];try{configuredNodes=JSON.parse(env('PROXMOX_NODES','[]'))}catch{}
+  const allowedNodes=Array.isArray(configuredNodes)&&configuredNodes.length?configuredNodes.map(x=>String(x?.id||'')):[c.node];
+  const targetNode=String(node||c.node);
+  if(!allowedNodes.includes(targetNode))throw new Error('Selected Proxmox node is not allowlisted.');
   if (!Number.isInteger(id) || id < c.vmidMin || id > c.vmidMax) throw new Error('Container ID is outside the configured HelzerX VMID range.');
-  const base = '/nodes/' + enc(c.node) + '/lxc/' + id + '/snapshot';
+  const base = '/nodes/' + enc(targetNode) + '/lxc/' + id + '/snapshot';
   if (action === 'create') {
     const snap = String(name || '').trim();
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(snap)) throw new Error('Snapshot name must be 1–40 letters, numbers, underscores or hyphens.');
     const upid = await api(c, 'POST', base, { snapname:snap, description:'Created from HelzerX admin control panel' });
     if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid snapshot task ID.');
-    await waitTask(c, upid);
+    await waitTask(c, upid, targetNode);
     return { vmid:id, action, name:snap, upid };
   }
   if (action === 'delete') {
@@ -282,7 +294,7 @@ export async function manageLxcSnapshot({ vmid, action, name }) {
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(snap) || snap === 'current') throw new Error('Invalid snapshot name.');
     const upid = await api(c, 'DELETE', base + '/' + enc(snap));
     if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid snapshot deletion task ID.');
-    await waitTask(c, upid);
+    await waitTask(c, upid, targetNode);
     return { vmid:id, action, name:snap, upid };
   }
   throw new Error('Unsupported snapshot action.');
@@ -292,34 +304,38 @@ export async function manageLxcSnapshot({ vmid, action, name }) {
  * Manage only a container that has already been associated with a persisted hosting request.
  * This adapter intentionally supports LXC actions only; it never sends QEMU/KVM operations.
  */
-export async function manageLxc({ vmid, action }) {
+export async function manageLxc({ vmid, action, node }) {
   const readiness = proxmoxReadiness();
   if (!readiness.ready) throw new Error('Proxmox management is not enabled or configured. Missing: ' + readiness.missing.join(', '));
   const c = proxmoxConfig();
   const id = Number(vmid);
+  let configuredNodes=[];try{configuredNodes=JSON.parse(env('PROXMOX_NODES','[]'))}catch{}
+  const allowedNodes=Array.isArray(configuredNodes)&&configuredNodes.length?configuredNodes.map(x=>String(x?.id||'')):[c.node];
+  const targetNode=String(node||c.node);
+  if(!allowedNodes.includes(targetNode))throw new Error('Selected Proxmox node is not allowlisted.');
   if (!Number.isInteger(id) || id < c.vmidMin || id > c.vmidMax) throw new Error('Container ID is outside the configured HelzerX VMID range.');
   if (!['start','stop','reboot','suspend','resume','delete'].includes(action)) throw new Error('Unsupported container action.');
-  const base = '/nodes/' + enc(c.node) + '/lxc/' + id;
+  const base = '/nodes/' + enc(targetNode) + '/lxc/' + id;
   const current = await api(c, 'GET', base + '/status/current');
   if (action === 'start' || action === 'resume') {
     if (current.status === 'running') return { vmid:id, status:'running' };
     const upid = await api(c, 'POST', base + '/status/start');
     if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid start task ID.');
-    await waitTask(c, upid);
+    await waitTask(c, upid, targetNode);
     return { vmid:id, status:'running', upid };
   }
   if (action === 'stop' || action === 'suspend') {
     if (current.status === 'stopped') return { vmid:id, status:'stopped' };
     const upid = await api(c, 'POST', base + '/status/stop');
     if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid stop task ID.');
-    await waitTask(c, upid);
+    await waitTask(c, upid, targetNode);
     return { vmid:id, status:'stopped', upid };
   }
   if (action === 'reboot') {
     if (current.status !== 'running') throw new Error('Start the container before requesting a reboot.');
     const upid = await api(c, 'POST', base + '/status/reboot');
     if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid reboot task ID.');
-    await waitTask(c, upid);
+    await waitTask(c, upid, targetNode);
     return { vmid:id, status:'running', upid };
   }
   if (current.status === 'running') {
@@ -329,6 +345,6 @@ export async function manageLxc({ vmid, action }) {
   }
   const upid = await api(c, 'DELETE', base);
   if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid delete task ID.');
-  await waitTask(c, upid);
+  await waitTask(c, upid, targetNode);
   return { vmid:id, status:'deleted', upid };
 }
