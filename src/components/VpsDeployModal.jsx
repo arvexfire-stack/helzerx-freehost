@@ -62,7 +62,7 @@ export default function VpsDeployModal({ plan, nodes = [], osOptions = [], balan
             {Number(os?.surcharge || 0) > 0 && <div><span>OS surcharge</span><b>+{money(os.surcharge)} HZL</b></div>}
             <div className="vps-total"><span>Total cost</span><b>{money(cost)} <small>HZL</small></b></div><div className="vps-balance"><span>Your balance</span><b>{money(balance)} HZL</b></div>
           </div>
-          <button className="vps-deploy-submit" type="button" disabled={!canSubmit} onClick={() => onDeploy({ displayName:name, nodeId, osId, password:mode === 'auto' ? makePassword() : password, passwordMode:mode, cost })}>
+          <button className="vps-deploy-submit" type="button" disabled={!canSubmit} onClick={() => onDeploy({ displayName:name, nodeId, osId, password, passwordMode:mode, cost })}>
             {busy ? <><Activity size={16} className="vps-spin" /> Provisioning…</> : <><Sparkles size={16} /> Deploy VPS <span>→</span></>}</button>
           {!validName && <small className="vps-submit-note">Enter a valid VPS name to continue.</small>}
           {Number(balance) < cost && <small className="vps-submit-note">You need {money(cost - Number(balance))} more HZL.</small>}
