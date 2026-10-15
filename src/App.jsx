@@ -204,8 +204,11 @@ export default function App() {
       } else if (d.request?.id) {
         // A provisioning failure may still change the HZL balance or create a
         // reconciliation record, so refresh the account and server list.
+        setVpsModalPlan(null);
         await loadData();
         setActiveTab('servers');
+      } else {
+        setVpsModalPlan(null);
       }
     } catch {
       setToast('Unable to submit hosting request. Please verify connection.');
