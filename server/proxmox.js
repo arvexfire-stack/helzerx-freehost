@@ -31,7 +31,7 @@ export function proxmoxReadiness() {
   if (!c.node) missing.push('PROXMOX_NODE');
   if (!c.storage) missing.push('PROXMOX_STORAGE');
   if (!c.bridge) missing.push('PROXMOX_BRIDGE');
-  if (!c.template) missing.push('PROXMOX_TEMPLATE');
+  if (!c.template) { let os=[]; try { os=JSON.parse(env('PROXMOX_OS_OPTIONS','[]')); } catch {} if (!Array.isArray(os) || !os.some(x=>typeof x?.template==='string'&&x.template.trim())) missing.push('PROXMOX_TEMPLATE or PROXMOX_OS_OPTIONS'); }
   if (!c.tokenId) missing.push('PROXMOX_TOKEN_ID');
   if (!c.tokenSecret) missing.push('PROXMOX_TOKEN_SECRET');
   if (!Number.isInteger(c.vmidMin) || !Number.isInteger(c.vmidMax) || c.vmidMin < 100 || c.vmidMax < c.vmidMin) missing.push('PROXMOX_VMID_MIN/PROXMOX_VMID_MAX');
