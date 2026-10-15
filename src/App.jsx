@@ -6,6 +6,7 @@ import {
   Shield, Globe, Sparkles, Eye, EyeOff, Box, RotateCcw
 } from 'lucide-react';
 import ThreeHeroCanvas from './components/ThreeHeroCanvas.jsx';
+import VpsDeployModal from './components/VpsDeployModal.jsx';
 
 const money = n => new Intl.NumberFormat('en-US').format(Number(n) || 0);
 const referralParam = new URLSearchParams(window.location.search).get('ref');
@@ -55,6 +56,9 @@ export default function App() {
   const [boostCount, setBoostCount] = useState('1');
   const [hostingOptions, setHostingOptions] = useState([]);
   const [hostingProvisioning, setHostingProvisioning] = useState({ enabled: false, ready: false });
+  const [vpsDeploymentOptions, setVpsDeploymentOptions] = useState({ nodes: [], osOptions: [] });
+  const [vpsModalPlan, setVpsModalPlan] = useState(null);
+  const [generatedRootPassword, setGeneratedRootPassword] = useState('');
   const [hostingRequests, setHostingRequests] = useState([]);
   const [activeTab, setActiveTab] = useState('deploy'); // 'deploy' | 'servers' | 'invites' | 'boosts'
   const [generatedPrivateKey, setGeneratedPrivateKey] = useState('');
@@ -96,6 +100,7 @@ export default function App() {
           const hd = await hr.json();
           setHostingOptions(Array.isArray(hd.options) ? hd.options : []);
           setHostingProvisioning(hd.provisioning && typeof hd.provisioning === 'object' ? hd.provisioning : { enabled: false, ready: false });
+          setVpsDeploymentOptions({ nodes: Array.isArray(hd.nodes) ? hd.nodes : [], osOptions: Array.isArray(hd.osOptions) ? hd.osOptions : [] });
         }
         if (rr.ok) {
           const rd = await rr.json();
@@ -176,22 +181,24 @@ export default function App() {
   }
 
   function handleRequestClick(plan) {
-    executeHostingRequest(plan);
+    setVpsModalPlan(plan);
   }
 
-  async function executeHostingRequest(plan) {
+  async function executeHostingRequest(plan, config = {}) {
     setBusy(true);
     try {
       const r = await fetch('/api/hosting-requests', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ service: plan.service, planId: plan.id })
+        body: JSON.stringify({ service: plan.service, planId: plan.id, displayName: config.displayName, nodeId: config.nodeId, osId: config.osId, password: config.password })
       });
       const d = await r.json();
       setToast(d.message || d.error || 'Request processed.');
       if (r.ok) {
         if (d.generatedSshPrivateKey) setGeneratedPrivateKey(d.generatedSshPrivateKey);
+        if (d.rootPassword) setGeneratedRootPassword(d.rootPassword);
+        setVpsModalPlan(null);
         await loadData();
         setActiveTab('servers');
       } else if (d.request?.id) {
@@ -1103,35 +1110,20 @@ export default function App() {
         </div>
       )}
 
-      {/* One-time generated SSH private key for a newly provisioned LXC */}
-      {generatedPrivateKey && (
-        <div className="modal-overlay" onClick={() => setGeneratedPrivateKey('')}>
+      <VpsDeployModal plan={vpsModalPlan} nodes={vpsDeploymentOptions.nodes} osOptions={vpsDeploymentOptions.osOptions} balance={rewards?.balance || 0} busy={busy} onClose={() => setVpsModalPlan(null)} onDeploy={config => executeHostingRequest(vpsModalPlan, config)} />
+
+      {/* One-time credentials for a newly provisioned LXC */}
+      {(generatedPrivateKey || generatedRootPassword) && (
+        <div className="modal-overlay" onClick={() => { setGeneratedPrivateKey(''); setGeneratedRootPassword(''); }}>
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-head">
-              <h3>Your VPS SSH Key</h3>
-              <button className="modal-close" onClick={() => setGeneratedPrivateKey('')} aria-label="Close key modal">
-                <X size={18} />
-              </button>
+              <h3>Your VPS Credentials</h3>
+              <button className="modal-close" onClick={() => { setGeneratedPrivateKey(''); setGeneratedRootPassword(''); }} aria-label="Close credentials modal"><X size={18} /></button>
             </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              Your VPS was created and a private SSH key was generated automatically. Copy and save this key now; HelzerX will not show it again. Keep it private and never share it with anyone.
-            </p>
-            <textarea
-              rows={8}
-              readOnly
-              value={generatedPrivateKey}
-              onFocus={e => e.target.select()}
-              style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '11px', resize: 'vertical' }}
-              aria-label="Generated SSH private key"
-            />
-            <div className="modal-actions">
-              <button className="btn-pill secondary sm" onClick={() => { navigator.clipboard.writeText(generatedPrivateKey).then(() => setToast('SSH private key copied. Save it somewhere secure.')).catch(() => setToast('Select and copy the SSH private key manually.')); }}>
-                Copy Private Key
-              </button>
-              <button className="btn-pill primary sm" onClick={() => setGeneratedPrivateKey('')}>
-                I Saved It
-              </button>
-            </div>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>Your VPS was created. Save these credentials now; the password and generated SSH private key are shown only once and are not stored in request history.</p>
+            {generatedRootPassword && <div style={{ marginBottom: '14px' }}><label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#fff' }}>Root password</label><input type="text" readOnly value={generatedRootPassword} onFocus={e => e.target.select()} style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '13px' }} /><div className="modal-actions"><button className="btn-pill secondary sm" onClick={() => navigator.clipboard.writeText(generatedRootPassword).then(() => setToast('Root password copied. Save it securely.')).catch(() => setToast('Select and copy the root password manually.'))}>Copy Password</button></div></div>}
+            {generatedPrivateKey && <><label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: '#fff' }}>SSH private key</label><textarea rows={7} readOnly value={generatedPrivateKey} onFocus={e => e.target.select()} style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '11px', resize: 'vertical' }} aria-label="Generated SSH private key" /><div className="modal-actions"><button className="btn-pill secondary sm" onClick={() => navigator.clipboard.writeText(generatedPrivateKey).then(() => setToast('SSH private key copied. Save it securely.')).catch(() => setToast('Select and copy the SSH private key manually.'))}>Copy Private Key</button></div></>}
+            <div className="modal-actions"><button className="btn-pill primary sm" onClick={() => { setGeneratedPrivateKey(''); setGeneratedRootPassword(''); }}>I Saved My Credentials</button></div>
           </div>
         </div>
       )}
