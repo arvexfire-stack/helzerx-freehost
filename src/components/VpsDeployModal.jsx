@@ -15,6 +15,7 @@ export default function VpsDeployModal({ plan, nodes = [], osOptions = [], balan
   const [password, setPassword] = useState(makePassword());
   const [visible, setVisible] = useState(false);
   useEffect(() => { if (!nodeId && nodes[0]) setNodeId(nodes[0].id); if (!osId && osOptions[0]) setOsId(osOptions[0].id); }, [nodes, osOptions, nodeId, osId]);
+  useEffect(() => { if (plan) { setName(''); setNodeId(nodes[0]?.id || ''); setOsId(osOptions[0]?.id || ''); setMode('auto'); setPassword(makePassword()); setVisible(false); } }, [plan?.id]);
   if (!plan) return null;
   const node = nodes.find(x => x.id === nodeId);
   const os = osOptions.find(x => x.id === osId);
