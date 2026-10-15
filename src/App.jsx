@@ -551,7 +551,7 @@ export default function App() {
                             <span className="request-meta">
                               ID: {req.id.slice(0, 8)}... · Cost: {money(req.cost)} HZL · Submitted: {new Date(req.createdAt).toLocaleDateString()}
                               {req.vmid ? ` · CT VMID: ${req.vmid}` : ''}
-                              {req.hostname ? ` · Host: ${req.hostname}` : ''}
+                              {req.hostname ? ` · Host: ${req.hostname}` : ''}{req.nodeId ? ` · Node: ${req.nodeId}` : ''}{req.osLabel ? ` · OS: ${req.osLabel}` : ''}
                             </span>
                             {req.error && (
                               <span style={{ color: '#e74c3c', fontSize: '11px', marginTop: '2px' }}>
