@@ -142,27 +142,34 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey }) 
   if (sshKeys.length > 2048 || !/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshKeys)) throw new Error('Provide a valid single SSH public key.');
   // Configure IPv4 DHCP only. Do not request IPv6 autoconfiguration unless the host network explicitly supports it.
   const net0 = 'name=eth0,bridge=' + c.bridge + ',ip=dhcp';
-  const upid = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc', {
-    vmid: next,
-    ostemplate: c.template,
-    hostname,
-    'ssh-public-keys': sshKeys,
-    unprivileged: 1,
-    onboot: 1,
-    cores: Number(resources.cores),
-    memory: Number(resources.memory),
-    swap: Number(resources.swap ?? 512),
-    rootfs: c.storage + ':' + Number(resources.disk),
-    net0,
-    start: 0,
-    description: 'HelzerX Free Hosting request ' + String(requestId).slice(0, 80) + ' / user ' + String(username || '').slice(0, 80)
-  });
-  if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid task ID; manual reconciliation required.');
-  await waitTask(c, upid);
-  const startTask = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc/' + next + '/status/start');
-  if (typeof startTask !== 'string' || !startTask.startsWith('UPID:')) throw new Error('Container was created but Proxmox did not return a valid start task. Manual reconciliation required.');
-  await waitTask(c, startTask);
-  return { vmid: next, hostname, upid, startTask, status: 'running', ...(generatedSshPrivateKey ? { generatedSshPrivateKey } : {}) };
+  try {
+    const upid = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc', {
+      vmid: next,
+      ostemplate: c.template,
+      hostname,
+      'ssh-public-keys': sshKeys,
+      unprivileged: 1,
+      onboot: 1,
+      cores: Number(resources.cores),
+      memory: Number(resources.memory),
+      swap: Number(resources.swap ?? 512),
+      rootfs: c.storage + ':' + Number(resources.disk),
+      net0,
+      start: 0,
+      description: 'HelzerX Free Hosting request ' + String(requestId).slice(0, 80) + ' / user ' + String(username || '').slice(0, 80)
+    });
+    if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid task ID; manual reconciliation required.');
+    await waitTask(c, upid);
+    const startTask = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc/' + next + '/status/start');
+    if (typeof startTask !== 'string' || !startTask.startsWith('UPID:')) throw new Error('Container was created but Proxmox did not return a valid start task. Manual reconciliation required.');
+    await waitTask(c, startTask);
+    return { vmid: next, hostname, upid, startTask, status: 'running', ...(generatedSshPrivateKey ? { generatedSshPrivateKey } : {}) };
+  } catch (error) {
+    // If the create task was attempted, retain the chosen VMID so the caller can
+    // reserve HZL and reconcile the resource instead of risking duplicate creation.
+    if (error && typeof error === 'object') error.vmid = next;
+    throw error;
+  }
 }
 
 /**
