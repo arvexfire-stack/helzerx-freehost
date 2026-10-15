@@ -108,10 +108,22 @@ async function waitTask(c, upid) {
   throw new Error('Proxmox task is still running; task ID retained for safe reconciliation: ' + upid);
 }
 
-export async function provisionLxc({ requestId, plan, username, sshPublicKey }) {
+export async function provisionLxc({ requestId, plan, username, sshPublicKey, node, template, hostname: requestedHostname, rootPassword }) {
   const readiness = proxmoxReadiness();
   if (!readiness.ready) throw new Error('Proxmox provisioning is not enabled or configured. Missing: ' + readiness.missing.join(', '));
   const c = proxmoxConfig();
+  let configuredNodes=[];try{configuredNodes=JSON.parse(env('PROXMOX_NODES','[]'))}catch{}
+  const allowedNodes=Array.isArray(configuredNodes)&&configuredNodes.length?configuredNodes.map(x=>String(x?.id||'')):[c.node];
+  const targetNode=String(node||c.node);
+  if(!allowedNodes.includes(targetNode))throw new Error('Selected Proxmox node is not allowlisted.');
+  let configuredOs=[];try{configuredOs=JSON.parse(env('PROXMOX_OS_OPTIONS','[]'))}catch{}
+  const allowedTemplates=Array.isArray(configuredOs)&&configuredOs.length?configuredOs.map(x=>String(x?.template||'')):[c.template];
+  const targetTemplate=String(template||c.template);
+  if(!allowedTemplates.includes(targetTemplate))throw new Error('Selected OS template is not allowlisted.');
+  const safeName=String(requestedHostname||'').trim().toLowerCase();
+  if(safeName&&!/^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/.test(safeName))throw new Error('Invalid VPS hostname.');
+  const password=String(rootPassword||'');
+  if(password&&(password.length<10||password.length>128||/[\\u0000-\\u001f\\u007f]/.test(password)))throw new Error('Invalid root password.');
   if (!/^[a-z0-9][a-z0-9-]{1,30}$/i.test(String(plan.id || ''))) throw new Error('Invalid hosting plan ID.');
   if (String(plan.service || '').toLowerCase() !== 'lxc') throw new Error('Only explicitly labelled LXC plans can be provisioned. KVM and game-server plans are not supported by this adapter.');
   const resources = plan.proxmox;
@@ -122,7 +134,7 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey }) 
   }
   if (c.network !== 'dhcp') throw new Error('Only DHCP network mode is currently supported by the provisioner. Configure a verified DHCP service or add static IP allocation before enabling.');
   const next = await allocateVmid(c);
-  const hostname = ('hx-' + String(requestId).replace(/[^a-z0-9]/gi, '').slice(0, 10) + '-' + next).toLowerCase().slice(0, 63);
+  const hostname = safeName || ('hx-' + String(requestId).replace(/[^a-z0-9]/gi, '').slice(0, 10) + '-' + next).toLowerCase().slice(0, 63);
   let sshKeys = String(sshPublicKey || '').trim();
   let generatedSshPrivateKey = null;
   if (!sshKeys) {
@@ -143,11 +155,12 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey }) 
   // Configure IPv4 DHCP only. Do not request IPv6 autoconfiguration unless the host network explicitly supports it.
   const net0 = 'name=eth0,bridge=' + c.bridge + ',ip=dhcp';
   try {
-    const upid = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc', {
+    const upid = await api(c, 'POST', '/nodes/' + enc(targetNode) + '/lxc', {
       vmid: next,
-      ostemplate: c.template,
+      ostemplate: targetTemplate,
       hostname,
       'ssh-public-keys': sshKeys,
+      password,
       unprivileged: 1,
       onboot: 1,
       cores: Number(resources.cores),
@@ -160,10 +173,10 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey }) 
     });
     if (typeof upid !== 'string' || !upid.startsWith('UPID:')) throw new Error('Proxmox did not return a valid task ID; manual reconciliation required.');
     await waitTask(c, upid);
-    const startTask = await api(c, 'POST', '/nodes/' + enc(c.node) + '/lxc/' + next + '/status/start');
+    const startTask = await api(c, 'POST', '/nodes/' + enc(targetNode) + '/lxc/' + next + '/status/start');
     if (typeof startTask !== 'string' || !startTask.startsWith('UPID:')) throw new Error('Container was created but Proxmox did not return a valid start task. Manual reconciliation required.');
     await waitTask(c, startTask);
-    return { vmid: next, hostname, upid, startTask, status: 'running', ...(generatedSshPrivateKey ? { generatedSshPrivateKey } : {}) };
+    return { vmid: next, hostname, node:targetNode, template:targetTemplate, upid, startTask, status: 'running', ...(generatedSshPrivateKey ? { generatedSshPrivateKey } : {}) };
   } catch (error) {
     // If the create task was attempted, retain the chosen VMID so the caller can
     // reserve HZL and reconcile the resource instead of risking duplicate creation.
