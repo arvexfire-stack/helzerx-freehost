@@ -54,6 +54,7 @@ export default function App() {
   const [invite, setInvite] = useState(null);
   const [boostCount, setBoostCount] = useState('1');
   const [hostingOptions, setHostingOptions] = useState([]);
+  const [hostingProvisioning, setHostingProvisioning] = useState({ enabled: false, ready: false });
   const [hostingRequests, setHostingRequests] = useState([]);
   const [activeTab, setActiveTab] = useState('deploy'); // 'deploy' | 'servers' | 'invites' | 'boosts'
   const [generatedPrivateKey, setGeneratedPrivateKey] = useState('');
@@ -94,6 +95,7 @@ export default function App() {
         if (hr.ok) {
           const hd = await hr.json();
           setHostingOptions(Array.isArray(hd.options) ? hd.options : []);
+          setHostingProvisioning(hd.provisioning && typeof hd.provisioning === 'object' ? hd.provisioning : { enabled: false, ready: false });
         }
         if (rr.ok) {
           const rd = await rr.json();
@@ -270,30 +272,8 @@ export default function App() {
     card.style.setProperty('--mouse-y', `${y}px`);
   };
 
-  // Pre-configured fallback display plans
-  const catalogPlans = hostingOptions.length > 0 ? hostingOptions : [
-    {
-      id: 'minecraft-paper',
-      service: 'minecraft',
-      name: 'Paper MC · High Performance',
-      cost: 600,
-      description: 'Optimized Minecraft Paper instance with dedicated memory, NVMe flash arrays, and DDoS mitigation.'
-    },
-    {
-      id: 'lxc-core-v1',
-      service: 'lxc',
-      name: 'Proxmox LXC · Linux Container',
-      cost: 900,
-      description: 'Dedicated isolated LXC container on Proxmox VE. SSH access credentials are generated automatically after provisioning.'
-    },
-    {
-      id: 'minecraft-purpur',
-      service: 'minecraft',
-      name: 'Purpur MC · Large World Cluster',
-      cost: 1700,
-      description: 'Expanded RAM quota and dedicated CPU threads for high-player-count SMP and modded communities.'
-    }
-  ];
+  // Only display real enabled LXC plans from the backend; never show fake fallback plans.
+  const catalogPlans = hostingOptions.filter(plan => plan.service === 'lxc' && Number.isSafeInteger(Number(plan.cost)) && Number(plan.cost) > 0);
 
   return (
     <div className="app-container">
@@ -459,15 +439,36 @@ export default function App() {
             <section className="services-section" id="deploy">
               <div className="services-head">
                 <div>
-                  <div className="section-label">Configured Redemptions</div>
-                  <h2 className="services-title">Available Cloud Hosting Plans</h2>
-                  <p className="services-sub">Redeem verified HZL for bare-metal Minecraft servers or Proxmox Linux containers. Credits are deducted only after request verification.</p>
+                  <div className="section-label">HZL VPS REDEMPTION</div>
+                  <h2 className="services-title">Deploy a VPS with HZL</h2>
+                  <p className="services-sub">Choose an enabled Proxmox LXC plan and deploy directly using your HZL balance. Your balance is checked before provisioning and charged automatically when deployment begins.</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', marginTop: '16px' }}>
+                    <span className="stat-box-sub">Your balance: <strong style={{ color: 'var(--accent-gold)' }}>{money(rewards?.balance || 0)} HZL</strong></span>
+                    <span className="stat-box-sub" role="status" style={{ color: hostingProvisioning.ready ? '#43d17a' : '#e6b45c' }}>
+                      {hostingProvisioning.ready ? 'Automatic VPS deployment is online' : 'VPS deployment is not configured yet'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
+              {catalogPlans.length === 0 ? (
+                <div className="table-panel" style={{ padding: '32px 24px', marginTop: '18px' }}>
+                  <div style={{ textAlign: 'center', maxWidth: '620px', margin: '0 auto' }}>
+                    <Server size={32} style={{ margin: '0 auto 12px', opacity: 0.55 }} />
+                    <h3 style={{ color: '#fff', marginBottom: '8px' }}>No VPS plans are available yet</h3>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '13px', lineHeight: 1.7 }}>
+                      An administrator must enable an LXC plan with CPU, RAM, disk and HZL pricing. {hostingProvisioning.ready ? 'Proxmox is ready.' : 'Automatic provisioning also needs to be configured on the server.'}
+                    </p>
+                    <button className="btn-pill secondary sm" style={{ marginTop: '14px' }} onClick={refreshAccount}>
+                      <RefreshCw size={12} /> Refresh Plans
+                    </button>
+                  </div>
+                </div>
+              ) : (
               <div className="catalog-grid">
                 {catalogPlans.map(plan => {
-                  const canAfford = Number(rewards?.balance || 0) >= plan.cost;
+                  const canAfford = Number(rewards?.balance || 0) >= Number(plan.cost);
+                  const canDeploy = hostingProvisioning.ready && canAfford && !busy;
                   return (
                     <article className="plan-card" key={plan.id} onMouseMove={handleCardMouseMove}>
                       <div className="plan-top">
@@ -477,8 +478,8 @@ export default function App() {
                         <h3 className="plan-title">{plan.name}</h3>
                         <p className="plan-desc">{plan.description}</p>
                         <ul className="plan-features">
-                          <li><Check size={13} /> {plan.service === 'lxc' ? 'Dedicated CPU & isolated RAM limits' : 'High-clock CPU cores & NVMe storage'}</li>
-                          <li><Check size={13} /> {plan.service === 'lxc' ? 'SSH public-key root access' : 'Full paper/modded control & DDoS shield'}</li>
+                          <li><Check size={13} /> Dedicated CPU, isolated RAM and NVMe storage</li>
+                          <li><Check size={13} /> SSH credentials generated automatically</li>
                           <li><Check size={13} /> Low-latency datacenter network fabric</li>
                         </ul>
                       </div>
@@ -490,17 +491,19 @@ export default function App() {
                         </div>
                         <button 
                           className="btn-pill primary sm"
-                          disabled={busy || !canAfford}
+                          disabled={!canDeploy}
                           onClick={() => handleRequestClick(plan)}
-                          style={{ opacity: canAfford ? 1 : 0.55 }}
+                          style={{ opacity: canDeploy ? 1 : 0.55 }}
+                          title={!hostingProvisioning.ready ? 'Automatic VPS provisioning is not configured yet' : !canAfford ? 'You need more HZL to deploy this plan' : 'Deploy this VPS using HZL'}
                         >
-                          {!canAfford ? 'Need More HZL' : 'Request Server'} <ArrowRight size={12} />
+                          {!hostingProvisioning.ready ? 'Unavailable' : !canAfford ? 'Need More HZL' : 'Deploy VPS'} <ArrowRight size={12} />
                         </button>
                       </div>
                     </article>
                   );
                 })}
               </div>
+              )}
             </section>
           )}
 
