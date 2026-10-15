@@ -56,9 +56,7 @@ export default function App() {
   const [hostingOptions, setHostingOptions] = useState([]);
   const [hostingRequests, setHostingRequests] = useState([]);
   const [activeTab, setActiveTab] = useState('deploy'); // 'deploy' | 'servers' | 'invites' | 'boosts'
-  const [sshModalOpen, setSshModalOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [sshPublicKey, setSshPublicKey] = useState('');
+  const [generatedPrivateKey, setGeneratedPrivateKey] = useState('');
   const [viewPublicMode, setViewPublicMode] = useState(false);
   const [use3DCanvas, setUse3DCanvas] = useState(true);
 
@@ -176,32 +174,22 @@ export default function App() {
   }
 
   function handleRequestClick(plan) {
-    if (plan.service === 'lxc') {
-      setSelectedPlan(plan);
-      setSshModalOpen(true);
-    } else {
-      executeHostingRequest(plan, '');
-    }
+    executeHostingRequest(plan);
   }
 
-  async function executeHostingRequest(plan, key) {
+  async function executeHostingRequest(plan) {
     setBusy(true);
     try {
       const r = await fetch('/api/hosting-requests', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service: plan.service,
-          planId: plan.id,
-          sshPublicKey: key.trim()
-        })
+        body: JSON.stringify({ service: plan.service, planId: plan.id })
       });
       const d = await r.json();
       setToast(d.message || d.error || 'Request processed.');
       if (r.ok) {
-        setSshModalOpen(false);
-        setSshPublicKey('');
+        if (d.generatedSshPrivateKey) setGeneratedPrivateKey(d.generatedSshPrivateKey);
         await loadData();
         setActiveTab('servers');
       } else if (d.request?.id) {
@@ -296,7 +284,7 @@ export default function App() {
       service: 'lxc',
       name: 'Proxmox LXC · Linux Container',
       cost: 900,
-      description: 'Dedicated isolated LXC container on Proxmox VE. Root console access authenticated via your SSH public key.'
+      description: 'Dedicated isolated LXC container on Proxmox VE. SSH access credentials are generated automatically after provisioning.'
     },
     {
       id: 'minecraft-purpur',
@@ -1112,43 +1100,33 @@ export default function App() {
         </div>
       )}
 
-      {/* SSH Public Key Modal for LXC Container Requests */}
-      {sshModalOpen && selectedPlan && (
-        <div className="modal-overlay" onClick={() => setSshModalOpen(false)}>
+      {/* One-time generated SSH private key for a newly provisioned LXC */}
+      {generatedPrivateKey && (
+        <div className="modal-overlay" onClick={() => setGeneratedPrivateKey('')}>
           <div className="modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-head">
-              <h3>Deploy {selectedPlan.name}</h3>
-              <button className="modal-close" onClick={() => setSshModalOpen(false)} aria-label="Close modal">
+              <h3>Your VPS SSH Key</h3>
+              <button className="modal-close" onClick={() => setGeneratedPrivateKey('')} aria-label="Close key modal">
                 <X size={18} />
               </button>
             </div>
-
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Proxmox LXC containers enforce asymmetric public key security. Paste your SSH <b>public</b> key (e.g. from <code>~/.ssh/id_ed25519.pub</code>). Never submit a private key or password.
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              Your VPS was created and a private SSH key was generated automatically. Copy and save this key now; HelzerX will not show it again. Keep it private and never share it with anyone.
             </p>
-
-            <div className="form-group">
-              <label htmlFor="ssh-key-input">SSH Public Key</label>
-              <textarea 
-                id="ssh-key-input"
-                rows={4}
-                value={sshPublicKey}
-                onChange={e => setSshPublicKey(e.target.value)}
-                placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... user@machine"
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}
-              />
-            </div>
-
+            <textarea
+              rows={8}
+              readOnly
+              value={generatedPrivateKey}
+              onFocus={e => e.target.select()}
+              style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '11px', resize: 'vertical' }}
+              aria-label="Generated SSH private key"
+            />
             <div className="modal-actions">
-              <button className="btn-pill secondary sm" onClick={() => setSshModalOpen(false)}>
-                Cancel
+              <button className="btn-pill secondary sm" onClick={() => { navigator.clipboard.writeText(generatedPrivateKey).then(() => setToast('SSH private key copied. Save it somewhere secure.')).catch(() => setToast('Select and copy the SSH private key manually.')); }}>
+                Copy Private Key
               </button>
-              <button 
-                className="btn-pill primary sm"
-                disabled={busy || !sshPublicKey.trim().startsWith('ssh-')}
-                onClick={() => executeHostingRequest(selectedPlan, sshPublicKey)}
-              >
-                Submit Request ({money(selectedPlan.cost)} HZL)
+              <button className="btn-pill primary sm" onClick={() => setGeneratedPrivateKey('')}>
+                I Saved It
               </button>
             </div>
           </div>
