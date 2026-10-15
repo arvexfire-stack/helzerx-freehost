@@ -211,6 +211,7 @@ export default function App() {
         setVpsModalPlan(null);
       }
     } catch {
+      setVpsModalPlan(null);
       setToast('Unable to submit hosting request. Please verify connection.');
     } finally {
       setBusy(false);
