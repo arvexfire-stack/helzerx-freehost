@@ -117,7 +117,7 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey, no
   const targetNode=String(node||c.node);
   if(!allowedNodes.includes(targetNode))throw new Error('Selected Proxmox node is not allowlisted.');
   let configuredOs=[];try{configuredOs=JSON.parse(env('PROXMOX_OS_OPTIONS','[]'))}catch{}
-  const allowedTemplates=Array.isArray(configuredOs)&&configuredOs.length?configuredOs.map(x=>String(x?.template||'')):[c.template];
+  const allowedTemplates=Array.isArray(configuredOs)&&configuredOs.length?configuredOs.map(x=>String(x?.template||'').trim()):[c.template];
   const targetTemplate=String(template||c.template);
   if(!allowedTemplates.includes(targetTemplate))throw new Error('Selected OS template is not allowlisted.');
   const safeName=String(requestedHostname||'').trim().toLowerCase();
