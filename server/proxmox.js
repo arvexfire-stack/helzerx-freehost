@@ -123,7 +123,7 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey, no
   const safeName=String(requestedHostname||'').trim().toLowerCase();
   if(safeName&&!/^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/.test(safeName))throw new Error('Invalid VPS hostname.');
   const password=String(rootPassword||'');
-  if(password&&(password.length<10||password.length>128||/[\\u0000-\\u001f\\u007f]/.test(password)))throw new Error('Invalid root password.');
+  if(password&&(password.length<10||password.length>128||/[\x00-\x1f\x7f]/.test(password)))throw new Error('Invalid root password.');
   if (!/^[a-z0-9][a-z0-9-]{1,30}$/i.test(String(plan.id || ''))) throw new Error('Invalid hosting plan ID.');
   if (String(plan.service || '').toLowerCase() !== 'lxc') throw new Error('Only explicitly labelled LXC plans can be provisioned. KVM and game-server plans are not supported by this adapter.');
   const resources = plan.proxmox;
