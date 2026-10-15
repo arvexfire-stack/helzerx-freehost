@@ -249,7 +249,17 @@ app.post('/api/auth/logout', (req, res) => req.session.destroy(e => {
 app.get('/api/me',auth,async(req,res)=>{res.set('Cache-Control','no-store');res.json({user:publicUser(req.session.user),rewards:await rewardsFor(req.session.user)});});
 app.get('/api/rewards',auth,async(req,res)=>{res.set('Cache-Control','no-store');res.json(await rewardsFor(req.session.user));});
 app.get('/api/invites',auth,(req,res)=>{const u=ensureUser(req.session.user.id);res.set('Cache-Control','no-store');res.json({referralCode:req.session.user.id,referralUrl:(process.env.APP_URL||'https://free.helzerx.cyou')+'/?ref='+encodeURIComponent(req.session.user.id),verifiedInvites:u.verifiedInvites,pendingInvites:data.inviteClaims.filter(c=>c.referrerId===req.session.user.id&&c.status==='pending').length,creditedMilestones:u.creditedMilestones});});
-app.get('/api/hosting-options',auth,(_req,res)=>{const options=data.plans.filter(x=>x.enabled!==false);const readiness=proxmoxReadiness();res.set('Cache-Control','no-store');res.json({options:options.map(({id,service,name,cost,description,proxmox})=>({id,service,name,cost,description,...(proxmox&&typeof proxmox==='object'?{resources:{cores:Number(proxmox.cores)||0,memory:Number(proxmox.memory)||0,disk:Number(proxmox.disk)||0}}:{})})),provisioning:{enabled:readiness.enabled,ready:readiness.ready}})});
+function configuredVpsNodes(){
+ let list=[];try{list=JSON.parse(process.env.PROXMOX_NODES||'[]')}catch{}
+ if(!Array.isArray(list)||!list.length)list=[{id:String(process.env.PROXMOX_NODE||'hlx-infra-02'),label:String(process.env.PROXMOX_NODE||'hlx-infra-02'),surcharge:0}];
+ return list.filter(x=>x&&typeof x.id==='string'&&/^[A-Za-z0-9_.-]{1,64}$/.test(x.id)).map(x=>({id:x.id,label:String(x.label||x.id).slice(0,80),surcharge:Number.isSafeInteger(Number(x.surcharge))&&Number(x.surcharge)>=0?Number(x.surcharge):0}));
+}
+function configuredVpsOs(){
+ let list=[];try{list=JSON.parse(process.env.PROXMOX_OS_OPTIONS||'[]')}catch{}
+ if(!Array.isArray(list)||!list.length){const template=String(process.env.PROXMOX_TEMPLATE||'').trim();if(template)list=[{id:'default',label:'Default Linux template',template,surcharge:0}];}
+ return list.filter(x=>x&&typeof x.id==='string'&&/^[a-z0-9][a-z0-9_-]{0,39}$/i.test(x.id)&&typeof x.template==='string'&&x.template.trim()).map(x=>({id:x.id,label:String(x.label||x.id).slice(0,80),template:x.template.trim(),surcharge:Number.isSafeInteger(Number(x.surcharge))&&Number(x.surcharge)>=0?Number(x.surcharge):0}));
+}
+app.get('/api/hosting-options',auth,(_req,res)=>{const options=data.plans.filter(x=>x.enabled!==false);const readiness=proxmoxReadiness();res.set('Cache-Control','no-store');res.json({options:options.map(({id,service,name,cost,description,proxmox})=>({id,service,name,cost,description,...(proxmox&&typeof proxmox==='object'?{resources:{cores:Number(proxmox.cores)||0,memory:Number(proxmox.memory)||0,disk:Number(proxmox.disk)||0}}:{})})),nodes:configuredVpsNodes(),osOptions:configuredVpsOs().map(({id,label,surcharge})=>({id,label,surcharge})),provisioning:{enabled:readiness.enabled,ready:readiness.ready}})});
 
 // User-owned LXC control APIs. Every lookup is scoped to the signed-in account.
 function ownedLxcRequest(req,res,allowedStatuses){
@@ -328,10 +338,25 @@ app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
  const option=data.plans.find(x=>x.enabled!==false&&x.id===planId&&x.service===service&&Number.isSafeInteger(x.cost)&&x.cost>0&&typeof x.name==='string');
  if(!option)return res.status(400).json({error:'This hosting plan is not currently configured for HZL redemption.'});
  const u=ensureUser(req.session.user.id);
- if(u.balance<option.cost)return res.status(400).json({error:'Not enough HZL for this hosting plan.'});
+ const displayName=String(req.body?.displayName||'').trim().toLowerCase();
+ const nodeId=String(req.body?.nodeId||process.env.PROXMOX_NODE||'');
+ const osId=String(req.body?.osId||'default');
+ const rootPassword=String(req.body?.password||'');
+ const nodes=configuredVpsNodes(),osOptions=configuredVpsOs();
+ const selectedNode=nodes.find(x=>x.id===nodeId);
+ const selectedOs=osOptions.find(x=>x.id===osId);
+ if(service==='lxc'){
+  if(!/^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/.test(displayName)||displayName.length<2)return res.status(400).json({error:'VPS name must be 2–30 lowercase letters, numbers or hyphens.'});
+  if(!selectedNode)return res.status(400).json({error:'Selected Proxmox node is not in the server allowlist.'});
+  if(!selectedOs)return res.status(400).json({error:'Selected operating system is not configured on the server.'});
+  if(rootPassword.length<10||rootPassword.length>128||/[\\u0000-\\u001f\\u007f]/.test(rootPassword))return res.status(400).json({error:'Root password must be 10–128 characters without control characters.'});
+ }
+ const effectiveCost=option.cost+(service==='lxc'?(selectedNode?.surcharge||0)+(selectedOs?.surcharge||0):0);
+ if(!Number.isSafeInteger(effectiveCost)||effectiveCost<=0)return res.status(400).json({error:'Invalid VPS price configuration.'});
+ if(u.balance<effectiveCost)return res.status(400).json({error:'Not enough HZL for this VPS configuration.'});
  if(data.hostingRequests.some(x=>x.userId===req.session.user.id&&['pending','provisioning'].includes(x.status)))return res.status(409).json({error:'You already have a pending or provisioning hosting request.'});
  const now=new Date().toISOString();
- const request={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,service,planId:option.id,planName:option.name,cost:option.cost,planSnapshot:{id:option.id,service:option.service,name:option.name,cost:option.cost,...(option.proxmox?{proxmox:{...option.proxmox}}:{})},status:service==='lxc'?'provisioning':'pending',...(service==='lxc'?{provisioningAttempts:1}:{}),createdAt:now,updatedAt:now};
+ const request={id:crypto.randomUUID(),userId:req.session.user.id,username:req.session.user.username,service,planId:option.id,planName:option.name,displayName:service==='lxc'?displayName:undefined,cost:effectiveCost,...(service==='lxc'?{nodeId,osId,osLabel:selectedOs.label}:{}),planSnapshot:{id:option.id,service:option.service,name:option.name,cost:effectiveCost,...(option.proxmox?{proxmox:{...option.proxmox}}:{})},status:service==='lxc'?'provisioning':'pending',...(service==='lxc'?{provisioningAttempts:1}:{}),createdAt:now,updatedAt:now};
  if(service!=='lxc'){
   data.hostingRequests.push(request);writeData();
   return res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status},message:'Hosting request submitted for review. HZL is not deducted until an administrator approves it.'});
@@ -342,16 +367,16 @@ app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
  // Reserve HZL before starting the external Proxmox operation to prevent double-spending.
  u.balance-=option.cost;
  data.hostingRequests.push(request);
- data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_hzl_reserved_for_vps',targetType:'hosting_request',targetId:request.id,details:{planId:option.id,cost:option.cost},createdAt:now});
+ data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_hzl_reserved_for_vps',targetType:'hosting_request',targetId:request.id,details:{planId:option.id,cost:effectiveCost,nodeId:service==='lxc'?nodeId:null,osId:service==='lxc'?osId:null},createdAt:now});
  if(data.auditLogs.length>5000)data.auditLogs.length=5000;
  writeData();
  try{
-  const created=await provisionLxc({requestId:request.id,plan:request.planSnapshot,username:request.username});
-  request.status='provisioned';request.provisioningStatus='container-started';request.vmid=created.vmid;request.hostname=created.hostname;request.proxmoxTask=created.upid;request.proxmoxStartTask=created.startTask;request.updatedAt=new Date().toISOString();
+  const created=await provisionLxc({requestId:request.id,plan:request.planSnapshot,username:request.username,node:nodeId,template:selectedOs.template,hostname:displayName,rootPassword});
+  request.status='provisioned';request.provisioningStatus='container-started';request.vmid=created.vmid;request.hostname=created.hostname;request.proxmoxTask=created.upid;request.proxmoxStartTask=created.startTask;request.nodeId=nodeId;request.osId=osId;request.updatedAt=new Date().toISOString();
   data.auditLogs.unshift({id:crypto.randomUUID(),actorId:req.session.user.id,actorName:req.session.user.username||'user',actorRole:'user',action:'user_vps_created',targetType:'hosting_request',targetId:request.id,details:{vmid:created.vmid,planId:option.id,cost:option.cost},createdAt:request.updatedAt});
   if(data.auditLogs.length>5000)data.auditLogs.length=5000;
   writeData();
-  return res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status,vmid:request.vmid,hostname:request.hostname},...(created.generatedSshPrivateKey?{generatedSshPrivateKey:created.generatedSshPrivateKey}:{}),message:'Your LXC VPS has been created successfully. '+option.cost+' HZL has been deducted from your balance.'});
+  return res.status(201).json({ok:true,request:{id:request.id,service,planName:request.planName,cost:request.cost,status:request.status,vmid:request.vmid,hostname:request.hostname,nodeId,osId},rootPassword,...(created.generatedSshPrivateKey?{generatedSshPrivateKey:created.generatedSshPrivateKey}:{}),message:'Your LXC VPS has been created successfully. '+effectiveCost+' HZL has been deducted from your balance.'});
  }catch(error){
   request.updatedAt=new Date().toISOString();
   request.error=String(error?.message||'Proxmox provisioning failed').slice(0,500);
