@@ -328,7 +328,7 @@ app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
  const sshPublicKey=typeof req.body?.sshPublicKey==='string'?req.body.sshPublicKey.trim():'';
  const option=data.plans.find(x=>x.enabled!==false&&x.id===planId&&x.service===service&&Number.isSafeInteger(x.cost)&&x.cost>0&&typeof x.name==='string');
  if(!option)return res.status(400).json({error:'This hosting plan is not currently configured for HZL redemption.'});
- if(service==='lxc'&&(!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\\.com|sk-ecdsa-sha2-nistp256@openssh\\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048))return res.status(400).json({error:'Provide a valid SSH public key for your LXC account. Never submit a private key or password.'});
+ if(service==='lxc'&&(!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/=]+(?: .{0,256})?$/.test(sshPublicKey)||sshPublicKey.length>2048))return res.status(400).json({error:'Provide a valid SSH public key for your LXC account. Never submit a private key or password.'});
  const u=ensureUser(req.session.user.id);
  if(u.balance<option.cost)return res.status(400).json({error:'Not enough HZL for this hosting plan.'});
  if(data.hostingRequests.some(x=>x.userId===req.session.user.id&&['pending','provisioning'].includes(x.status)))return res.status(409).json({error:'You already have a pending or provisioning hosting request.'});
