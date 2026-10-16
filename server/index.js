@@ -297,7 +297,7 @@ app.post('/api/control/instances/:id/action',auth,adminMutationOrigin,async(req,
  if(!['start','stop','reboot','suspend','resume'].includes(action))return res.status(400).json({error:'Unsupported instance action.'});
  const allowed=action==='start'||action==='resume'?['suspended','provisioned']:['provisioned','suspended'];
  const item=ownedLxcRequest(req,res,allowed);if(!item)return;
- if(['start','resume'].includes(action)&&item.status==='provisioned'&&action==='start')return res.status(409).json({error:'Instance is already marked as running.'});
+
  try{
   const result=await manageLxc({vmid:item.vmid,action,node:item.nodeId});
   item.updatedAt=new Date().toISOString();
