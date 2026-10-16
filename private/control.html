@@ -2026,6 +2026,15 @@ html, body {
 @media(max-width:900px){.hx-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hx-details-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hx-chart-grid{grid-template-columns:1fr}.hx-live-workspace{padding:12px}.hx-console-choice-grid{grid-template-columns:1fr}}
 @media(max-width:520px){.hx-resource-card{padding:12px;min-height:110px}.hx-resource-card b{font-size:19px}.hx-tabs button{padding:11px 10px;font-size:10px}.hx-reinstall-box{align-items:flex-start;flex-direction:column}.hx-details-grid>div{padding:11px 7px}.hx-panel-card{padding:12px}}
 
+
+/* Final cascade layer: keep the topbar and sidebar visible beside the right-side inspector. */
+.modal-overlay{position:fixed!important;inset:72px 0 0 220px!important;width:auto!important;height:auto!important;padding:0!important;justify-content:flex-end!important;align-items:stretch!important;background:rgba(4,5,12,.52)!important;backdrop-filter:blur(4px)!important;z-index:25!important}
+.modal-window{width:min(1120px,100%)!important;height:100%!important;max-height:100%!important;border-radius:20px 0 0 0!important;border-right:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;transform:translateX(24px);animation:controlDrawerIn .24s cubic-bezier(.2,.8,.2,1) forwards!important}
+.modal-header{flex:none!important;position:sticky;top:0;z-index:4}
+.modal-content-scroll{min-height:0;flex:1;overflow:auto;overscroll-behavior:contain}
+@media(max-width:900px){.modal-overlay{inset:64px 0 0 0!important}.modal-window{width:100%!important;border-radius:15px 15px 0 0!important}}
+@media(max-width:700px){.modal-overlay{inset:64px 0 0 0!important}.modal-window{width:100%!important;height:100%!important;max-height:100%!important;border-radius:14px 14px 0 0!important}.modal-content-scroll{padding:10px!important}}
+
 </style>
 </head>
 <body>
@@ -2932,7 +2941,7 @@ async function loadDashboardData() {
   }
 }
 
-async let hxMetricTimer = null;
+let hxMetricTimer = null;
 const hxMetricHistory = { cpu: [], mem: [] };
 function hxSetText(id, value) { const el = $(id); if (el) el.textContent = value; }
 function hxBytes(value) { const n = Number(value); if (!Number.isFinite(n) || n < 0) return '—'; const units=['B','KB','MB','GB','TB']; let v=n,i=0; while(v>=1024&&i<units.length-1){v/=1024;i++;} return (i===0?Math.round(v):v.toFixed(v>=100?0:1))+' '+units[i]; }
