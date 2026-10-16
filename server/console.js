@@ -72,22 +72,44 @@ export function attachConsoleWebSocket(server) {
         maxPayload: 64 * 1024
       });
       let connected = false;
+      let terminalReady = false;
+      const queuedBrowserMessages = [];
       const closeBoth = (code = 1000, reason = 'Console closed') => {
         if (browserSocket.readyState === WebSocket.OPEN) browserSocket.close(code, reason);
         if (upstream.readyState === WebSocket.OPEN || upstream.readyState === WebSocket.CONNECTING) upstream.close(code, reason);
       };
       const timeout = setTimeout(() => {
-        if (!connected) closeBoth(1011, 'Proxmox console connection timed out');
+        if (!connected || !terminalReady) closeBoth(1011, 'Proxmox console connection timed out');
       }, 12_000);
       upstream.on('open', () => {
         connected = true;
-        clearTimeout(timeout);
+        if (!p.user || !p.ticket) return closeBoth(1011, 'Proxmox terminal authentication data is missing');
+        // Proxmox xterm.js requires the API-authenticated user and termproxy ticket
+        // as the first line on the WebSocket before it returns its OK handshake.
+        upstream.send(p.user + ':' + p.ticket + '\\n');
       });
       upstream.on('message', (data, isBinary) => {
+        if (!terminalReady) {
+          const bytes = Buffer.isBuffer(data) ? data : Buffer.from(data);
+          if (bytes.length < 2 || bytes[0] !== 79 || bytes[1] !== 75) {
+            console.error('[console] Proxmox terminal authentication handshake failed.');
+            return closeBoth(1008, 'Proxmox terminal authentication failed');
+          }
+          terminalReady = true;
+          clearTimeout(timeout);
+          const remainder = bytes.subarray(2);
+          if (remainder.length && browserSocket.readyState === WebSocket.OPEN) browserSocket.send(remainder, { binary: true });
+          for (const message of queuedBrowserMessages.splice(0)) {
+            if (upstream.readyState === WebSocket.OPEN) upstream.send(message.data, { binary: message.isBinary });
+          }
+          return;
+        }
         if (browserSocket.readyState === WebSocket.OPEN) browserSocket.send(data, { binary: isBinary });
       });
       browserSocket.on('message', (data, isBinary) => {
-        if (upstream.readyState === WebSocket.OPEN) upstream.send(data, { binary: isBinary });
+        if (upstream.readyState !== WebSocket.OPEN) return;
+        if (terminalReady) upstream.send(data, { binary: isBinary });
+        else if (queuedBrowserMessages.length < 64) queuedBrowserMessages.push({ data, isBinary });
       });
       browserSocket.on('close', () => {
         clearTimeout(timeout);
