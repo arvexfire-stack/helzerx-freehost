@@ -3001,18 +3001,23 @@ async function hxRefreshMetrics() {
  try {
   const d=await api('/api/control/instances/'+encodeURIComponent(currentInstanceId)+'/inspect');
   const live=d.live||{},s=live.status||{},cfg=live.config||{},item=instancesList.find(x=>x.id===currentInstanceId)||d.request||{};
+  const apiReadErrors=[];
+  if(live.statusError)apiReadErrors.push('Live status: '+String(live.statusError));
+  if(live.configError)apiReadErrors.push('Configuration: '+String(live.configError));
+  if(live.snapshotsError)apiReadErrors.push('Snapshots: '+String(live.snapshotsError));
   const cpu=Number(s.cpu),memPct=hxPercent(s.mem,s.maxmem),diskPct=hxPercent(s.disk,s.maxdisk);
   const cpuPct=Number.isFinite(cpu)?Math.max(0,Math.min(100,cpu*100)):null;
   const memUsed=Number(s.mem),memMax=Number(s.maxmem),diskUsed=Number(s.disk),diskMax=Number(s.maxdisk);
-  const status=String(s.status||item.status||'unknown');
+  const status=String(s.status||(live.statusError?'API unavailable':item.status||'unknown'));
   hxSetText('hxLiveHostname',item.hostname||d.request?.hostname||'VPS');
   hxSetText('hxLastUpdated','Updated '+new Date().toLocaleTimeString());
   hxSetText('hxCpuValue',cpuPct===null?'—':cpuPct.toFixed(1)+'%');hxSetBar('hxCpuRing',cpuPct);
-  hxSetText('hxCpuSub',Number(cfg.cores||cfg.cpus||0)>0?String(cfg.cores||cfg.cpus)+' allocated cores':'CPU metric / allocation');
+  hxSetText('hxCpuSub',live.configError?'Configuration API error':(Number(cfg.cores||cfg.cpus||0)>0?String(cfg.cores||cfg.cpus)+' allocated cores':'CPU metric / allocation'));
+  if(live.statusError)hxSetText('hxCpuSub','Status API error: '+String(live.statusError).slice(0,120));
   hxSetText('hxMemValue',memPct===null?'—':memPct.toFixed(1)+'%');hxSetBar('hxMemBar',memPct);
-  hxSetText('hxMemSub',Number.isFinite(memUsed)&&Number.isFinite(memMax)&&memMax>0?hxBytes(memUsed)+' / '+hxBytes(memMax):'Usage / allocation unavailable');
+  hxSetText('hxMemSub',live.statusError?'Status API error: '+String(live.statusError).slice(0,120):(Number.isFinite(memUsed)&&Number.isFinite(memMax)&&memMax>0?hxBytes(memUsed)+' / '+hxBytes(memMax):'Usage / allocation unavailable'));
   hxSetText('hxDiskValue',diskPct===null?'—':diskPct.toFixed(1)+'%');hxSetBar('hxDiskBar',diskPct);
-  hxSetText('hxDiskSub',Number.isFinite(diskUsed)&&Number.isFinite(diskMax)&&diskMax>0?hxBytes(diskUsed)+' / '+hxBytes(diskMax):'Live disk usage unavailable');
+  hxSetText('hxDiskSub',live.statusError?'Status API error: '+String(live.statusError).slice(0,120):(Number.isFinite(diskUsed)&&Number.isFinite(diskMax)&&diskMax>0?hxBytes(diskUsed)+' / '+hxBytes(diskMax):'Live disk usage unavailable'));
   hxSetText('hxPowerValue',prettyStatus(status));hxSetText('hxUptimeValue','Uptime '+(Number.isFinite(Number(s.uptime))?Math.floor(Number(s.uptime)/86400)+'d '+Math.floor(Number(s.uptime)%86400/3600)+'h '+Math.floor(Number(s.uptime)%3600/60)+'m':'—'));
   hxSetText('hxCpuChartNow',cpuPct===null?'—':cpuPct.toFixed(1)+'%');hxSetText('hxMemChartNow',memPct===null?'—':memPct.toFixed(1)+'%');
   hxPush('cpu',cpuPct);hxPush('mem',memPct);hxDrawChart('hxCpuChart','cpu');hxDrawChart('hxMemChart','mem');
@@ -3020,7 +3025,8 @@ async function hxRefreshMetrics() {
   hxSetText('hxInfoHostname',item.hostname||d.request?.hostname||'—');hxSetText('hxInfoVmid',item.vmid||d.request?.vmid||'—');hxSetText('hxInfoNode',item.nodeId||d.request?.nodeId||live.node||'—');hxSetText('hxInfoCores',cores);hxSetText('hxInfoMemory',memory);hxSetText('hxInfoOs',item.osLabel||item.osId||'Not reported');
   hxSetText('hxNetIn',Number.isFinite(Number(s.netin))?hxBytes(s.netin):'—');hxSetText('hxNetOut',Number.isFinite(Number(s.netout))?hxBytes(s.netout):'—');
   hxSetText('hxResCores',cores);hxSetText('hxResMemory',memory);hxSetText('hxResDisk',rootfs);hxSetText('hxResSwap',swap);hxSetText('hxResCpu',cpuPct===null?'Unavailable':cpuPct.toFixed(1)+'%');hxSetText('hxResMem',memPct===null?'Unavailable':hxBytes(memUsed)+' / '+hxBytes(memMax));hxSetText('hxResNetIn',Number.isFinite(Number(s.netin))?hxBytes(s.netin):'Unavailable');hxSetText('hxResNetOut',Number.isFinite(Number(s.netout))?hxBytes(s.netout):'Unavailable');
-  hxSetText('hxConfigJson',JSON.stringify({status:s,config:cfg,metricsAvailable:{cpu:cpuPct!==null,memory:memPct!==null,disk:diskPct!==null,networkIn:Number.isFinite(Number(s.netin)),networkOut:Number.isFinite(Number(s.netout))}},null,2));
+  hxSetText('hxConfigJson',JSON.stringify({status:s,config:cfg,apiErrors:{status:live.statusError||null,config:live.configError||null,snapshots:live.snapshotsError||null},metricsAvailable:{cpu:cpuPct!==null,memory:memPct!==null,disk:diskPct!==null,networkIn:Number.isFinite(Number(s.netin)),networkOut:Number.isFinite(Number(s.netout))}},null,2));
+  if(apiReadErrors.length)showToast('Some Proxmox data could not be loaded: '+apiReadErrors.join(' | ').slice(0,500),true);
   const snap=$('snapshotChips'),mirror=$('hxSnapshotMirror');if(snap&&mirror)mirror.textContent=snap.textContent||'Snapshot list is not available.';
  } catch(err){hxSetText('hxLastUpdated','Live metrics unavailable');showToast(err.message,true);}
  finally {if(btn)btn.disabled=false;}
