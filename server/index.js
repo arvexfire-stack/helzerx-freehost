@@ -290,7 +290,7 @@ function recordUserVpsAction(req,item,action,details={}){
 app.get('/api/control/instances/:id/inspect',auth,async(req,res)=>{
  const item=ownedLxcRequest(req,res,['provisioned','suspended','provisioning-error']);if(!item)return;
  try{const live=await inspectLxc({vmid:item.vmid,node:item.nodeId});res.set('Cache-Control','no-store');res.json({ok:true,request:{id:item.id,vmid:item.vmid,hostname:item.hostname,planName:item.planName,status:item.status,createdAt:item.createdAt,updatedAt:item.updatedAt},live});}
- catch(error){res.status(502).json({error:String(error.message||'Could not inspect instance').slice(0,400)});}
+ catch(error){console.error('[control] Instance inspect failed for VMID '+item.vmid+' on node '+item.nodeId+':',String(error.message||error).slice(0,400));res.status(502).json({error:String(error.message||'Could not inspect instance').slice(0,400)});}
 });
 app.post('/api/control/instances/:id/action',auth,adminMutationOrigin,async(req,res)=>{
  const action=String(req.body?.action||'');
@@ -327,7 +327,7 @@ app.post('/api/control/instances/:id/console/xterm',auth,adminMutationOrigin,asy
   const session=await issueLxcConsoleTicket({instanceId:item.id,userId:req.session.user.id,vmid:item.vmid,node:item.nodeId});
   recordUserVpsAction(req,item,'user_vps_console_open',{vmid:item.vmid,console:'xterm'});writeData();
   res.set('Cache-Control','private, no-store');res.json({ok:true,url:session.url});
- }catch(error){res.status(502).json({error:String(error.message||'Could not open terminal console').slice(0,400)});}
+ }catch(error){console.error('[console] Xterm session creation failed for VMID '+item.vmid+' on node '+item.nodeId+':',String(error.message||error).slice(0,400));res.status(502).json({error:String(error.message||'Could not open terminal console').slice(0,400)});}
 });
 app.post('/api/control/instances/:id/console/novnc',auth,adminMutationOrigin,(req,res)=>{
  const item=ownedLxcRequest(req,res,['provisioned','suspended']);if(!item)return;
