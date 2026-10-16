@@ -1646,3 +1646,52 @@ body { overflow-x:hidden; }
 @media(max-width:900px){.hero-image-wrap.hx-hero-image-wrap{max-width:100%}.hx-hero-scene{min-height:300px}.hx-logo-stage{width:125%}}
 @media(max-width:680px){.hero-visual-frame{max-height:none}.hero-image-wrap.hx-hero-image-wrap{max-width:430px;aspect-ratio:1.25/1}.hx-hero-scene{min-height:270px}.hx-logo-stage{width:112%;max-width:480px}}
 @media(prefers-reduced-motion:reduce){.hx-logo-stage,.hx-logo-highlight{animation:none!important}}
+
+
+/* HelzerX Cloud Console — refined premium dashboard layer */
+.dashboard-header{position:relative;isolation:isolate;padding:22px 22px 14px;border:1px solid rgba(231,177,57,.16);border-radius:18px;background:radial-gradient(ellipse at 88% 0%,rgba(222,165,39,.095),transparent 38%),linear-gradient(145deg,rgba(21,21,18,.94),rgba(9,9,9,.96) 72%);box-shadow:0 22px 60px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.035);overflow:hidden}
+.dashboard-header:before{content:"";position:absolute;z-index:-1;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,rgba(242,192,70,.48),transparent)}
+.dashboard-hero{gap:18px;align-items:center}
+.dashboard-title-wrap h1{font-size:clamp(21px,2.8vw,29px)!important;line-height:1.18;letter-spacing:-.045em;font-weight:750}
+.dashboard-title-wrap p{max-width:620px;margin-top:7px;font-size:12px!important;line-height:1.7;color:#8c897f}
+.dashboard-header .btn-pill{font-size:11px;padding:8px 14px;min-height:34px;border-radius:7px}
+.dashboard-header .btn-pill.primary{color:#17130a;background:linear-gradient(115deg,#dba62d,#f4c74f 55%,#d49a22);border:1px solid #f5cd5d;box-shadow:0 5px 18px #d8a3231b}
+.dashboard-tabs{display:flex;gap:6px;margin-top:22px;padding:5px;border:1px solid #ffffff0c;border-radius:10px;background:rgba(0,0,0,.28);overflow-x:auto;scrollbar-width:thin}
+.dashboard-tabs .tab-btn{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:35px;padding:8px 12px;border:1px solid transparent;border-radius:7px;background:transparent;color:#89867e;font-size:11px;font-weight:600;white-space:nowrap;transition:color .2s,border-color .2s,background .2s,transform .2s}
+.dashboard-tabs .tab-btn:hover{color:#f0e8d4;background:#ffffff06}
+.dashboard-tabs .tab-btn.active{color:#f3cb62;background:linear-gradient(115deg,rgba(224,169,43,.15),rgba(255,205,80,.045));border-color:rgba(226,177,55,.23);box-shadow:inset 0 1px rgba(255,255,255,.035)}
+.dashboard-tabs .tab-btn svg{width:13px;height:13px}
+.page-content{width:min(1160px,calc(100% - 56px));gap:30px!important}
+.page-content h2{font-size:clamp(19px,2.4vw,25px);letter-spacing:-.035em}
+.page-content h3{font-size:15px;letter-spacing:-.02em}
+.page-content p{font-size:12px;line-height:1.7}
+.plan-card,.table-panel,.tier-card,.bento-card{border-color:rgba(255,255,255,.075);background:radial-gradient(ellipse at 100% 0%,rgba(221,167,43,.045),transparent 42%),linear-gradient(145deg,rgba(20,20,18,.94),rgba(10,10,10,.98));box-shadow:0 12px 35px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.025);transition:transform .28s cubic-bezier(.2,.75,.2,1),border-color .28s,box-shadow .28s}
+.plan-card:hover,.tier-card:hover,.bento-card:hover{transform:translateY(-3px);border-color:rgba(235,185,58,.26);box-shadow:0 22px 48px rgba(0,0,0,.34),0 0 32px rgba(220,165,38,.045),inset 0 1px rgba(255,255,255,.045)}
+.plan-service-tag{font-size:9px;letter-spacing:.13em}
+.plan-title{font-size:19px!important;line-height:1.25;letter-spacing:-.04em}
+.plan-desc{font-size:11px!important;color:#969186}
+.plan-features li{font-size:11px;line-height:1.6}
+.plan-bottom .btn-pill{font-size:11px;padding:9px 13px;border-radius:7px}
+.table-panel{border-radius:13px}
+.stat-box-title{font-size:10px!important;letter-spacing:.1em;text-transform:uppercase;color:#aaa18e}
+.stat-box-value{font-size:clamp(20px,2.5vw,28px)!important;line-height:1.1;letter-spacing:-.045em}
+.stat-box-sub{font-size:10px!important;line-height:1.5}
+.tier-card{border-radius:12px}
+.site-footer{font-size:11px}
+.toast-notice{font-size:11px}
+.modal-card{border:1px solid rgba(235,185,58,.2);background:radial-gradient(ellipse at 90% 0%,rgba(220,165,38,.09),transparent 38%),linear-gradient(145deg,#171714,#090909);box-shadow:0 30px 90px #000b,inset 0 1px #ffffff08}
+.modal-head h3{font-size:17px!important}
+.modal-card label{font-size:11px!important}
+.modal-card input,.modal-card textarea{font-size:12px!important}
+@media(max-width:760px){
+ .page-content{width:calc(100% - 28px);gap:22px!important}
+ .dashboard-header{padding:17px 13px 12px;border-radius:13px}
+ .dashboard-hero{align-items:flex-start;flex-direction:column}
+ .dashboard-title-wrap h1{font-size:22px!important}
+ .dashboard-title-wrap p{font-size:11px!important}
+ .dashboard-hero>div:last-child{width:100%;display:flex;flex-wrap:wrap}
+ .dashboard-tabs{margin-top:16px;gap:4px}
+ .dashboard-tabs .tab-btn{font-size:10px;min-height:34px;padding:7px 10px}
+ .plan-title{font-size:17px!important}
+}
+@media(prefers-reduced-motion:reduce){.plan-card,.tier-card,.bento-card,.dashboard-tabs .tab-btn{transition:none!important}}
