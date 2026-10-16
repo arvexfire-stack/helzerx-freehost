@@ -28,6 +28,7 @@ export default function VpsDeployModal({ plan, nodes = [], osOptions = [], balan
   const [availableOs, setAvailableOs] = useState(osOptions);
   const [osLoading, setOsLoading] = useState(false);
   const [osError, setOsError] = useState('');
+  const [templateRefresh, setTemplateRefresh] = useState(0);
 
   useEffect(() => {
     if (!plan) return;
@@ -60,7 +61,7 @@ export default function VpsDeployModal({ plan, nodes = [], osOptions = [], balan
       if (!cancelled) setOsLoading(false);
     });
     return () => { cancelled = true; };
-  }, [nodeId, plan?.id]);
+  }, [nodeId, plan?.id, templateRefresh]);
 
   if (!plan) return null;
   const node = nodes.find(x => x.id === nodeId);
@@ -96,7 +97,7 @@ export default function VpsDeployModal({ plan, nodes = [], osOptions = [], balan
               {availableOs.map(o => <option key={o.id} value={o.id}>{o.label || o.id}{o.storage ? ' · ' + o.storage : ''}</option>)}
             </select><ChevronDown size={15} /></div>
             {osLoading && <small className="vps-field-hint"><RefreshCw size={11} className="vps-spin" /> Checking available templates on {node?.label || nodeId}…</small>}
-            {!osLoading && osError && <small className="vps-field-error">{osError}</small>}
+            {!osLoading && osError && <div className="vps-os-error"><small className="vps-field-error">{osError}</small><button type="button" className="vps-inline-retry" onClick={() => setTemplateRefresh(v => v + 1)}><RefreshCw size={12} /> Retry</button></div>}
             {!osLoading && os && <small className="vps-field-hint">Template found in Proxmox storage: {os.storage || os.template}</small>}
           </div>
           <div className="vps-field"><span><KeyRound size={13} /> ROOT PASSWORD</span>
