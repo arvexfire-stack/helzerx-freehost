@@ -2018,6 +2018,14 @@ html, body {
 @media(max-width:700px){.modal-window{width:100vw;border-radius:0;height:100dvh;max-height:100dvh}.modal-header{padding:16px}.modal-content-scroll{padding:14px}.telemetry-row{grid-template-columns:repeat(2,minmax(0,1fr))}.power-buttons-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.snapshot-input-group{flex-wrap:wrap}.snapshot-input-group input{min-width:0;flex:1}.terminal-input-form{flex-wrap:wrap}.terminal-input-form input{min-width:0;flex:1}}
 @media(prefers-reduced-motion:reduce){.modal-window{animation:none;transform:none}}
 
+
+/* HelzerX Proxmox-inspired live management workspace */
+.hx-live-workspace{padding:16px 18px 26px;display:flex;flex-direction:column;gap:14px;background:radial-gradient(ellipse at 85% 0%,rgba(126,34,206,.12),transparent 42%),linear-gradient(180deg,rgba(17,18,30,.98),rgba(11,12,20,.99));border-bottom:1px solid rgba(255,255,255,.06)}
+.hx-live-toolbar,.hx-live-toolbar-right,.hx-breadcrumb{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.hx-live-toolbar{justify-content:space-between}.hx-breadcrumb{font-size:11px;color:var(--text-muted)}.hx-breadcrumb b{opacity:.4}.hx-breadcrumb strong{font-size:14px;color:#fff}.hx-live-toolbar-right{font-size:10px;color:var(--text-muted)}.hx-live-dot{width:7px;height:7px;background:#4ade80;border-radius:50%;box-shadow:0 0 12px #4ade8077}.hx-refresh{border:1px solid rgba(255,255,255,.1);border-radius:9px;background:#1b1b2b;color:#e9e7f4;padding:7px 10px;font:600 10px inherit;cursor:pointer}.hx-tabs{display:flex;gap:5px;overflow-x:auto;border-bottom:1px solid rgba(255,255,255,.08);scrollbar-width:thin}.hx-tabs button{white-space:nowrap;border:0;border-bottom:2px solid transparent;background:transparent;color:#9693aa;padding:12px 14px 10px;font:600 11px 'Plus Jakarta Sans',sans-serif;cursor:pointer}.hx-tabs button:hover,.hx-tabs button.active{color:#fff;border-bottom-color:#b66bff;background:linear-gradient(180deg,transparent,rgba(168,85,247,.09))}
+.hx-tab-panel{display:none;flex-direction:column;gap:14px}.hx-tab-panel.active{display:flex}.hx-resource-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.hx-resource-card,.hx-panel-card,.hx-console-choice{min-width:0;border:1px solid rgba(255,255,255,.075);border-radius:15px;background:linear-gradient(145deg,rgba(28,29,46,.96),rgba(15,16,27,.98));box-shadow:0 10px 28px #0003,inset 0 1px #ffffff07}.hx-resource-card{min-height:124px;padding:15px;display:flex;flex-direction:column;justify-content:space-between;gap:11px;position:relative;overflow:hidden}.hx-resource-card:after{content:"";position:absolute;right:-28px;top:-35px;width:90px;height:90px;border-radius:50%;background:rgba(168,85,247,.09);filter:blur(4px);pointer-events:none}.hx-resource-card>div:first-child>span,.hx-resource-card>div:first-child span{display:block;font-size:9px;letter-spacing:.08em;color:#9a96b2;font-weight:700}.hx-resource-card b{display:block;font-size:23px;letter-spacing:-.04em;color:#fff;margin-top:7px}.hx-resource-card small{font-size:9px;color:#77748e}.hx-ring{height:4px;border-radius:99px;background:#29263b;overflow:hidden}.hx-ring i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#d8b4fe);border-radius:99px;transition:width .5s}.hx-progress{height:5px;border-radius:99px;background:#29263b;overflow:hidden}.hx-progress i{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#7c3aed,#c084fc);transition:width .5s}.hx-state-icon{font-size:24px;color:#c084fc;align-self:flex-end;margin-top:-15px}.hx-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hx-panel-card{padding:16px}.hx-panel-card header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}.hx-panel-card header h4,.hx-console-choice h4{font-size:12px;color:#f7f4ff;font-weight:800}.hx-panel-card header p{font-size:10px;color:#85819b;margin-top:4px}.hx-panel-card header>b{font-size:15px;color:#d8b4fe}.hx-panel-card canvas{display:block;width:100%;height:130px}.hx-details-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}.hx-details-grid>div{padding:13px 10px;border-top:1px solid rgba(255,255,255,.055);min-width:0}.hx-details-grid small{display:block;font-size:9px;color:#85819b;margin-bottom:7px}.hx-details-grid b{display:block;font-size:11px;color:#eeeaf8;overflow-wrap:anywhere}.hx-source-tag,.hx-unavailable-tag{font-size:8px;letter-spacing:.08em;font-weight:800;color:#c4b5fd;background:#8b5cf61a;border:1px solid #a78bfa33;padding:5px 8px;border-radius:6px;white-space:nowrap}.hx-note{font-size:10px;line-height:1.7;color:#9692a8;padding:10px 12px;border-radius:9px;background:#ffffff04;border:1px solid #ffffff08}.hx-config-json{max-height:420px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:#090a10;border:1px solid #ffffff0d;border-radius:10px;padding:14px;color:#c4b5fd;font:10px/1.65 'JetBrains Mono',monospace}.hx-reinstall-box{margin-top:14px;padding:14px;border-radius:12px;border:1px solid rgba(248,113,113,.22);background:rgba(127,29,29,.08);display:flex;align-items:center;justify-content:space-between;gap:16px}.hx-reinstall-box h4{font-size:11px;color:#fca5a5}.hx-reinstall-box p{font-size:10px;color:#a7a0b7;line-height:1.6;margin-top:6px;max-width:600px}.hx-console-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.hx-console-choice{padding:18px}.hx-console-icon{width:38px;height:38px;border-radius:11px;background:#a855f71a;border:1px solid #a855f733;display:grid;place-items:center;color:#d8b4fe;font:700 15px 'JetBrains Mono',monospace;margin-bottom:13px}.hx-console-choice p{font-size:10px;line-height:1.8;color:#9692a8;margin:10px 0 14px}.hx-console-choice .btn-ctrl{font-size:10px}.hx-terminal-anchor{margin-top:2px}.hx-tab-panel[data-hxpanel="snapshots"] #hxSnapshotMirror{font-size:10px;color:#9b96b1}.hx-live-workspace .hx-refresh:disabled{opacity:.5;cursor:wait}
+@media(max-width:900px){.hx-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hx-details-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hx-chart-grid{grid-template-columns:1fr}.hx-live-workspace{padding:12px}.hx-console-choice-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.hx-resource-card{padding:12px;min-height:110px}.hx-resource-card b{font-size:19px}.hx-tabs button{padding:11px 10px;font-size:10px}.hx-reinstall-box{align-items:flex-start;flex-direction:column}.hx-details-grid>div{padding:11px 7px}.hx-panel-card{padding:12px}}
+
 </style>
 </head>
 <body>
@@ -2516,6 +2524,42 @@ html, body {
   </div>
 </div>
 
+<!-- Enhanced Proxmox-style live management workspace -->
+<div class="hx-live-workspace" id="hxLiveWorkspace">
+  <div class="hx-live-toolbar">
+    <div class="hx-breadcrumb"><span>VPS</span><b>/</b><strong id="hxLiveHostname">Loading instance</strong></div>
+    <div class="hx-live-toolbar-right"><span class="hx-live-dot"></span><span id="hxLastUpdated">Waiting for live metrics</span><button type="button" class="hx-refresh" id="hxRefreshLive">↻ Refresh</button></div>
+  </div>
+  <nav class="hx-tabs" aria-label="VPS management sections">
+    <button type="button" class="active" data-hxtab="summary">Summary</button>
+    <button type="button" data-hxtab="resources">Resources</button>
+    <button type="button" data-hxtab="console">Console</button>
+    <button type="button" data-hxtab="snapshots">Snapshots</button>
+    <button type="button" data-hxtab="settings">Configuration</button>
+  </nav>
+  <section class="hx-tab-panel active" data-hxpanel="summary">
+    <div class="hx-resource-grid">
+      <article class="hx-resource-card"><div><span>CPU USAGE</span><b id="hxCpuValue">—</b></div><div class="hx-ring" id="hxCpuRing"><i></i></div><small id="hxCpuSub">Live Proxmox status</small></article>
+      <article class="hx-resource-card"><div><span>MEMORY USAGE</span><b id="hxMemValue">—</b></div><div class="hx-progress"><i id="hxMemBar"></i></div><small id="hxMemSub">Used / allocated</small></article>
+      <article class="hx-resource-card"><div><span>ROOT DISK</span><b id="hxDiskValue">—</b></div><div class="hx-progress"><i id="hxDiskBar"></i></div><small id="hxDiskSub">Used / allocated, when available</small></article>
+      <article class="hx-resource-card"><div><div><span>POWER STATE</span><b id="hxPowerValue">—</b></div></div><div class="hx-state-icon">⏻</div><small id="hxUptimeValue">Uptime —</small></article>
+    </div>
+    <div class="hx-chart-grid">
+      <article class="hx-panel-card"><header><div><h4>CPU activity</h4><p>Recent samples from live Proxmox status</p></div><b id="hxCpuChartNow">—</b></header><canvas id="hxCpuChart" height="130" aria-label="CPU usage history"></canvas></article>
+      <article class="hx-panel-card"><header><div><h4>Memory activity</h4><p>Recent samples from live Proxmox status</p></div><b id="hxMemChartNow">—</b></header><canvas id="hxMemChart" height="130" aria-label="Memory usage history"></canvas></article>
+    </div>
+    <div class="hx-panel-card hx-details-card"><header><div><h4>Instance information</h4><p>Configuration reported by Proxmox</p></div><span class="hx-source-tag">LIVE API</span></header><div class="hx-details-grid">
+      <div><small>Hostname</small><b id="hxInfoHostname">—</b></div><div><small>VMID</small><b id="hxInfoVmid">—</b></div><div><small>Node</small><b id="hxInfoNode">—</b></div><div><small>CPU cores</small><b id="hxInfoCores">—</b></div><div><small>Memory allocation</small><b id="hxInfoMemory">—</b></div><div><small>OS / template</small><b id="hxInfoOs">—</b></div><div><small>Network inbound</small><b id="hxNetIn">—</b></div><div><small>Network outbound</small><b id="hxNetOut">—</b></div></div></div>
+  </section>
+  <section class="hx-tab-panel" data-hxpanel="resources"><div class="hx-panel-card"><header><div><h4>Resource allocation</h4><p>Limits and current usage read from the Proxmox container API</p></div></header><div class="hx-details-grid"><div><small>CPU cores</small><b id="hxResCores">—</b></div><div><small>Memory limit</small><b id="hxResMemory">—</b></div><div><small>Root filesystem</small><b id="hxResDisk">—</b></div><div><small>Swap allocation</small><b id="hxResSwap">—</b></div><div><small>CPU usage now</small><b id="hxResCpu">—</b></div><div><small>Memory usage now</small><b id="hxResMem">—</b></div><div><small>Network inbound</small><b id="hxResNetIn">—</b></div><div><small>Network outbound</small><b id="hxResNetOut">—</b></div></div><p class="hx-note">Usage figures are shown only when Proxmox supplies the corresponding live metric. Disk-used and network-rate history require compatible Proxmox metrics and sampling.</p></div></section>
+  <section class="hx-tab-panel" data-hxpanel="console"><div class="hx-console-choice-grid">
+    <article class="hx-console-choice"><div class="hx-console-icon">$_</div><h4>Interactive terminal</h4><p>A persistent browser terminal needs a secured interactive PTY/WebSocket backend. The existing one-shot command runner is available below; it is not presented as a live console.</p><button type="button" class="btn-ctrl" id="hxOpenRunner">Open command runner ↓</button></article>
+    <article class="hx-console-choice"><div class="hx-console-icon">▣</div><h4>Proxmox / noVNC console</h4><p>Requires a short-lived Proxmox console ticket and authenticated WebSocket proxy. This server does not yet expose that proxy, so no fake console link is shown.</p><span class="hx-unavailable-tag">Backend integration required</span></article>
+  </div><div class="hx-panel-card hx-terminal-anchor" id="hxCommandRunnerAnchor"><header><div><h4>Command runner</h4><p>Runs a single command inside this container; output is not an interactive shell.</p></div><span class="hx-source-tag">60s LIMIT</span></header><div class="hx-note">Use the existing command form below. Do not paste secrets into commands that may be recorded in audit metadata.</div></div></section>
+  <section class="hx-tab-panel" data-hxpanel="snapshots"><div class="hx-panel-card"><header><div><h4>Snapshots & restore points</h4><p>Create and manage restore points for this VPS</p></div></header><p class="hx-note">Use the snapshot controls below. Restore is not enabled unless the backend explicitly supports and validates a restore operation.</p><div id="hxSnapshotMirror"></div></div></section>
+  <section class="hx-tab-panel" data-hxpanel="settings"><div class="hx-panel-card"><header><div><h4>Configuration</h4><p>Live container configuration from Proxmox</p></div><span class="hx-source-tag">READ ONLY</span></header><pre class="hx-config-json" id="hxConfigJson">Loading configuration…</pre><div class="hx-reinstall-box"><div><h4>Reinstall operating system</h4><p>Reinstall is destructive. It must be backed by a dedicated server-side rebuild workflow with template allowlisting, ownership checks, task tracking and confirmation.</p></div><button type="button" class="btn-ctrl" disabled title="Reinstall backend is not implemented yet">Reinstall unavailable</button></div></div></section>
+</div>
+
 <!-- VPS Control Center Modal (Power, Snapshots, Terminal) -->
 <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal-window">
@@ -2888,7 +2932,61 @@ async function loadDashboardData() {
   }
 }
 
-async function openControlModal(id) {
+async let hxMetricTimer = null;
+const hxMetricHistory = { cpu: [], mem: [] };
+function hxSetText(id, value) { const el = $(id); if (el) el.textContent = value; }
+function hxBytes(value) { const n = Number(value); if (!Number.isFinite(n) || n < 0) return '—'; const units=['B','KB','MB','GB','TB']; let v=n,i=0; while(v>=1024&&i<units.length-1){v/=1024;i++;} return (i===0?Math.round(v):v.toFixed(v>=100?0:1))+' '+units[i]; }
+function hxPercent(value, max) { const a=Number(value),b=Number(max); return Number.isFinite(a)&&Number.isFinite(b)&&b>0?Math.max(0,Math.min(100,a/b*100)):null; }
+function hxPush(key,value){if(!Number.isFinite(value))return;hxMetricHistory[key].push(value);if(hxMetricHistory[key].length>30)hxMetricHistory[key].shift();}
+function hxDrawChart(canvasId, key) {
+ const canvas=$(canvasId); if(!canvas)return; const ctx=canvas.getContext('2d'); if(!ctx)return;
+ const rect=canvas.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2),w=Math.max(1,rect.width),h=130;
+ canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+ ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;
+ for(let i=1;i<4;i++){const y=h*i/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+ const vals=hxMetricHistory[key];if(!vals.length){ctx.fillStyle='#77748e';ctx.font='11px sans-serif';ctx.fillText('Waiting for live samples…',10,22);return;}
+ const pts=vals.map((v,i)=>({x:vals.length===1?w/2:i/(vals.length-1)*w,y:h-8-(Math.max(0,Math.min(100,v))/100)*(h-18)}));
+ const grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,'rgba(168,85,247,.28)');grad.addColorStop(1,'rgba(168,85,247,0)');
+ ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));if(pts.length===1)ctx.lineTo(w,pts[0].y);ctx.lineTo(pts[pts.length-1].x,h);ctx.lineTo(pts[0].x,h);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+ ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle='#c084fc';ctx.lineWidth=2;ctx.stroke();
+}
+function hxSetBar(id,pct){const el=$(id);if(el)el.style.width=pct===null?'0%':pct.toFixed(1)+'%';}
+async function hxRefreshMetrics() {
+ if(!currentInstanceId || !$('modalOverlay')?.classList.contains('open'))return;
+ const btn=$('hxRefreshLive');if(btn)btn.disabled=true;
+ try {
+  const d=await api('/api/control/instances/'+encodeURIComponent(currentInstanceId)+'/inspect');
+  const live=d.live||{},s=live.status||{},cfg=live.config||{},item=instancesList.find(x=>x.id===currentInstanceId)||d.request||{};
+  const cpu=Number(s.cpu),memPct=hxPercent(s.mem,s.maxmem),diskPct=hxPercent(s.disk,s.maxdisk);
+  const cpuPct=Number.isFinite(cpu)?Math.max(0,Math.min(100,cpu*100)):null;
+  const memUsed=Number(s.mem),memMax=Number(s.maxmem),diskUsed=Number(s.disk),diskMax=Number(s.maxdisk);
+  const status=String(s.status||item.status||'unknown');
+  hxSetText('hxLiveHostname',item.hostname||d.request?.hostname||'VPS');
+  hxSetText('hxLastUpdated','Updated '+new Date().toLocaleTimeString());
+  hxSetText('hxCpuValue',cpuPct===null?'—':cpuPct.toFixed(1)+'%');hxSetBar('hxCpuRing',cpuPct);
+  hxSetText('hxCpuSub',Number(cfg.cores||cfg.cpus||0)>0?String(cfg.cores||cfg.cpus)+' allocated cores':'CPU metric / allocation');
+  hxSetText('hxMemValue',memPct===null?'—':memPct.toFixed(1)+'%');hxSetBar('hxMemBar',memPct);
+  hxSetText('hxMemSub',Number.isFinite(memUsed)&&Number.isFinite(memMax)&&memMax>0?hxBytes(memUsed)+' / '+hxBytes(memMax):'Usage / allocation unavailable');
+  hxSetText('hxDiskValue',diskPct===null?'—':diskPct.toFixed(1)+'%');hxSetBar('hxDiskBar',diskPct);
+  hxSetText('hxDiskSub',Number.isFinite(diskUsed)&&Number.isFinite(diskMax)&&diskMax>0?hxBytes(diskUsed)+' / '+hxBytes(diskMax):'Live disk usage unavailable');
+  hxSetText('hxPowerValue',prettyStatus(status));hxSetText('hxUptimeValue','Uptime '+(Number.isFinite(Number(s.uptime))?Math.floor(Number(s.uptime)/86400)+'d '+Math.floor(Number(s.uptime)%86400/3600)+'h '+Math.floor(Number(s.uptime)%3600/60)+'m':'—'));
+  hxSetText('hxCpuChartNow',cpuPct===null?'—':cpuPct.toFixed(1)+'%');hxSetText('hxMemChartNow',memPct===null?'—':memPct.toFixed(1)+'%');
+  hxPush('cpu',cpuPct);hxPush('mem',memPct);hxDrawChart('hxCpuChart','cpu');hxDrawChart('hxMemChart','mem');
+  const cores=cfg.cores??cfg.cpus??'—',memory=Number(cfg.memory)>0?hxBytes(Number(cfg.memory)*1024*1024):'—',rootfs=cfg.rootfs||'—',swap=Number(cfg.swap)>0?hxBytes(Number(cfg.swap)*1024*1024):'—';
+  hxSetText('hxInfoHostname',item.hostname||d.request?.hostname||'—');hxSetText('hxInfoVmid',item.vmid||d.request?.vmid||'—');hxSetText('hxInfoNode',item.nodeId||d.request?.nodeId||live.node||'—');hxSetText('hxInfoCores',cores);hxSetText('hxInfoMemory',memory);hxSetText('hxInfoOs',item.osLabel||item.osId||'Not reported');
+  hxSetText('hxNetIn',Number.isFinite(Number(s.netin))?hxBytes(s.netin):'—');hxSetText('hxNetOut',Number.isFinite(Number(s.netout))?hxBytes(s.netout):'—');
+  hxSetText('hxResCores',cores);hxSetText('hxResMemory',memory);hxSetText('hxResDisk',rootfs);hxSetText('hxResSwap',swap);hxSetText('hxResCpu',cpuPct===null?'Unavailable':cpuPct.toFixed(1)+'%');hxSetText('hxResMem',memPct===null?'Unavailable':hxBytes(memUsed)+' / '+hxBytes(memMax));hxSetText('hxResNetIn',Number.isFinite(Number(s.netin))?hxBytes(s.netin):'Unavailable');hxSetText('hxResNetOut',Number.isFinite(Number(s.netout))?hxBytes(s.netout):'Unavailable');
+  hxSetText('hxConfigJson',JSON.stringify({status:s,config:cfg,metricsAvailable:{cpu:cpuPct!==null,memory:memPct!==null,disk:diskPct!==null,networkIn:Number.isFinite(Number(s.netin)),networkOut:Number.isFinite(Number(s.netout))}},null,2));
+  const snap=$('snapshotChips');if(snap)$('hxSnapshotMirror').textContent=snap.textContent||'Snapshot list is not available.';
+ } catch(err){hxSetText('hxLastUpdated','Live metrics unavailable');showToast(err.message,true);}
+ finally {if(btn)btn.disabled=false;}
+}
+function hxStartMetricPolling(){clearInterval(hxMetricTimer);hxMetricHistory.cpu.length=0;hxMetricHistory.mem.length=0;hxRefreshMetrics();hxMetricTimer=setInterval(hxRefreshMetrics,15000);}
+document.querySelectorAll('[data-hxtab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-hxtab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-hxpanel]').forEach(x=>x.classList.toggle('active',x.dataset.hxpanel===b.dataset.hxtab));if(b.dataset.hxtab==='summary'){hxDrawChart('hxCpuChart','cpu');hxDrawChart('hxMemChart','mem');}}));
+$('hxRefreshLive')?.addEventListener('click',hxRefreshMetrics);
+$('hxOpenRunner')?.addEventListener('click',()=>{const el=$('terminalForm');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});$('cmdInput')?.focus();}});
+
+function openControlModal(id) {
   currentInstanceId = id;
   const item = instancesList.find(x => x.id === id);
   if (!item) return;
@@ -2903,6 +3001,7 @@ async function openControlModal(id) {
   $('terminalOutput').textContent = 'Terminal ready for ' + (item.hostname || 'container') + '. Enter command below.';
 
   $('modalOverlay').classList.add('open');
+  hxStartMetricPolling();
 
   try {
     const d = await api('/api/control/instances/' + encodeURIComponent(id) + '/inspect');
@@ -3070,13 +3169,14 @@ document.querySelectorAll('.power-buttons-row button').forEach(b => {
 });
 
 $('btnCreateSnapshot').addEventListener('click', createSnapshot);
-$('closeModalBtn').addEventListener('click', () => $('modalOverlay').classList.remove('open'));
+$('closeModalBtn').addEventListener('click', () => { $('modalOverlay').classList.remove('open'); clearInterval(hxMetricTimer); });
 $('modalOverlay').addEventListener('click', e => {
-  if (e.target === $('modalOverlay')) $('modalOverlay').classList.remove('open');
+  if (e.target === $('modalOverlay')) { $('modalOverlay').classList.remove('open'); clearInterval(hxMetricTimer); }
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     $('modalOverlay').classList.remove('open');
+    clearInterval(hxMetricTimer);
     $('userMenuDropdown').classList.remove('show');
   }
 });
