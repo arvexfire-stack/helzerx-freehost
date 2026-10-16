@@ -2039,7 +2039,10 @@ html, body {
 @media(max-width:900px){.modal-overlay{inset:64px 0 0 0!important}.modal-window{width:100%!important;border-radius:15px 15px 0 0!important}}
 @media(max-width:700px){.modal-overlay{inset:64px 0 0 0!important}.modal-window{width:100%!important;height:100%!important;max-height:100%!important;border-radius:14px 14px 0 0!important}.modal-content-scroll{padding:10px!important}}
 
-</style>
+.hx-terminal-mount{height:min(62vh,620px);min-height:280px;padding:10px;background:#07080d}.hx-terminal-mount .xterm{height:100%}.hx-terminal-mount[hidden]{display:none!important}.hx-console-frame-wrap .hx-terminal-error{margin:0;padding:18px;color:#fca5a5;font:12px/1.6 'JetBrains Mono',monospace;white-space:pre-wrap}.hx-console-frame-wrap .hx-terminal-error[hidden]{display:none!important}.hx-console-choice button:disabled{opacity:.5;cursor:not-allowed}\n</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.js"></script>
 </head>
 <body>
 
@@ -2580,9 +2583,9 @@ html, body {
   <section class="hx-tab-panel" data-hxpanel="resources"><div class="hx-panel-card"><header><div><h4>Resource allocation</h4><p>Limits and current usage read from the Proxmox container API</p></div></header><div class="hx-details-grid"><div><small>CPU cores</small><b id="hxResCores">—</b></div><div><small>Memory limit</small><b id="hxResMemory">—</b></div><div><small>Root filesystem</small><b id="hxResDisk">—</b></div><div><small>Swap allocation</small><b id="hxResSwap">—</b></div><div><small>CPU usage now</small><b id="hxResCpu">—</b></div><div><small>Memory usage now</small><b id="hxResMem">—</b></div><div><small>Network inbound</small><b id="hxResNetIn">—</b></div><div><small>Network outbound</small><b id="hxResNetOut">—</b></div></div><p class="hx-note">Usage figures are shown only when Proxmox supplies the corresponding live metric. Disk-used and network-rate history require compatible Proxmox metrics and sampling.</p></div></section>
   <section class="hx-tab-panel" data-hxpanel="console"><div class="hx-console-choice-grid hx-real-console-grid">
     <article class="hx-console-choice"><div class="hx-console-icon">$_</div><h4>Xterm.js Console</h4><p>Interactive shell inside your VPS. This requires a PTY/WebSocket bridge authenticated against your VPS ownership and Proxmox node.</p><button type="button" class="btn-ctrl" id="hxLaunchXterm">Launch Xterm Console</button><span class="hx-console-status" id="hxXtermStatus" role="status">Checking console service…</span></article>
-    <article class="hx-console-choice"><div class="hx-console-icon">▣</div><h4>noVNC Console</h4><p>Graphical console provided by Proxmox. A short-lived VNC ticket and protected WebSocket connection are required; no Proxmox credentials are sent to the browser.</p><button type="button" class="btn-ctrl" id="hxLaunchNoVnc">Launch noVNC Console</button><span class="hx-console-status" id="hxNoVncStatus" role="status">Checking console service…</span></article>
+    <article class="hx-console-choice"><div class="hx-console-icon">▣</div><h4>noVNC Console</h4><p>noVNC is for graphical QEMU/KVM virtual machines. This service provisions LXC containers, which use the interactive Xterm.js console instead.</p><button type="button" class="btn-ctrl" id="hxLaunchNoVnc" disabled title="This instance is an LXC container">noVNC unavailable for LXC</button><span class="hx-console-status" id="hxNoVncStatus" role="status">LXC uses Xterm.js; noVNC requires a QEMU/KVM VM.</span></article>
   </div>
-  <div class="hx-console-frame-wrap" id="hxConsoleFrameWrap" hidden><div class="hx-console-frame-head"><strong id="hxConsoleFrameTitle">VPS Console</strong><button type="button" class="btn-ctrl" id="hxCloseConsole">Close console</button></div><iframe id="hxConsoleFrame" title="VPS web console" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads" referrerpolicy="no-referrer" allow="clipboard-read; clipboard-write" hidden></iframe><pre id="hxConsolePlaceholder">Console service status will appear here.</pre></div></section>
+  <div class="hx-console-frame-wrap" id="hxConsoleFrameWrap" hidden><div class="hx-console-frame-head"><strong id="hxConsoleFrameTitle">VPS Console</strong><button type="button" class="btn-ctrl" id="hxCloseConsole">Close console</button></div><div id="hxTerminalMount" class="hx-terminal-mount" hidden></div><pre id="hxConsolePlaceholder">Launch Xterm.js to open a secure interactive terminal.</pre><pre id="hxTerminalError" class="hx-terminal-error" hidden></pre></div></section>
   <section class="hx-tab-panel" data-hxpanel="snapshots"><div class="hx-panel-card"><header><div><h4>Snapshots & restore points</h4><p>Create and manage restore points for this VPS</p></div></header><p class="hx-note">Use the snapshot controls below. Restore is not enabled unless the backend explicitly supports and validates a restore operation.</p><div id="hxSnapshotMirror"></div></div></section>
   <section class="hx-tab-panel" data-hxpanel="settings"><div class="hx-panel-card"><header><div><h4>Configuration</h4><p>Live container configuration from Proxmox</p></div><span class="hx-source-tag">READ ONLY</span></header><pre class="hx-config-json" id="hxConfigJson">Loading configuration…</pre><div class="hx-reinstall-box"><div><h4>Reinstall operating system</h4><p>Choose an OS template available on this VPS node. Reinstall stays locked until the server has a tested, ownership-checked rebuild workflow; selecting a template will not delete or modify your current VPS.</p><label for="hxOsTemplate" style="display:block;font-size:10px;color:#b9b3cc;margin:12px 0 6px">Available Proxmox templates</label><select id="hxOsTemplate" class="hx-os-select"><option value="">Load templates…</option></select><small id="hxOsTemplateStatus" style="display:block;font-size:9px;color:#9993ad;margin-top:7px">Templates are fetched from the configured Proxmox node.</small></div><button type="button" class="btn-ctrl" id="hxReinstallBtn" disabled title="Rebuild backend is not implemented yet">Reinstall unavailable</button></div></div></section>
 
@@ -2801,7 +2804,7 @@ function renderInstances() {
         </div>
 
         <div class="instance-actions-wrap">
-          <button class="btn-ctrl primary" data-manage="${esc(inst.id)}" ${!canControl ? 'disabled' : ''}>
+          <button class="btn-ctrl primary" type="button" data-manage="${esc(inst.id)}" title="${canControl ? 'Open VPS management' : 'Open management to see the exact limitation or current status'}">
             <span>Manage ↗</span>
           </button>
           <button class="btn-ctrl" data-inspect="${esc(inst.id)}" ${!canControl ? 'disabled' : ''}>
@@ -2823,7 +2826,19 @@ function renderInstances() {
 
   // Bind actions
   document.querySelectorAll('[data-manage]').forEach(b => {
-    b.addEventListener('click', () => openControlModal(b.dataset.manage));
+    b.addEventListener('click', async event => {
+      event.preventDefault();
+      const instanceId = String(b.dataset.manage || '');
+      if (!instanceId) {
+        showToast('This VPS button is missing its instance ID. Refresh the dashboard.', true);
+        return;
+      }
+      try {
+        await openControlModal(instanceId);
+      } catch (err) {
+        showToast(err.message || 'Could not open VPS management.', true);
+      }
+    });
   });
 
   document.querySelectorAll('[data-inspect]').forEach(b => {
@@ -2992,24 +3007,64 @@ async function hxLoadOsTemplates(){
  }catch(err){select.innerHTML='<option value="">Could not load templates</option>';status.textContent=err.message||'Template lookup failed.';}
 }
 function hxConsoleStatus(id,message,isError=false){const el=$(id);if(el){el.textContent=message;el.style.color=isError?'#fca5a5':'#a7f3d0';}}
+let hxTerminal=null,hxTerminalFit=null,hxTerminalSocket=null;
+function hxStopTerminal(){
+ if(hxTerminalSocket){try{hxTerminalSocket.close(1000,'Console closed')}catch{}hxTerminalSocket=null;}
+ if(hxTerminal){try{hxTerminal.dispose()}catch{}hxTerminal=null;}
+ hxTerminalFit=null;
+ const mount=$('hxTerminalMount');if(mount){mount.replaceChildren();mount.hidden=true;}
+ const error=$('hxTerminalError');if(error){error.hidden=true;error.textContent='';}
+ const placeholder=$('hxConsolePlaceholder');if(placeholder)placeholder.hidden=false;
+}
 async function hxLaunchConsole(kind){
- const isVnc=kind==='novnc',statusId=isVnc?'hxNoVncStatus':'hxXtermStatus',button=$(isVnc?'hxLaunchNoVnc':'hxLaunchXterm');
+ if(kind==='novnc'){hxConsoleStatus('hxNoVncStatus','noVNC requires a QEMU/KVM VM; this VPS is an LXC container.',true);return;}
+ const statusId='hxXtermStatus',button=$('hxLaunchXterm');
  if(!currentInstanceId){hxConsoleStatus(statusId,'Open a VPS first.',true);return;}
+ if(typeof window.Terminal!=='function'||!window.FitAddon?.FitAddon){hxConsoleStatus(statusId,'Xterm.js could not load. Check the browser connection and refresh.',true);return;}
  if(button)button.disabled=true;hxConsoleStatus(statusId,'Requesting a secure console session…');
+ hxStopTerminal();
  try{
-  const endpoint='/api/control/instances/'+encodeURIComponent(currentInstanceId)+'/console/'+(isVnc?'novnc':'xterm');
+  const endpoint='/api/control/instances/'+encodeURIComponent(currentInstanceId)+'/console/xterm';
   const d=await api(endpoint,{method:'POST',body:JSON.stringify({})});
-  if(!d.url)throw new Error('The server did not return a console URL.');
-  const frame=$('hxConsoleFrame'),wrap=$('hxConsoleFrameWrap'),placeholder=$('hxConsolePlaceholder');
-  $('hxConsoleFrameTitle').textContent=isVnc?'noVNC — '+($('modalTitle')?.textContent||'VPS'):'Xterm.js — '+($('modalTitle')?.textContent||'VPS');
-  frame.src=d.url;frame.hidden=false;placeholder.hidden=true;wrap.hidden=false;
-  hxConsoleStatus(statusId,'Console session opened.');
- }catch(err){hxConsoleStatus(statusId,err.message||'Console service unavailable.',true);showToast(err.message||'Console service unavailable.',true);}
+  if(!d.url)throw new Error('The server did not return a console ticket.');
+  const wrap=$('hxConsoleFrameWrap'),mount=$('hxTerminalMount'),placeholder=$('hxConsolePlaceholder');
+  $('hxConsoleFrameTitle').textContent='Xterm.js — '+($('modalTitle')?.textContent||'VPS');
+  wrap.hidden=false;mount.hidden=false;placeholder.hidden=true;
+  hxTerminal=new window.Terminal({cursorBlink:true,convertEol:true,scrollback:5000,allowProposedApi:true,fontFamily:"'JetBrains Mono', monospace",fontSize:13,theme:{background:'#07080d',foreground:'#e8e4f5',cursor:'#c084fc',selectionBackground:'#a855f755'}});
+  hxTerminalFit=new window.FitAddon.FitAddon();hxTerminal.loadAddon(hxTerminalFit);hxTerminal.open(mount);
+  requestAnimationFrame(()=>{try{hxTerminalFit.fit()}catch{}hxTerminal.focus()});
+  const wsUrl=new URL(d.url,window.location.href);wsUrl.protocol=window.location.protocol==='https:'?'wss:':'ws:';
+  const socket=new WebSocket(wsUrl.toString());hxTerminalSocket=socket;socket.binaryType='arraybuffer';
+  socket.addEventListener('open',()=>{hxConsoleStatus(statusId,'Connected to the live Proxmox terminal.');try{hxTerminalFit.fit();hxTerminal.focus()}catch{}});
+  socket.addEventListener('message',event=>{if(!hxTerminal)return;try{if(typeof event.data==='string')hxTerminal.write(event.data);else hxTerminal.write(new TextDecoder().decode(event.data))}catch{}});
+  socket.addEventListener('error',()=>{hxConsoleStatus(statusId,'Terminal connection failed. Check Proxmox API access and TLS certificate settings.',true)});
+  socket.addEventListener('close',event=>{if(hxTerminal)hxTerminal.write('\r\n\x1b[31m[Console disconnected]\x1b[0m\r\n');if(hxTerminalSocket===socket)hxTerminalSocket=null;if(event.code!==1000)hxConsoleStatus(statusId,'Console disconnected. Close it and launch a new session.',true)});
+  const sendTermproxyInput = data => {
+    if (socket.readyState !== WebSocket.OPEN) return;
+    const byteLength = new TextEncoder().encode(data).length;
+    socket.send('0:' + byteLength + ':' + data);
+  };
+  const sendTermproxyResize = () => {
+    if (socket.readyState !== WebSocket.OPEN || !hxTerminal) return;
+    try {
+      hxTerminalFit?.fit();
+      socket.send('1:' + hxTerminal.cols + ':' + hxTerminal.rows + ':');
+    } catch {}
+  };
+  hxTerminal.onData(sendTermproxyInput);
+  // Proxmox termproxy uses its packet protocol for input, resize, and keepalive messages.
+  socket.addEventListener('open', sendTermproxyResize);
+  const resizeObserver=new ResizeObserver(sendTermproxyResize);
+  resizeObserver.observe(mount);socket.addEventListener('close',()=>resizeObserver.disconnect(),{once:true});
+  const termproxyKeepalive=setInterval(()=>{if(socket.readyState===WebSocket.OPEN)socket.send('2')},30000);
+  socket.addEventListener('close',()=>clearInterval(termproxyKeepalive),{once:true});
+  hxConsoleStatus(statusId,'Connecting to Proxmox terminal…');
+ }catch(err){const message=err.message||'Console service unavailable.';hxConsoleStatus(statusId,message,true);showToast(message,true);const error=$('hxTerminalError');if(error){error.textContent=message;error.hidden=false;} }
  finally{if(button)button.disabled=false;}
 }
 $('hxLaunchXterm')?.addEventListener('click',()=>hxLaunchConsole('xterm'));
 $('hxLaunchNoVnc')?.addEventListener('click',()=>hxLaunchConsole('novnc'));
-$('hxCloseConsole')?.addEventListener('click',()=>{const frame=$('hxConsoleFrame');if(frame)frame.src='about:blank';$('hxConsoleFrameWrap').hidden=true;});
+$('hxCloseConsole')?.addEventListener('click',()=>{hxStopTerminal();$('hxConsoleFrameWrap').hidden=true;});
 function hxOpenSettingsTab(){
  const b=document.querySelector('[data-hxtab="settings"]');
  if(b){b.click();hxLoadOsTemplates();}
@@ -3023,8 +3078,11 @@ $('hxRefreshLive')?.addEventListener('click',hxRefreshMetrics);
 
 async function openControlModal(id) {
   currentInstanceId = id;
-  const item = instancesList.find(x => x.id === id);
-  if (!item) return;
+  const item = instancesList.find(x => String(x.id) === String(id));
+  if (!item) {
+    showToast('Could not find this VPS in the current list. Refresh the dashboard and try again.', true);
+    return;
+  }
 
   $('modalTitle').textContent = item.hostname || item.planName || 'VPS Control Center';
   $('modalSubtitle').textContent = 'VMID: ' + (item.vmid || '—') + ' · Node: ' + (item.nodeId || 'Unknown node');

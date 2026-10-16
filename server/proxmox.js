@@ -252,6 +252,35 @@ export async function inspectLxc({ vmid, node }) {
   return result;
 }
 
+export async function createLxcTerminalProxy({ vmid, node, width = 120, height = 32 }) {
+  const readiness = proxmoxReadiness();
+  if (!readiness.ready) throw new Error('Proxmox API is not ready: ' + readiness.missing.join(', '));
+  const c = proxmoxConfig();
+  const id = Number(vmid);
+  let configuredNodes = [];
+  try { configuredNodes = JSON.parse(env('PROXMOX_NODES', '[]')); } catch {}
+  const allowedNodes = Array.isArray(configuredNodes) && configuredNodes.length
+    ? configuredNodes.map(x => String(x?.id || ''))
+    : [c.node];
+  const targetNode = String(node || c.node);
+  if (!allowedNodes.includes(targetNode)) throw new Error('Selected Proxmox node is not allowlisted.');
+  if (!Number.isInteger(id) || id < c.vmidMin || id > c.vmidMax) throw new Error('Container ID is outside the configured HelzerX VMID range.');
+
+  const base = '/nodes/' + enc(targetNode) + '/lxc/' + id;
+  const status = await api(c, 'GET', base + '/status/current');
+  if (status?.status !== 'running') throw new Error('Instance is not running. Start it before opening the console.');
+  const cols = Math.max(40, Math.min(240, Number(width) || 120));
+  const rows = Math.max(10, Math.min(80, Number(height) || 32));
+  const session = await api(c, 'POST', base + '/termproxy', { width: cols, height: rows });
+  const port = Number(session?.port);
+  const ticket = String(session?.ticket || '');
+  const user = String(session?.user || '');
+  if (!Number.isInteger(port) || port < 1 || port > 65535 || !ticket || ticket.length > 2048 || !user || user.length > 255) {
+    throw new Error('Proxmox did not return a valid short-lived terminal ticket and user.');
+  }
+  return { baseUrl: c.baseUrl, node: targetNode, vmid: id, port, ticket, user };
+}
+
 export async function runLxcTerminal({ vmid, command, node }) {
   const readiness = proxmoxReadiness();
   if (!readiness.ready) throw new Error('Proxmox management is not enabled or configured.');

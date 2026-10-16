@@ -4,6 +4,7 @@ import session from 'express-session';
 import crypto from 'node:crypto';
 import { provisionLxc, proxmoxReadiness, manageLxc, inspectLxc, runLxcTerminal, manageLxcSnapshot, listLxcTemplates } from './proxmox.js';
 import { readState, writeState } from './database.js';
+import { issueLxcConsoleTicket, attachConsoleWebSocket } from './console.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -317,6 +318,20 @@ app.post('/api/control/instances/:id/terminal',auth,adminMutationOrigin,async(re
   recordUserVpsAction(req,item,'user_vps_terminal_command',{vmid:item.vmid,commandLength:command.length});writeData();
   res.json({ok:true,...result});
  }catch(error){res.status(502).json({error:String(error.message||'Terminal command failed').slice(0,400)});}
+});
+app.post('/api/control/instances/:id/console/xterm',auth,adminMutationOrigin,async(req,res)=>{
+ const item=ownedLxcRequest(req,res,['provisioned']);if(!item)return;
+ try{
+  const live=await inspectLxc({vmid:item.vmid,node:item.nodeId});
+  if(live.status?.status!=='running')return res.status(409).json({error:'Instance is not running. Start it before opening the console.'});
+  const session=await issueLxcConsoleTicket({instanceId:item.id,userId:req.session.user.id,vmid:item.vmid,node:item.nodeId});
+  recordUserVpsAction(req,item,'user_vps_console_open',{vmid:item.vmid,console:'xterm'});writeData();
+  res.set('Cache-Control','private, no-store');res.json({ok:true,url:session.url});
+ }catch(error){res.status(502).json({error:String(error.message||'Could not open terminal console').slice(0,400)});}
+});
+app.post('/api/control/instances/:id/console/novnc',auth,adminMutationOrigin,(req,res)=>{
+ const item=ownedLxcRequest(req,res,['provisioned','suspended']);if(!item)return;
+ return res.status(409).json({error:'noVNC is for QEMU/KVM graphical consoles. This instance is an LXC container; use the Xterm.js terminal instead.'});
 });
 app.post('/api/control/instances/:id/snapshots',auth,adminMutationOrigin,async(req,res)=>{
  const item=ownedLxcRequest(req,res,['provisioned','suspended']);if(!item)return;
@@ -659,4 +674,5 @@ if (prod) {
   });
   app.use(vite.middlewares);
 }
-app.listen(PORT, '0.0.0.0', () => console.log('HelzerX Free Hosting server listening on ' + PORT));
+const httpServer=app.listen(PORT, '0.0.0.0', () => console.log('HelzerX Free Hosting server listening on ' + PORT));
+attachConsoleWebSocket(httpServer);
