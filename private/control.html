@@ -2477,6 +2477,16 @@ let currentInstanceId = null;
 let instancesList = [];
 let toastTimeout = null;
 
+// Install core navigation before optional UI initializers. A later widget error must not
+// disable the sidebar or prevent the VPS data request from starting.
+document.addEventListener('click', event => {
+  const item = event.target instanceof Element ? event.target.closest('.sidebar-item[data-nav]') : null;
+  if (!item) return;
+  event.preventDefault();
+  const nav = item.dataset.nav;
+  if (nav) switchView(nav);
+}, true);
+
 function showToast(message, isError = false) {
   const toast = $('toastNotice');
   toast.textContent = message;
@@ -2980,6 +2990,7 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
    ========================================================================= */
 (function init3DHeroScene() {
   const canvas = $('hero3dCanvas');
+  if (!canvas) return;
   const gl = canvas.getContext('webgl', { antialias: true, alpha: true });
   if (!gl) return;
 
@@ -3163,7 +3174,7 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
   requestAnimationFrame(render);
 })();
 
-// Initial data load
+// Initial data load (also started early so optional UI setup cannot block it).
 loadDashboardData();
 </script>
 </body>
