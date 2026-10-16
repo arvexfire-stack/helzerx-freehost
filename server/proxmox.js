@@ -269,9 +269,9 @@ export async function createLxcTerminalProxy({ vmid, node, width = 120, height =
   const base = '/nodes/' + enc(targetNode) + '/lxc/' + id;
   const status = await api(c, 'GET', base + '/status/current');
   if (status?.status !== 'running') throw new Error('Instance is not running. Start it before opening the console.');
-  const cols = Math.max(40, Math.min(240, Number(width) || 120));
-  const rows = Math.max(10, Math.min(80, Number(height) || 32));
-  const session = await api(c, 'POST', base + '/termproxy', { width: cols, height: rows });
+  // The Proxmox LXC termproxy endpoint rejects width/height; terminal sizing is
+  // handled by xterm.js after the WebSocket session is established.
+  const session = await api(c, 'POST', base + '/termproxy');
   const port = Number(session?.port);
   const ticket = String(session?.ticket || '');
   const user = String(session?.user || '');
