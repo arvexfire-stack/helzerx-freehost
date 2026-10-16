@@ -81,12 +81,20 @@ export function attachConsoleWebSocket(server) {
       const timeout = setTimeout(() => {
         if (!connected || !terminalReady) closeBoth(1011, 'Proxmox console connection timed out');
       }, 12_000);
+      upstream.on('unexpected-response', (_request, response) => {
+        console.error('[console] Proxmox WebSocket handshake rejected:', {
+          status: response.statusCode,
+          statusMessage: response.statusMessage
+        });
+        response.resume();
+        closeBoth(1011, 'Proxmox rejected the console connection');
+      });
       upstream.on('open', () => {
         connected = true;
         if (!p.user || !p.ticket) return closeBoth(1011, 'Proxmox terminal authentication data is missing');
         // Proxmox xterm.js requires the API-authenticated user and termproxy ticket
         // as the first line on the WebSocket before it returns its OK handshake.
-        upstream.send(p.user + ':' + p.ticket + '\\n');
+        upstream.send(p.user + ':' + p.ticket + '\n');
       });
       upstream.on('message', (data, isBinary) => {
         if (!terminalReady) {
