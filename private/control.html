@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0e0f16">
+<meta name="theme-color" content="#0c0d14">
 <title>HelzerX Cloud · VPS Control Center</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg-main: #0c0d13;
+  --bg-main: #0c0d14;
   --bg-sidebar: #101118;
   --bg-topbar: #12131b;
-  --bg-surface: #151620;
-  --bg-card: #171823;
-  --bg-card-hover: #1e1f2d;
-  --bg-inner: #0f1017;
+  --bg-surface: #151622;
+  --bg-card: #161723;
+  --bg-card-hover: #1e1f2f;
+  --bg-inner: #0f1018;
   
   --border-subtle: rgba(255, 255, 255, 0.05);
   --border-card: rgba(255, 255, 255, 0.07);
@@ -116,7 +116,7 @@ html, body {
 
 .brand-title-wrap b {
   display: block;
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.01em;
   color: #fff;
@@ -496,7 +496,7 @@ html, body {
   gap: 22px;
 }
 
-/* View Sections (Switched via sidebar tabs) */
+/* View Sections */
 .view-panel {
   display: none;
   flex-direction: column;
@@ -594,7 +594,7 @@ html, body {
   border-color: var(--border-card-hover);
 }
 
-/* Card 1: Students / Instances */
+/* Card 1: VPS Compute Fleet */
 .card-instances-stat {
   justify-content: space-between;
 }
@@ -735,7 +735,7 @@ html, body {
   color: var(--text-muted);
 }
 
-/* Card 2: Center 3D Hero Card (Campus Intelligence / HelzerX Engine) */
+/* Card 2: Center 3D Hero Card (HelzerX Cloud Engine) */
 .card-hero-3d {
   background: radial-gradient(ellipse at 50% 120%, rgba(147, 51, 234, 0.28), transparent 70%), #14141e;
   border: 1.5px solid var(--border-purple-glow);
@@ -797,7 +797,7 @@ html, body {
   cursor: grabbing;
 }
 
-/* Card 3: Right Calendar & Activity Column */
+/* Card 3: Right Automated Operations Column */
 .card-calendar-activity {
   background: #171822;
   justify-content: space-between;
@@ -876,7 +876,7 @@ html, body {
   box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
 }
 
-/* Activity Items */
+/* Ops Activity Items */
 .activity-mini-list {
   display: flex;
   flex-direction: column;
@@ -985,14 +985,14 @@ html, body {
   transform: translateY(-1px);
 }
 
-/* Bottom Grid (2x2 Stats + Weekly Engagement Matrix) */
+/* Bottom Grid (2x2 Real Cloud Stats + Cluster Matrix) */
 .grid-bottom-row {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.25fr);
   gap: 18px;
 }
 
-/* 2x2 Mini Stat Cards */
+/* 2x2 Mini Cloud Stat Cards */
 .subgrid-2x2-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1070,7 +1070,7 @@ html, body {
   color: var(--accent-red);
 }
 
-/* Heatmap Panel */
+/* Cluster Activity Matrix Heatmap */
 .card-heatmap-panel {
   background: var(--bg-card);
   border-radius: var(--radius-card);
@@ -1129,8 +1129,8 @@ html, body {
 }
 
 .matrix-row-label {
-  width: 32px;
-  font-size: 10px;
+  width: 44px;
+  font-size: 9.5px;
   font-weight: 700;
   color: var(--text-dim);
   text-align: right;
@@ -1170,7 +1170,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 6px;
-  margin-left: 36px;
+  margin-left: 48px;
   margin-top: 4px;
 }
 
@@ -1884,20 +1884,19 @@ html, body {
     <a href="/control" class="nav-brand" title="HelzerX Control Dashboard">
       <div class="brand-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="9"/>
-          <path d="M12 3a9 9 0 0 1 9 9"/>
-          <circle cx="12" cy="12" r="3"/>
+          <rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/>
+          <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
         </svg>
       </div>
       <div class="brand-title-wrap">
-        <b>Sapphire UI</b>
-        <span>HelzerX Cloud Control</span>
+        <b>HelzerX Cloud</b>
+        <span>VPS Infrastructure Engine</span>
       </div>
     </a>
 
     <!-- Center Search Pill -->
     <div class="nav-search-pill">
-      <input type="text" id="clusterSearchInput" placeholder="Proxmox Cloud Cluster · hlx-infra-02 (Asia-East)" aria-label="Search cluster">
+      <input type="text" id="clusterSearchInput" placeholder="Search VPS by hostname, VMID, or Proxmox node…" aria-label="Search cluster">
       <button class="search-btn" id="clusterSearchBtn" aria-label="Search">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"/>
@@ -1909,7 +1908,7 @@ html, body {
     <!-- Right Controls -->
     <div class="nav-actions">
       <div class="nav-pill-dropdown" id="nodeSelectorPill" title="Switch cluster node">
-        <span id="activeNodeLabel">hlx-infra-02</span>
+        <span id="activeNodeLabel">hlx-infra-02 (Proxmox)</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
 
@@ -1917,7 +1916,7 @@ html, body {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
       </button>
 
-      <button class="nav-circle-btn" id="notificationsBtn" title="Alerts & System notifications">
+      <button class="nav-circle-btn" id="notificationsBtn" title="System alerts">
         <div class="notification-dot"></div>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -1961,68 +1960,68 @@ html, body {
     
     <!-- Sidebar -->
     <aside class="app-sidebar">
-      <div class="sidebar-section-label">GENERAL</div>
+      <div class="sidebar-section-label">VPS INFRASTRUCTURE</div>
       <button class="sidebar-item active" data-nav="dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>
         </svg>
-        <span>Dashboard</span>
-      </button>
-      <button class="sidebar-item" data-nav="monitoring">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-        <span>Monitoring</span>
+        <span>Overview</span>
       </button>
       <button class="sidebar-item" data-nav="instances">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
         </svg>
-        <span>Classroom / VPS</span>
+        <span>VPS Fleet</span>
+      </button>
+      <button class="sidebar-item" data-nav="monitoring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <span>Telemetry</span>
       </button>
       <button class="sidebar-item" data-nav="terminal">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
         </svg>
-        <span>Shell Console</span>
+        <span>Root Shell</span>
       </button>
       <button class="sidebar-item" data-nav="security">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
-        <span>Security & Keys</span>
+        <span>Firewall & Keys</span>
       </button>
 
-      <div class="sidebar-section-label">MORE</div>
+      <div class="sidebar-section-label">STORAGE & BACKUPS</div>
       <button class="sidebar-item" data-nav="todo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
         </svg>
-        <span>List Todo</span>
+        <span>Snapshots</span>
       </button>
       <button class="sidebar-item" data-nav="ai">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
         </svg>
-        <span>AI Assistants</span>
+        <span>Proxmox AI</span>
         <span class="badge-ai-plus">✦</span>
       </button>
 
       <div class="sidebar-section-label">PROXMOX CLUSTER</div>
       <div class="cluster-node-item" onclick="selectNode('hlx-infra-01')">
         <span class="node-bullet b1">01</span>
-        <span>hlx-infra-01</span>
+        <span>hlx-infra-01 (JP)</span>
       </div>
       <div class="cluster-node-item" onclick="selectNode('hlx-infra-02')">
         <span class="node-bullet b2">02</span>
-        <span>hlx-infra-02</span>
+        <span>hlx-infra-02 (SG)</span>
       </div>
       <div class="cluster-node-item" onclick="selectNode('hlx-storage-01')">
         <span class="node-bullet b3">NV</span>
         <span>hlx-storage-nvme</span>
       </div>
       <div class="show-more-link" onclick="switchView('monitoring')">
-        <span>Show more (14)</span>
+        <span>Cluster health (Online)</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
 
@@ -2031,7 +2030,7 @@ html, body {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
           </svg>
-          <span>Upgrade to Pro</span>
+          <span>Deploy New VPS</span>
         </button>
       </div>
     </aside>
@@ -2039,37 +2038,37 @@ html, body {
     <!-- Main Workspace Area -->
     <main class="main-workspace">
 
-      <!-- View 1: DASHBOARD (Matches Reference Image Exactly) -->
+      <!-- View 1: DASHBOARD (Overview - 100% VPS Infrastructure Focus) -->
       <section class="view-panel active" id="view-dashboard">
 
         <!-- Greeting Bar -->
         <div class="greeting-section">
           <div class="greeting-text">
-            <h1 id="welcomeGreeting">Hi, Michael!</h1>
-            <h2>What do you want?</h2>
+            <h1 id="welcomeGreeting">Hi, Member!</h1>
+            <h2>VPS Infrastructure Engine</h2>
           </div>
           <div class="greeting-quick-meta">
             <div class="live-indicator-pill">
               <span class="pulse-dot"></span>
               <span id="hzlBalancePill">0 HZL Balance</span>
             </div>
-            <a href="/" class="btn-ctrl" style="text-decoration:none">
-              <span>← Marketplace</span>
+            <a href="/" class="btn-ctrl primary" style="text-decoration:none">
+              <span>+ Deploy VPS</span>
             </a>
           </div>
         </div>
 
-        <!-- Top 3-Column Row: Students/Instances, 3D Hero, Calendar -->
+        <!-- Top 3-Column Row: VPS Fleet Stats, 3D Cloud Engine, Ops Schedule -->
         <div class="grid-top-row">
 
-          <!-- Card 1: Students / Instances -->
+          <!-- Card 1: VPS Fleet Resources -->
           <article class="dash-card card-instances-stat">
             <div class="card-header-line">
               <div class="badge-tag-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  <rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/>
                 </svg>
-                <span>Students</span>
+                <span>VPS Fleet</span>
               </div>
               <a class="card-view-all" onclick="switchView('instances')">
                 <span>View all</span>
@@ -2078,14 +2077,14 @@ html, body {
             </div>
 
             <div>
-              <div class="stat-big-number" id="statStudentCount">16,892</div>
-              <div class="stat-sub-text">All condition of university</div>
+              <div class="stat-big-number" id="statStudentCount">0</div>
+              <div class="stat-sub-text">Active compute instances & containers</div>
             </div>
 
             <div class="vertical-bars-chart">
               <div class="v-bar-item">
                 <div class="v-bar-capsule striped">
-                  <span id="stripedBarValue">1,302</span>
+                  <span id="stripedBarValue">100%</span>
                 </div>
               </div>
               <div class="v-bar-item">
@@ -2097,16 +2096,16 @@ html, body {
             </div>
 
             <div class="v-bar-legend">
-              <span>90%</span>
-              <span><b>6%</b> 4%</span>
+              <span>Online Uptime</span>
+              <span><b>LXC</b> KVM</span>
             </div>
           </article>
 
-          <!-- Card 2: 3D Campus Intelligence Card -->
+          <!-- Card 2: 3D HelzerX Cloud Engine Hero Card -->
           <article class="dash-card card-hero-3d">
             <div class="hero-3d-header">
-              <div class="hero-3d-title">Campus Intelligence</div>
-              <div class="hero-3d-subtitle">Empowering Learning with Advanced Technology</div>
+              <div class="hero-3d-title">HelzerX Cloud Engine</div>
+              <div class="hero-3d-subtitle">High-Speed Virtualization & Low-Latency Compute</div>
             </div>
 
             <div class="hero-3d-canvas-wrap">
@@ -2114,7 +2113,7 @@ html, body {
             </div>
           </article>
 
-          <!-- Card 3: Calendar & Activity -->
+          <!-- Card 3: Ops Schedule & Automated Tasks -->
           <article class="dash-card card-calendar-activity">
             <div class="cal-header-row">
               <button class="cal-arrow-btn" aria-label="Previous month">
@@ -2156,15 +2155,15 @@ html, body {
             <div class="activity-mini-list">
               <div class="activity-mini-card">
                 <div class="act-title-row">
-                  <b>Review Mid Test</b>
+                  <b>Proxmox Node Heartbeat</b>
                   <span class="act-menu-dots">···</span>
                 </div>
-                <div class="act-desc">Lecture must checking progress f...</div>
+                <div class="act-desc">Automated cluster telemetry sync & health audit</div>
                 <div class="act-footer">
                   <div class="act-avatars">
-                    <div class="mini-av av1">A</div>
-                    <div class="mini-av av2">B</div>
-                    <div class="mini-av av3">C</div>
+                    <div class="mini-av av1">01</div>
+                    <div class="mini-av av2">02</div>
+                    <div class="mini-av av3">NV</div>
                   </div>
                   <div class="act-time">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -2175,15 +2174,15 @@ html, body {
 
               <div class="activity-mini-card">
                 <div class="act-title-row">
-                  <b>Ceremony Yudisium</b>
+                  <b>Differential ZFS Backup</b>
                   <span class="act-menu-dots">···</span>
                 </div>
-                <div class="act-desc">Make sure event for student can w...</div>
+                <div class="act-desc">Scheduled block snapshot retention execution</div>
                 <div class="act-footer">
                   <div class="act-avatars">
-                    <div class="mini-av av2">M</div>
-                    <div class="mini-av av3">K</div>
-                    <div class="mini-av av1">S</div>
+                    <div class="mini-av av2">BK</div>
+                    <div class="mini-av av3">ZFS</div>
+                    <div class="mini-av av1">SG</div>
                   </div>
                   <div class="act-time">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -2194,142 +2193,142 @@ html, body {
             </div>
 
             <button class="btn-create-activity" id="createActivityBtn">
-              <span>+ Create Activity</span>
+              <span>+ Create Restore Point</span>
             </button>
           </article>
         </div>
 
-        <!-- Bottom Row: 2x2 Stats + Weekly Engagement Matrix -->
+        <!-- Bottom Row: 2x2 Real Cloud Metrics + Cluster Matrix -->
         <div class="grid-bottom-row">
 
-          <!-- 2x2 Mini Stats -->
+          <!-- 2x2 Mini Cloud Stats -->
           <div class="subgrid-2x2-stats">
-            <!-- Stat 1: Lecture -->
+            <!-- Stat 1: Allocated Cores -->
             <div class="mini-stat-card">
               <div class="mini-stat-header">
                 <div class="mini-stat-badge">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    <rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/>
                   </svg>
-                  <span>Lecture</span>
+                  <span>vCPU Cores</span>
                 </div>
                 <span class="card-view-all">View all ↗</span>
               </div>
               <div>
-                <div class="mini-stat-value" id="statLectureValue">282</div>
+                <div class="mini-stat-value" id="statLectureValue">16 Cores</div>
                 <div class="mini-stat-delta positive">
-                  <span>+38.12% from previous weeks</span>
+                  <span>+100% Dedicated Compute</span>
                 </div>
               </div>
             </div>
 
-            <!-- Stat 2: GPA -->
+            <!-- Stat 2: RAM Memory -->
             <div class="mini-stat-card">
               <div class="mini-stat-header">
                 <div class="mini-stat-badge">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
+                    <path d="M6 19v-3"/><path d="M10 19v-3"/><path d="M14 19v-3"/><path d="M18 19v-3"/><rect x="2" y="5" width="20" height="11" rx="2"/>
                   </svg>
-                  <span>GPA</span>
+                  <span>Memory Pool</span>
                 </div>
                 <span class="card-view-all">View all ↗</span>
               </div>
               <div>
-                <div class="mini-stat-value" id="statGpaValue">3.78</div>
+                <div class="mini-stat-value" id="statGpaValue">32 GB</div>
                 <div class="mini-stat-delta positive">
-                  <span>+17.8% from previous weeks</span>
+                  <span>ECC Registered RAM</span>
                 </div>
               </div>
             </div>
 
-            <!-- Stat 3: Session -->
+            <!-- Stat 3: NVMe Storage -->
             <div class="mini-stat-card">
               <div class="mini-stat-header">
                 <div class="mini-stat-badge">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20v-2a8 8 0 0 1 0-16z"/>
                   </svg>
-                  <span>Session</span>
+                  <span>NVMe Storage</span>
                 </div>
                 <span class="card-view-all">View all ↗</span>
               </div>
               <div>
-                <div class="mini-stat-value" id="statSessionValue">4.8h</div>
+                <div class="mini-stat-value" id="statSessionValue">500 GB</div>
                 <div class="mini-stat-delta subtle">
-                  <span>+28.3% from previous weeks</span>
+                  <span>ZFS Gen4 Raid-10 Tier</span>
                 </div>
               </div>
             </div>
 
-            <!-- Stat 4: Absence -->
+            <!-- Stat 4: SLA Uptime -->
             <div class="mini-stat-card">
               <div class="mini-stat-header">
                 <div class="mini-stat-badge">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M18 6L6 18M6 6l12 12"/>
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   </svg>
-                  <span>Absence</span>
+                  <span>Cluster SLA</span>
                 </div>
                 <span class="card-view-all">View all ↗</span>
               </div>
               <div>
-                <div class="mini-stat-value" id="statAbsenceValue">98%</div>
-                <div class="mini-stat-delta negative">
-                  <span>-5.6% from previous weeks</span>
+                <div class="mini-stat-value" id="statAbsenceValue">99.98%</div>
+                <div class="mini-stat-delta positive">
+                  <span>Zero Unscheduled Outages</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Weekly Engagement Matrix Heatmap -->
+          <!-- Cluster Node Activity Matrix Heatmap -->
           <article class="dash-card card-heatmap-panel">
             <div class="heatmap-header">
               <div class="badge-tag-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
                 </svg>
-                <span>Weekly Engagement</span>
+                <span>Cluster Activity Matrix</span>
               </div>
               <div style="display:flex;align-items:center;gap:10px">
-                <span class="card-view-all">View all</span>
+                <span class="card-view-all">Proxmox Live</span>
                 <span class="act-menu-dots">···</span>
               </div>
             </div>
 
             <div class="heatmap-legend">
-              <span class="legend-item"><span class="legend-dot l-low"></span> Low</span>
-              <span class="legend-item"><span class="legend-dot l-med"></span> Medium</span>
-              <span class="legend-item"><span class="legend-dot l-high"></span> High</span>
-              <span class="legend-item"><span class="legend-dot l-best"></span> Best</span>
+              <span class="legend-item"><span class="legend-dot l-low"></span> Idle</span>
+              <span class="legend-item"><span class="legend-dot l-med"></span> Normal</span>
+              <span class="legend-item"><span class="legend-dot l-high"></span> Heavy</span>
+              <span class="legend-item"><span class="legend-dot l-best"></span> Peak</span>
             </div>
 
             <div class="heatmap-matrix-wrap">
               <div class="matrix-row">
-                <span class="matrix-row-label">FEB</span>
+                <span class="matrix-row-label">HLX-01</span>
                 <div class="matrix-cells-container">
                   <div class="matrix-cell c1"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c3"></div><div class="matrix-cell c5"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c1"></div>
                 </div>
               </div>
               <div class="matrix-row">
-                <span class="matrix-row-label">FTI</span>
+                <span class="matrix-row-label">HLX-02</span>
                 <div class="matrix-cells-container">
                   <div class="matrix-cell c2"></div><div class="matrix-cell c1"></div><div class="matrix-cell c4"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div>
                 </div>
               </div>
               <div class="matrix-row">
-                <span class="matrix-row-label">FKD</span>
+                <span class="matrix-row-label">STO-01</span>
                 <div class="matrix-cells-container">
                   <div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c1"></div><div class="matrix-cell c2"></div>
                 </div>
               </div>
               <div class="matrix-row">
-                <span class="matrix-row-label">FKH</span>
+                <span class="matrix-row-label">NET-01</span>
                 <div class="matrix-cells-container">
                   <div class="matrix-cell c2"></div><div class="matrix-cell c2"></div><div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c1"></div>
                 </div>
               </div>
               <div class="matrix-row">
-                <span class="matrix-row-label">FKS</span>
+                <span class="matrix-row-label">BAK-01</span>
                 <div class="matrix-cells-container">
                   <div class="matrix-cell c1"></div><div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c3"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div>
                 </div>
@@ -2671,7 +2670,7 @@ function switchView(viewName) {
 }
 
 function selectNode(nodeId) {
-  $('activeNodeLabel').textContent = nodeId;
+  $('activeNodeLabel').textContent = nodeId + ' (Proxmox)';
   showToast('Proxmox cluster target set to ' + nodeId);
 }
 
@@ -2834,7 +2833,7 @@ async function loadDashboardData() {
     const rewards = me.rewards || {};
     instancesList = reqs.requests || [];
 
-    const name = user.global_name || user.username || 'Michael';
+    const name = user.global_name || user.username || 'Member';
     $('welcomeGreeting').textContent = 'Hi, ' + name + '!';
     $('menuUserName').textContent = name;
     $('menuUserId').textContent = user.id ? 'ID: ' + user.id : 'Connected';
@@ -2846,10 +2845,10 @@ async function loadDashboardData() {
       $('userAvatarImg').src = user.avatar;
     }
 
-    $('statStudentCount').textContent = (16892 + instancesList.length).toLocaleString();
+    $('statStudentCount').textContent = instancesList.length.toLocaleString();
     $('dashInstanceBadge').textContent = instancesList.length + ' instance' + (instancesList.length === 1 ? '' : 's');
-    $('stripedBarValue').textContent = instancesList.length ? (1302 + instancesList.length).toLocaleString() : '1,302';
-    $('statLectureValue').textContent = String(280 + instancesList.length * 2);
+    $('stripedBarValue').textContent = instancesList.filter(x => x.status === 'provisioned').length + ' Active';
+    $('statLectureValue').textContent = (instancesList.length * 2 || 4) + ' Cores';
 
     renderInstances();
   } catch (err) {
@@ -3063,7 +3062,8 @@ $('refreshDashboardBtn').addEventListener('click', async () => {
 });
 
 $('createActivityBtn').addEventListener('click', () => {
-  location.href = '/';
+  showToast('Differential snapshot trigger initialized');
+  switchView('instances');
 });
 $('upgradeProBtn').addEventListener('click', () => {
   location.href = '/#rewards';
