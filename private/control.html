@@ -1873,6 +1873,16 @@ html, body {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Full-height management drawer: keep the dashboard in place while managing an instance */
+.modal-overlay{justify-content:flex-end;align-items:stretch;padding:0;background:rgba(5,5,10,.72);backdrop-filter:blur(8px)}
+.modal-window{width:min(1040px,100vw);height:100dvh;max-height:100dvh;border-radius:22px 0 0 22px;display:flex;flex-direction:column;transform:translateX(28px);animation:controlDrawerIn .26s cubic-bezier(.2,.8,.2,1) forwards;overflow:hidden}
+.modal-header{flex:none;position:sticky;top:0;z-index:4}
+.modal-content-scroll{min-height:0;flex:1;overflow:auto;overscroll-behavior:contain;padding-bottom:max(28px,env(safe-area-inset-bottom))}
+@keyframes controlDrawerIn{to{transform:translateX(0)}}
+@media(max-width:700px){.modal-window{width:100vw;border-radius:0;height:100dvh;max-height:100dvh}.modal-header{padding:16px}.modal-content-scroll{padding:14px}.telemetry-row{grid-template-columns:repeat(2,minmax(0,1fr))}.power-buttons-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.snapshot-input-group{flex-wrap:wrap}.snapshot-input-group input{min-width:0;flex:1}.terminal-input-form{flex-wrap:wrap}.terminal-input-form input{min-width:0;flex:1}}
+@media(prefers-reduced-motion:reduce){.modal-window{animation:none;transform:none}}
+
 </style>
 </head>
 <body>
@@ -2253,9 +2263,9 @@ html, body {
                 <span class="card-view-all">View all ↗</span>
               </div>
               <div>
-                <div class="mini-stat-value" id="statSessionValue">500 GB</div>
+                <div class="mini-stat-value" id="statSessionValue">—</div>
                 <div class="mini-stat-delta subtle">
-                  <span>ZFS Gen4 Raid-10 Tier</span>
+                  <span>Storage telemetry unavailable</span>
                 </div>
               </div>
             </div>
@@ -2272,9 +2282,9 @@ html, body {
                 <span class="card-view-all">View all ↗</span>
               </div>
               <div>
-                <div class="mini-stat-value" id="statAbsenceValue">99.98%</div>
+                <div class="mini-stat-value" id="statAbsenceValue">—</div>
                 <div class="mini-stat-delta positive">
-                  <span>Zero Unscheduled Outages</span>
+                  <span>No verified uptime history</span>
                 </div>
               </div>
             </div>
@@ -2406,45 +2416,45 @@ html, body {
           <div class="monitor-card">
             <div class="monitor-title">
               <span>Cluster CPU Allocation</span>
-              <b id="monCpuUsage">28% Avg</b>
+              <b id="monCpuUsage">Unavailable</b>
             </div>
             <div class="gauge-bar-outer">
-              <div class="gauge-bar-fill" style="width: 28%"></div>
+              <div class="gauge-bar-fill" style="width: 0%"></div>
             </div>
-            <small style="color:var(--text-muted);font-size:11px">Dual AMD EPYC™ 7763 64-Core (hlx-infra-02)</small>
+            <small style="color:var(--text-muted);font-size:11px">CPU details are not currently exposed by this panel</small>
           </div>
 
           <div class="monitor-card">
             <div class="monitor-title">
               <span>Memory Pool Allocated</span>
-              <b id="monRamUsage">42% Used</b>
+              <b id="monRamUsage">Unavailable</b>
             </div>
             <div class="gauge-bar-outer">
-              <div class="gauge-bar-fill" style="width: 42%; background: linear-gradient(90deg, #a855f7, #ec4899)"></div>
+              <div class="gauge-bar-fill" style="width: 0%; background: linear-gradient(90deg, #a855f7, #ec4899)"></div>
             </div>
-            <small style="color:var(--text-muted);font-size:11px">214 GB / 512 GB DDR4 ECC Registered</small>
+            <small style="color:var(--text-muted);font-size:11px">Memory telemetry is not currently available</small>
           </div>
 
           <div class="monitor-card">
             <div class="monitor-title">
               <span>NVMe Storage Tier</span>
-              <b>18% Used</b>
+              <b>Unavailable</b>
             </div>
             <div class="gauge-bar-outer">
-              <div class="gauge-bar-fill" style="width: 18%; background: linear-gradient(90deg, #38bdf8, #4ade80)"></div>
+              <div class="gauge-bar-fill" style="width: 0%; background: linear-gradient(90deg, #38bdf8, #4ade80)"></div>
             </div>
-            <small style="color:var(--text-muted);font-size:11px">ZFS Raid-10 Enterprise NVMe Pool</small>
+            <small style="color:var(--text-muted);font-size:11px">Storage telemetry is not currently available</small>
           </div>
 
           <div class="monitor-card">
             <div class="monitor-title">
               <span>Network Throughput</span>
-              <b>99.98% Uptime</b>
+              <b>Unavailable</b>
             </div>
             <div class="gauge-bar-outer">
-              <div class="gauge-bar-fill" style="width: 99%; background: linear-gradient(90deg, #4ade80, #38bdf8)"></div>
+              <div class="gauge-bar-fill" style="width: 0%; background: linear-gradient(90deg, #4ade80, #38bdf8)"></div>
             </div>
-            <small style="color:var(--text-muted);font-size:11px">10Gbps Redundant Uplink · Tokyo Datacenter</small>
+            <small style="color:var(--text-muted);font-size:11px">Network throughput and uptime history are not currently available</small>
           </div>
         </div>
       </section>
@@ -2505,7 +2515,7 @@ html, body {
           <div class="security-box">
             <h4>Snapshot Protection</h4>
             <p>Always capture a live differential snapshot before installing packages or modifying configuration files. Snapshots preserve disk states and allow immediate single-click rollbacks.</p>
-            <button class="btn-ctrl primary" style="width:fit-content" onclick="switchView('instances')">Inspect Snapshots ↗</button>
+            <button class="btn-ctrl primary" style="width:fit-content" onclick="switchView('instances')">Manage instances ↗</button>
           </div>
 
           <div class="security-box">
@@ -2589,14 +2599,14 @@ html, body {
       <div>
         <div class="modal-section-title">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-          <span>Container Shell Console</span>
+          <span>Command Runner · Non-interactive</span>
         </div>
         <div class="terminal-block">
           <div class="terminal-header">
             <div class="terminal-dots">
               <span></span><span></span><span></span>
             </div>
-            <span>root@container: ~ (60s timeout)</span>
+            <span>One command per request · 60s limit</span>
           </div>
           <div class="terminal-screen" id="terminalOutput">Terminal ready. Enter a shell command below to execute inside this container.</div>
           <form class="terminal-input-form" id="terminalForm">
@@ -2733,7 +2743,7 @@ function renderInstances() {
           </div>
           <div class="spec-box">
             <small>Node</small>
-            <b>${esc(inst.nodeId || 'hlx-infra-02')}</b>
+            <b>${esc(inst.nodeId || 'Unknown node')}</b>
           </div>
           <div class="spec-box">
             <small>Created</small>
@@ -2848,7 +2858,7 @@ async function loadDashboardData() {
     $('statStudentCount').textContent = instancesList.length.toLocaleString();
     $('dashInstanceBadge').textContent = instancesList.length + ' instance' + (instancesList.length === 1 ? '' : 's');
     $('stripedBarValue').textContent = instancesList.filter(x => x.status === 'provisioned').length + ' Active';
-    $('statLectureValue').textContent = (instancesList.length * 2 || 4) + ' Cores';
+    const assignedCores = instancesList.reduce((total, item) => total + (Number(item.planSnapshot?.proxmox?.cores) || 0), 0);\n    $('statLectureValue').textContent = assignedCores ? assignedCores + ' Cores' : '—';
 
     renderInstances();
   } catch (err) {
@@ -2862,7 +2872,7 @@ async function openControlModal(id) {
   if (!item) return;
 
   $('modalTitle').textContent = item.hostname || item.planName || 'VPS Control Center';
-  $('modalSubtitle').textContent = 'VMID: ' + (item.vmid || '—') + ' · Node: ' + (item.nodeId || 'hlx-infra-02');
+  $('modalSubtitle').textContent = 'VMID: ' + (item.vmid || '—') + ' · Node: ' + (item.nodeId || 'Unknown node');
   $('livePowerState').textContent = 'Loading…';
   $('liveCpuCores').textContent = '—';
   $('liveMemoryAmt').textContent = '—';
@@ -2879,9 +2889,9 @@ async function openControlModal(id) {
     const status = live.status || {};
 
     $('livePowerState').textContent = prettyStatus(status.status || item.status);
-    $('liveCpuCores').textContent = (cfg.cores ?? cfg.cpus ?? '2') + ' Cores';
-    $('liveMemoryAmt').textContent = cfg.memory ? Math.round(Number(cfg.memory) / 1024) + ' GB' : '4 GB';
-    $('liveDiskAmt').textContent = cfg.rootfs?.size || cfg.disk || '32 GB';
+    $('liveCpuCores').textContent = Number.isFinite(Number(cfg.cores ?? cfg.cpus)) && Number(cfg.cores ?? cfg.cpus) > 0 ? (cfg.cores ?? cfg.cpus) + ' Cores' : 'Unavailable';
+    $('liveMemoryAmt').textContent = Number(cfg.memory) > 0 ? (Number(cfg.memory) >= 1024 ? (Number(cfg.memory) / 1024).toFixed(Number(cfg.memory) % 1024 ? 1 : 0) + ' GB' : Number(cfg.memory) + ' MB') : 'Unavailable';
+    const diskMatch = String(cfg.rootfs || '').match(/(?:^|,)size=([0-9.]+[KMGTP])/i);\n    $('liveDiskAmt').textContent = diskMatch ? diskMatch[1] : 'Unavailable';
 
     const snaps = live.snapshots || [];
     $('snapshotChips').innerHTML = snaps.length ? snaps.map(s => `
