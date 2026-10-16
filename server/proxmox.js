@@ -31,7 +31,6 @@ export function proxmoxReadiness() {
   if (!c.node) missing.push('PROXMOX_NODE');
   if (!c.storage) missing.push('PROXMOX_STORAGE');
   if (!c.bridge) missing.push('PROXMOX_BRIDGE');
-  if (!c.template) { let os=[]; try { os=JSON.parse(env('PROXMOX_OS_OPTIONS','[]')); } catch {} if (!Array.isArray(os) || !os.some(x=>typeof x?.template==='string'&&x.template.trim())) missing.push('PROXMOX_TEMPLATE or PROXMOX_OS_OPTIONS'); }
   if (!c.tokenId) missing.push('PROXMOX_TOKEN_ID');
   if (!c.tokenSecret) missing.push('PROXMOX_TOKEN_SECRET');
   if (!Number.isInteger(c.vmidMin) || !Number.isInteger(c.vmidMax) || c.vmidMin < 100 || c.vmidMax < c.vmidMin) missing.push('PROXMOX_VMID_MIN/PROXMOX_VMID_MAX');
@@ -108,6 +107,44 @@ async function waitTask(c, upid, taskNode = c.node) {
   throw new Error('Proxmox task is still running; task ID retained for safe reconciliation: ' + upid);
 }
 
+
+function templateDisplayName(volid) {
+  const file = String(volid).split('/').pop().replace(/\\.(tar\\.(gz|xz|zst)|tar)$/i, '').replace(/[_-]+/g, ' ');
+  const distro = file.match(/(ubuntu|debian|alpine|rocky|alma(?:linux)?|centos|fedora|archlinux|opensuse|kali|devuan|oraclelinux)/i)?.[1] || '';
+  const version = file.match(/(20\\d{2}\\.\\d{2}|\\d{2}\\.\\d{2}|\\d+(?:\\.\\d+)?)/)?.[1] || '';
+  const names = { ubuntu:'Ubuntu', debian:'Debian', alpine:'Alpine Linux', rocky:'Rocky Linux', alma:'AlmaLinux', almalinux:'AlmaLinux', centos:'CentOS', fedora:'Fedora', archlinux:'Arch Linux', opensuse:'openSUSE', kali:'Kali Linux', devuan:'Devuan', oraclelinux:'Oracle Linux' };
+  const label = names[distro.toLowerCase()] || '';
+  return (label ? label + (version ? ' ' + version : '') : file) + (label && /standard/i.test(file) ? ' Standard' : '');
+}
+export async function listLxcTemplates({ node } = {}) {
+  const readiness = proxmoxReadiness();
+  if (!readiness.ready) throw new Error('Proxmox API is not ready: ' + readiness.missing.join(', '));
+  const c = proxmoxConfig();
+  let configuredNodes = [];
+  try { configuredNodes = JSON.parse(env('PROXMOX_NODES', '[]')); } catch {}
+  const allowedNodes = Array.isArray(configuredNodes) && configuredNodes.length ? configuredNodes.map(x => String(x?.id || '')) : [c.node];
+  const targetNode = String(node || c.node);
+  if (!allowedNodes.includes(targetNode)) throw new Error('Selected Proxmox node is not allowlisted.');
+  const stores = await api(c, 'GET', '/nodes/' + enc(targetNode) + '/storage');
+  if (!Array.isArray(stores)) throw new Error('Could not list Proxmox storage for this node.');
+  const candidates = stores.filter(x => x && typeof x.storage === 'string' && x.storage && x.active !== 0 && x.enabled !== 0);
+  const contents = await Promise.all(candidates.map(async store => {
+    try {
+      const rows = await api(c, 'GET', '/nodes/' + enc(targetNode) + '/storage/' + enc(store.storage) + '/content', { content: 'vztmpl' });
+      return (Array.isArray(rows) ? rows : []).filter(row => row && typeof row.volid === 'string' && row.volid.includes(':vztmpl/') && /\\.tar\\.(?:gz|xz|zst)$/i.test(row.volid)).map(row => ({ template: row.volid, storage: store.storage, size: Number(row.size) || 0 }));
+    } catch { return []; }
+  }));
+  const configuredOs = [];
+  try { configuredOs.push(...JSON.parse(env('PROXMOX_OS_OPTIONS', '[]'))); } catch {}
+  const surchargeFor = template => {
+    const match = configuredOs.find(x => String(x?.template || '') === template);
+    return Number.isSafeInteger(Number(match?.surcharge)) && Number(match.surcharge) >= 0 ? Number(match.surcharge) : 0;
+  };
+  const unique = new Map();
+  for (const row of contents.flat()) if (!unique.has(row.template)) unique.set(row.template, { id: row.template, template: row.template, label: templateDisplayName(row.template), storage: row.storage, size: row.size, surcharge: surchargeFor(row.template) });
+  return [...unique.values()].sort((a,b) => a.label.localeCompare(b.label) || a.template.localeCompare(b.template));
+}
+
 export async function provisionLxc({ requestId, plan, username, sshPublicKey, node, template, hostname: requestedHostname, rootPassword }) {
   const readiness = proxmoxReadiness();
   if (!readiness.ready) throw new Error('Proxmox provisioning is not enabled or configured. Missing: ' + readiness.missing.join(', '));
@@ -116,10 +153,9 @@ export async function provisionLxc({ requestId, plan, username, sshPublicKey, no
   const allowedNodes=Array.isArray(configuredNodes)&&configuredNodes.length?configuredNodes.map(x=>String(x?.id||'')):[c.node];
   const targetNode=String(node||c.node);
   if(!allowedNodes.includes(targetNode))throw new Error('Selected Proxmox node is not allowlisted.');
-  let configuredOs=[];try{configuredOs=JSON.parse(env('PROXMOX_OS_OPTIONS','[]'))}catch{}
-  const allowedTemplates=Array.isArray(configuredOs)&&configuredOs.length?configuredOs.map(x=>String(x?.template||'').trim()):[c.template];
   const targetTemplate=String(template||c.template);
-  if(!allowedTemplates.includes(targetTemplate))throw new Error('Selected OS template is not allowlisted.');
+  const liveTemplates=await listLxcTemplates({node:targetNode});
+  if(!liveTemplates.some(x=>x.template===targetTemplate))throw new Error('Selected OS template is not available on the selected Proxmox node. Refresh the OS list and try again.');
   const safeName=String(requestedHostname||'').trim().toLowerCase();
   if(safeName&&!/^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/.test(safeName))throw new Error('Invalid VPS hostname.');
   const password=String(rootPassword||'');
