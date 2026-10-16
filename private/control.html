@@ -2487,14 +2487,25 @@ function showToast(message, isError = false) {
 }
 
 async function api(url, options = {}) {
-  const res = await fetch(url, {
-    credentials: 'same-origin',
-    ...options,
-    headers: {
-      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(options.headers || {})
-    }
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  let res;
+  try {
+    res = await fetch(url, {
+      credentials: 'same-origin',
+      ...options,
+      signal: options.signal || controller.signal,
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers || {})
+      }
+    });
+  } catch (error) {
+    if (error.name === 'AbortError') throw new Error('Request timed out. Check the FreeHost API and Proxmox connection, then refresh.');
+    throw new Error('Could not reach the FreeHost API. Check your connection and try again.');
+  } finally {
+    clearTimeout(timeout);
+  }
   let data = {};
   try { data = await res.json(); } catch {}
   if (res.status === 401) {
@@ -2516,14 +2527,19 @@ function prettyStatus(status) {
 }
 
 function switchView(viewName) {
-  document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sidebar-item').forEach(b => {
-    b.classList.toggle('active', b.dataset.nav === viewName);
-  });
-  const target = $('view-' + viewName);
-  if (target) {
-    target.classList.add('active');
+  // Only navigate to views that actually exist; never leave every panel hidden.
+  const aliases = { todo: 'instances', ai: 'monitoring' };
+  const resolved = aliases[viewName] || viewName;
+  const target = $('view-' + resolved);
+  if (!target) {
+    showToast('This section is not available yet.', true);
+    return;
   }
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active', p === target));
+  document.querySelectorAll('.sidebar-item').forEach(b => {
+    b.classList.toggle('active', (aliases[b.dataset.nav] || b.dataset.nav) === resolved);
+  });
+  if (resolved === 'instances' && !instancesList.length) loadDashboardData();
 }
 
 function selectNode(nodeId) {
@@ -2714,7 +2730,14 @@ async function loadDashboardData() {
 
     renderInstances();
   } catch (err) {
-    showToast(err.message, true);
+    const message = err.message || 'Could not load your instances.';
+    ['dashInstancesGrid', 'fullInstancesGrid'].forEach(id => {
+      const el = $(id);
+      if (el && (!instancesList.length || /Loading instances/.test(el.textContent))) {
+        el.innerHTML = '<div class="empty-instances-state"><b>Could not load VPS instances</b><p>' + esc(message) + '</p><button class="btn-ctrl primary" type="button" onclick="loadDashboardData()">Retry</button></div>';
+      }
+    });
+    showToast(message, true);
   }
 }
 
