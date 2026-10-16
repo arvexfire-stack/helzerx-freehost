@@ -2995,7 +2995,7 @@ document.querySelectorAll('[data-hxtab]').forEach(b=>b.addEventListener('click',
 $('hxRefreshLive')?.addEventListener('click',hxRefreshMetrics);
 $('hxOpenRunner')?.addEventListener('click',()=>{const el=$('terminalForm');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});$('cmdInput')?.focus();}});
 
-function openControlModal(id) {
+async function openControlModal(id) {
   currentInstanceId = id;
   const item = instancesList.find(x => x.id === id);
   if (!item) return;
