@@ -4,7 +4,7 @@ import session from 'express-session';
 import crypto from 'node:crypto';
 import { provisionLxc, proxmoxReadiness, manageLxc, inspectLxc, runLxcTerminal, manageLxcSnapshot, listLxcTemplates } from './proxmox.js';
 import { readState, writeState } from './database.js';
-import { issueLxcConsoleTicket, attachConsoleWebSocket } from './console.js';
+import { attachConsoleWebSocket } from './console.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -324,10 +324,20 @@ app.post('/api/control/instances/:id/console/xterm',auth,adminMutationOrigin,asy
  try{
   const live=await inspectLxc({vmid:item.vmid,node:item.nodeId});
   if(live.status?.status!=='running')return res.status(409).json({error:'Instance is not running. Start it before opening the console.'});
-  const session=await issueLxcConsoleTicket({instanceId:item.id,userId:req.session.user.id,vmid:item.vmid,node:item.nodeId});
-  recordUserVpsAction(req,item,'user_vps_console_open',{vmid:item.vmid,console:'xterm'});writeData();
-  res.set('Cache-Control','private, no-store');res.json({ok:true,url:session.url});
- }catch(error){console.error('[console] Xterm session creation failed for VMID '+item.vmid+' on node '+item.nodeId+':',String(error.message||error).slice(0,400));res.status(502).json({error:String(error.message||'Could not open terminal console').slice(0,400)});}
+  // Let Proxmox's own UI create and authenticate its native Xterm.js terminal.
+  // The user's browser must have a Proxmox UI session; no API token is sent to it.
+  const configuredUrl=new URL(String(process.env.PROXMOX_API_URL||''));
+  if(configuredUrl.protocol!=='https:'||configuredUrl.username||configuredUrl.password)throw new Error('PROXMOX_API_URL must be a valid HTTPS Proxmox URL.');
+  const consoleUrl=new URL('/',configuredUrl);
+  consoleUrl.searchParams.set('console','lxc');
+  consoleUrl.searchParams.set('xtermjs','1');
+  consoleUrl.searchParams.set('vmid',String(Number(item.vmid)));
+  consoleUrl.searchParams.set('vmname',String(item.hostname||('CT-'+item.vmid)).slice(0,255));
+  consoleUrl.searchParams.set('node',String(item.nodeId||process.env.PROXMOX_NODE||'hlx-infra-02'));
+  consoleUrl.searchParams.set('cmd','');
+  recordUserVpsAction(req,item,'user_vps_console_open',{vmid:item.vmid,console:'proxmox-native-xterm'});writeData();
+  res.set('Cache-Control','private, no-store');res.json({ok:true,url:consoleUrl.toString()});
+ }catch(error){console.error('[console] Native Xterm URL creation failed for VMID '+item.vmid+' on node '+item.nodeId+':',String(error.message||error).slice(0,400));res.status(502).json({error:String(error.message||'Could not open terminal console').slice(0,400)});}
 });
 app.post('/api/control/instances/:id/console/novnc',auth,adminMutationOrigin,(req,res)=>{
  const item=ownedLxcRequest(req,res,['provisioned','suspended']);if(!item)return;
