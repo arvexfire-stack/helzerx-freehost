@@ -3257,14 +3257,27 @@ document.querySelectorAll('.power-buttons-row button').forEach(b => {
 });
 
 $('btnCreateSnapshot').addEventListener('click', createSnapshot);
-$('closeModalBtn').addEventListener('click', () => { $('modalOverlay').classList.remove('open'); clearInterval(hxMetricTimer); });
+function hxCloseControlModal() {
+  const overlay = $('modalOverlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    // The open handler applies inline styles, which override display:none from CSS.
+    overlay.style.removeProperty('display');
+    overlay.style.removeProperty('z-index');
+  }
+  clearInterval(hxMetricTimer);
+  document.querySelectorAll('[data-instance-id]').forEach(button => {
+    delete button.dataset.opening;
+    button.removeAttribute('aria-busy');
+  });
+}
+$('closeModalBtn').addEventListener('click', hxCloseControlModal);
 $('modalOverlay').addEventListener('click', e => {
-  if (e.target === $('modalOverlay')) { $('modalOverlay').classList.remove('open'); clearInterval(hxMetricTimer); }
+  if (e.target === $('modalOverlay')) hxCloseControlModal();
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    $('modalOverlay').classList.remove('open');
-    clearInterval(hxMetricTimer);
+    hxCloseControlModal();
     $('userMenuDropdown').classList.remove('show');
   }
 });
