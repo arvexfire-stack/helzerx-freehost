@@ -2804,7 +2804,7 @@ function renderInstances() {
         </div>
 
         <div class="instance-actions-wrap">
-          <button class="btn-ctrl primary" data-manage="${esc(inst.id)}" ${!canControl ? 'disabled' : ''}>
+          <button class="btn-ctrl primary" type="button" data-manage="${esc(inst.id)}" title="${canControl ? 'Open VPS management' : 'Open management to see the exact limitation or current status'}">
             <span>Manage ↗</span>
           </button>
           <button class="btn-ctrl" data-inspect="${esc(inst.id)}" ${!canControl ? 'disabled' : ''}>
