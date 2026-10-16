@@ -184,6 +184,16 @@ export default function App() {
     setVpsModalPlan(plan);
   }
 
+  async function loadVpsTemplates(nodeId) {
+    const r = await fetch('/api/hosting-templates?nodeId=' + encodeURIComponent(nodeId), {
+      credentials: 'same-origin',
+      cache: 'no-store'
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'Unable to read operating systems from Proxmox.');
+    return Array.isArray(d.templates) ? d.templates : [];
+  }
+
   async function executeHostingRequest(plan, config = {}) {
     setBusy(true);
     try {
@@ -1114,7 +1124,7 @@ export default function App() {
         </div>
       )}
 
-      <VpsDeployModal plan={vpsModalPlan} nodes={vpsDeploymentOptions.nodes} osOptions={vpsDeploymentOptions.osOptions} balance={rewards?.balance || 0} busy={busy} onClose={() => setVpsModalPlan(null)} onDeploy={config => executeHostingRequest(vpsModalPlan, config)} />
+      <VpsDeployModal plan={vpsModalPlan} nodes={vpsDeploymentOptions.nodes} osOptions={vpsDeploymentOptions.osOptions} balance={rewards?.balance || 0} busy={busy} onClose={() => setVpsModalPlan(null)} onLoadTemplates={loadVpsTemplates} onDeploy={config => executeHostingRequest(vpsModalPlan, config)} />
 
       {/* One-time credentials for a newly provisioned LXC */}
       {(generatedPrivateKey || generatedRootPassword) && (
