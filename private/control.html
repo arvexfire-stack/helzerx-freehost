@@ -2682,9 +2682,28 @@ document.addEventListener('click', async event => {
   if (button.dataset.opening === 'true') return;
   button.dataset.opening = 'true';
   button.setAttribute('aria-busy', 'true');
+
+  // Reveal the modal before any instance lookup or network request. Even if live metrics
+  // fail, the user must still see the management workspace and an actionable error.
+  const overlay = document.getElementById('modalOverlay');
+  if (overlay) {
+    overlay.classList.add('open');
+    overlay.style.display = 'flex';
+    overlay.style.zIndex = '99999';
+  } else {
+    showToast('VPS management panel is missing from this page. Refresh the page and try again.', true);
+    delete button.dataset.opening;
+    button.removeAttribute('aria-busy');
+    return;
+  }
+
   try {
     await openControlModal(instanceId);
   } catch (err) {
+    if (overlay) {
+      overlay.classList.add('open');
+      overlay.style.display = 'flex';
+    }
     showToast(err?.message || 'Could not open VPS management. Refresh the page and try again.', true);
   } finally {
     delete button.dataset.opening;
