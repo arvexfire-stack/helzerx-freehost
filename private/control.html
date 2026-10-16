@@ -2029,6 +2029,7 @@ html, body {
 
 .hx-os-select{display:block;width:min(100%,420px);min-height:38px;background:#0b0b14;color:#eeeaf8;border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:9px 11px;font:11px 'Plus Jakarta Sans',sans-serif}.hx-os-select:focus{outline:1px solid #a855f7;border-color:#a855f7}.hx-os-select option{background:#11111c;color:#fff}
 .hx-console-choice-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.hx-console-choice{display:flex;flex-direction:column;align-items:flex-start}.hx-console-choice .hx-unavailable-tag{white-space:normal;line-height:1.5}.hx-terminal-anchor .terminal-block{margin-top:12px}.hx-terminal-anchor .terminal-screen{min-height:170px;max-height:320px;overflow:auto}@media(max-width:900px){.hx-console-choice-grid{grid-template-columns:1fr}}
+.hx-real-console-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hx-console-status{display:block;margin-top:12px;font-size:10px;line-height:1.6;color:#9c96b3}.hx-console-frame-wrap{margin-top:14px;overflow:hidden;border:1px solid rgba(192,132,252,.22);border-radius:13px;background:#07080d}.hx-console-frame-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:#171523;border-bottom:1px solid #ffffff10}.hx-console-frame-head strong{font-size:11px;color:#f5f0ff}.hx-console-frame-wrap iframe{display:block;width:100%;height:min(70vh,680px);border:0;background:#05060a}.hx-console-frame-wrap pre{margin:0;padding:18px;white-space:pre-wrap;overflow-wrap:anywhere;color:#bdb6d3;font:11px/1.6 'JetBrains Mono',monospace}.hx-console-frame-wrap[hidden],.hx-console-frame-wrap iframe[hidden],.hx-console-frame-wrap pre[hidden]{display:none!important}@media(max-width:900px){.hx-real-console-grid{grid-template-columns:1fr}}
 /* Final cascade layer: keep the topbar and sidebar visible beside the right-side inspector. */
 .modal-overlay{position:fixed!important;inset:72px 0 0 220px!important;width:auto!important;height:auto!important;padding:0!important;justify-content:flex-end!important;align-items:stretch!important;background:rgba(4,5,12,.52)!important;backdrop-filter:blur(4px)!important;z-index:25!important}
 .modal-window{width:min(1120px,100%)!important;height:100%!important;max-height:100%!important;border-radius:20px 0 0 0!important;border-right:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;transform:translateX(24px);animation:controlDrawerIn .24s cubic-bezier(.2,.8,.2,1) forwards!important}
@@ -2575,10 +2576,11 @@ html, body {
       <div><small>Hostname</small><b id="hxInfoHostname">—</b></div><div><small>VMID</small><b id="hxInfoVmid">—</b></div><div><small>Node</small><b id="hxInfoNode">—</b></div><div><small>CPU cores</small><b id="hxInfoCores">—</b></div><div><small>Memory allocation</small><b id="hxInfoMemory">—</b></div><div><small>OS / template</small><b id="hxInfoOs">—</b></div><div><small>Network inbound</small><b id="hxNetIn">—</b></div><div><small>Network outbound</small><b id="hxNetOut">—</b></div></div></div>
   </section>
   <section class="hx-tab-panel" data-hxpanel="resources"><div class="hx-panel-card"><header><div><h4>Resource allocation</h4><p>Limits and current usage read from the Proxmox container API</p></div></header><div class="hx-details-grid"><div><small>CPU cores</small><b id="hxResCores">—</b></div><div><small>Memory limit</small><b id="hxResMemory">—</b></div><div><small>Root filesystem</small><b id="hxResDisk">—</b></div><div><small>Swap allocation</small><b id="hxResSwap">—</b></div><div><small>CPU usage now</small><b id="hxResCpu">—</b></div><div><small>Memory usage now</small><b id="hxResMem">—</b></div><div><small>Network inbound</small><b id="hxResNetIn">—</b></div><div><small>Network outbound</small><b id="hxResNetOut">—</b></div></div><p class="hx-note">Usage figures are shown only when Proxmox supplies the corresponding live metric. Disk-used and network-rate history require compatible Proxmox metrics and sampling.</p></div></section>
-  <section class="hx-tab-panel" data-hxpanel="console"><div class="hx-console-choice-grid">
-    <article class="hx-console-choice"><div class="hx-console-icon">$_</div><h4>Interactive terminal</h4><p>A persistent browser terminal needs a secured interactive PTY/WebSocket backend. The existing one-shot command runner is available below; it is not presented as a live console.</p><button type="button" class="btn-ctrl" id="hxOpenRunner">Open command runner ↓</button></article>
-    <article class="hx-console-choice"><div class="hx-console-icon">▣</div><h4>Proxmox / noVNC console</h4><p>Requires a short-lived Proxmox console ticket and authenticated WebSocket proxy. This server does not yet expose that proxy, so no fake console link is shown.</p><span class="hx-unavailable-tag">Backend integration required</span></article>
-  </div><div class="hx-panel-card hx-terminal-anchor" id="hxCommandRunnerAnchor"><header><div><h4>Command runner</h4><p>Runs a single command inside this container; output is not an interactive shell.</p></div><span class="hx-source-tag">60s LIMIT</span></header><div class="hx-note">Use the existing command form below. Do not paste secrets into commands that may be recorded in audit metadata.</div></div></section>
+  <section class="hx-tab-panel" data-hxpanel="console"><div class="hx-console-choice-grid hx-real-console-grid">
+    <article class="hx-console-choice"><div class="hx-console-icon">$_</div><h4>Xterm.js Console</h4><p>Interactive shell inside your VPS. This requires a PTY/WebSocket bridge authenticated against your VPS ownership and Proxmox node.</p><button type="button" class="btn-ctrl" id="hxLaunchXterm">Launch Xterm Console</button><span class="hx-console-status" id="hxXtermStatus" role="status">Checking console service…</span></article>
+    <article class="hx-console-choice"><div class="hx-console-icon">▣</div><h4>noVNC Console</h4><p>Graphical console provided by Proxmox. A short-lived VNC ticket and protected WebSocket connection are required; no Proxmox credentials are sent to the browser.</p><button type="button" class="btn-ctrl" id="hxLaunchNoVnc">Launch noVNC Console</button><span class="hx-console-status" id="hxNoVncStatus" role="status">Checking console service…</span></article>
+  </div>
+  <div class="hx-console-frame-wrap" id="hxConsoleFrameWrap" hidden><div class="hx-console-frame-head"><strong id="hxConsoleFrameTitle">VPS Console</strong><button type="button" class="btn-ctrl" id="hxCloseConsole">Close console</button></div><iframe id="hxConsoleFrame" title="VPS web console" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads" referrerpolicy="no-referrer" allow="clipboard-read; clipboard-write" hidden></iframe><pre id="hxConsolePlaceholder">Console service status will appear here.</pre></div></section>
   <section class="hx-tab-panel" data-hxpanel="snapshots"><div class="hx-panel-card"><header><div><h4>Snapshots & restore points</h4><p>Create and manage restore points for this VPS</p></div></header><p class="hx-note">Use the snapshot controls below. Restore is not enabled unless the backend explicitly supports and validates a restore operation.</p><div id="hxSnapshotMirror"></div></div></section>
   <section class="hx-tab-panel" data-hxpanel="settings"><div class="hx-panel-card"><header><div><h4>Configuration</h4><p>Live container configuration from Proxmox</p></div><span class="hx-source-tag">READ ONLY</span></header><pre class="hx-config-json" id="hxConfigJson">Loading configuration…</pre><div class="hx-reinstall-box"><div><h4>Reinstall operating system</h4><p>Choose an OS template available on this VPS node. Reinstall stays locked until the server has a tested, ownership-checked rebuild workflow; selecting a template will not delete or modify your current VPS.</p><label for="hxOsTemplate" style="display:block;font-size:10px;color:#b9b3cc;margin:12px 0 6px">Available Proxmox templates</label><select id="hxOsTemplate" class="hx-os-select"><option value="">Load templates…</option></select><small id="hxOsTemplateStatus" style="display:block;font-size:9px;color:#9993ad;margin-top:7px">Templates are fetched from the configured Proxmox node.</small></div><button type="button" class="btn-ctrl" id="hxReinstallBtn" disabled title="Rebuild backend is not implemented yet">Reinstall unavailable</button></div></div></section>
 
@@ -2632,27 +2634,7 @@ html, body {
         </div>
       </div>
 
-      <!-- Embedded Terminal Console -->
-      <div>
-        <div class="modal-section-title">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-          <span>Command Runner · Non-interactive</span>
-        </div>
-        <div class="terminal-block">
-          <div class="terminal-header">
-            <div class="terminal-dots">
-              <span></span><span></span><span></span>
-            </div>
-            <span>One command per request · 60s limit</span>
-          </div>
-          <div class="terminal-screen" id="terminalOutput">One-shot command runner. A persistent Proxmox web console is not configured on this server.</div>
-          <form class="terminal-input-form" id="terminalForm">
-            <span style="color:var(--purple-light);font-family:monospace;font-weight:700">$</span>
-            <input type="text" id="cmdInput" placeholder="whoami && uname -a && uptime" autocomplete="off" spellcheck="false" required>
-            <button class="btn-ctrl primary" type="submit" id="btnRunCmd">Execute ↗</button>
-          </form>
-        </div>
-      </div>
+      <!-- Legacy one-shot command runner removed: only real interactive consoles belong in this workspace. -->
 
     </div>
   </div>
@@ -3007,16 +2989,25 @@ async function hxLoadOsTemplates(){
   status.textContent=rows.length+' template(s) found on '+nodeId+'. Reinstall is locked until the safe rebuild backend is deployed.';
  }catch(err){select.innerHTML='<option value="">Could not load templates</option>';status.textContent=err.message||'Template lookup failed.';}
 }
-function hxMoveLegacyTerminal(){
- const form=$('terminalForm'),anchor=$('hxCommandRunnerAnchor');
- if(!form||!anchor||anchor.contains(form))return;
- const block=form.closest('.terminal-block');if(!block)return;
- const title=block.previousElementSibling;
- if(title&&title.classList.contains('modal-section-title'))title.remove();
- anchor.appendChild(block);
- const label=block.querySelector('.terminal-header span:last-child');
- if(label)label.textContent='One command per request · 60s limit';
+function hxConsoleStatus(id,message,isError=false){const el=$(id);if(el){el.textContent=message;el.style.color=isError?'#fca5a5':'#a7f3d0';}}
+async function hxLaunchConsole(kind){
+ const isVnc=kind==='novnc',statusId=isVnc?'hxNoVncStatus':'hxXtermStatus',button=$(isVnc?'hxLaunchNoVnc':'hxLaunchXterm');
+ if(!currentInstanceId){hxConsoleStatus(statusId,'Open a VPS first.',true);return;}
+ if(button)button.disabled=true;hxConsoleStatus(statusId,'Requesting a secure console session…');
+ try{
+  const endpoint='/api/control/instances/'+encodeURIComponent(currentInstanceId)+'/console/'+(isVnc?'novnc':'xterm');
+  const d=await api(endpoint,{method:'POST',body:JSON.stringify({})});
+  if(!d.url)throw new Error('The server did not return a console URL.');
+  const frame=$('hxConsoleFrame'),wrap=$('hxConsoleFrameWrap'),placeholder=$('hxConsolePlaceholder');
+  $('hxConsoleFrameTitle').textContent=isVnc?'noVNC — '+($('modalTitle')?.textContent||'VPS'):'Xterm.js — '+($('modalTitle')?.textContent||'VPS');
+  frame.src=d.url;frame.hidden=false;placeholder.hidden=true;wrap.hidden=false;
+  hxConsoleStatus(statusId,'Console session opened.');
+ }catch(err){hxConsoleStatus(statusId,err.message||'Console service unavailable.',true);showToast(err.message||'Console service unavailable.',true);}
+ finally{if(button)button.disabled=false;}
 }
+$('hxLaunchXterm')?.addEventListener('click',()=>hxLaunchConsole('xterm'));
+$('hxLaunchNoVnc')?.addEventListener('click',()=>hxLaunchConsole('novnc'));
+$('hxCloseConsole')?.addEventListener('click',()=>{const frame=$('hxConsoleFrame');if(frame)frame.src='about:blank';$('hxConsoleFrameWrap').hidden=true;});
 function hxOpenSettingsTab(){
  const b=document.querySelector('[data-hxtab="settings"]');
  if(b){b.click();hxLoadOsTemplates();}
@@ -3025,7 +3016,7 @@ function hxStartMetricPolling(){clearInterval(hxMetricTimer);hxMetricHistory.cpu
 document.querySelector('[data-hxtab="settings"]')?.addEventListener('click',hxLoadOsTemplates);
 document.querySelectorAll('[data-hxtab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-hxtab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-hxpanel]').forEach(x=>x.classList.toggle('active',x.dataset.hxpanel===b.dataset.hxtab));if(b.dataset.hxtab==='summary'){hxDrawChart('hxCpuChart','cpu');hxDrawChart('hxMemChart','mem');}}));
 $('hxRefreshLive')?.addEventListener('click',hxRefreshMetrics);
-$('hxOpenRunner')?.addEventListener('click',()=>{const el=$('terminalForm');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});$('cmdInput')?.focus();}});
+
 
 async function openControlModal(id) {
   currentInstanceId = id;
@@ -3042,7 +3033,6 @@ async function openControlModal(id) {
   $('terminalOutput').textContent = 'Terminal ready for ' + (item.hostname || 'container') + '. Enter command below.';
 
   $('modalOverlay').classList.add('open');
-  hxMoveLegacyTerminal();
   hxStartMetricPolling();
 
   try {
