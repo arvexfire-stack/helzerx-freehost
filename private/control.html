@@ -1,218 +1,2824 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0a0907"><title>Control Center · HelzerX FreeHost</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#121319">
+<title>Sapphire UI · HelzerX Cloud Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:dark;--bg:#090907;--panel:#11110e;--panel2:#171610;--line:rgba(255,190,50,.17);--gold:#ffc247;--gold2:#ff9d22;--text:#f8f5ec;--muted:#a7a293;--green:#69e4a5;--red:#ff7e75;--radius:22px}
-*{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 80% -15%,rgba(255,168,28,.16),transparent 42%),radial-gradient(ellipse at -10% 30%,rgba(255,195,64,.06),transparent 34%),var(--bg);min-height:100vh}
-button,input{font:inherit}button{cursor:pointer}.shell{max-width:1440px;margin:auto;padding:24px clamp(16px,3vw,42px) 60px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 0 24px;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}.logo{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(145deg,#ffe19a,#ffb329 55%,#b96709);color:#211300;font-weight:950;font-size:18px;box-shadow:0 8px 28px #ffb52b24,inset 0 1px #fff8}.brand strong{display:block;font-size:15px;letter-spacing:.02em}.brand small{display:block;color:var(--muted);font-size:12px;margin-top:2px}.top-actions{display:flex;align-items:center;gap:10px}.pill{border:1px solid var(--line);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:12px;display:flex;align-items:center;gap:8px}.dot{width:7px;height:7px;background:var(--green);border-radius:50%;box-shadow:0 0 12px #69e4a588}.btn{border:1px solid var(--line);background:#ffffff06;color:var(--text);border-radius:12px;padding:10px 14px;transition:transform .2s,border-color .2s,background .2s}.btn:hover{transform:translateY(-2px);border-color:#ffc24788;background:#ffc2470d}.btn.primary{background:linear-gradient(135deg,#ffd77d,#ffae2b);color:#201300;border:0;font-weight:800;box-shadow:0 8px 24px #ffb32920}.btn.danger{color:#ff9b91;border-color:#ff7e7538}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.hero{padding:40px 0 26px;display:flex;justify-content:space-between;align-items:end;gap:24px}.eyebrow{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.19em;text-transform:uppercase}.hero h1{font-size:clamp(34px,5vw,62px);letter-spacing:-.055em;line-height:1.02;margin:12px 0 14px;max-width:750px}.hero h1 span{color:var(--gold)}.hero p{color:var(--muted);max-width:610px;margin:0}.hero-side{min-width:180px;text-align:right;color:var(--muted);font-size:12px}.hero-side strong{display:block;color:var(--text);font-size:22px;margin-bottom:3px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:10px 0 28px}.stat,.panel,.instance{border:1px solid var(--line);background:linear-gradient(145deg,rgba(255,255,255,.035),transparent 65%),var(--panel);border-radius:var(--radius);box-shadow:0 18px 48px #0003,inset 0 1px #ffffff06}.stat{padding:19px;min-height:122px;position:relative;overflow:hidden}.stat:after{content:"";position:absolute;width:100px;height:100px;right:-35px;bottom:-50px;border-radius:50%;background:#ffc2470a;filter:blur(2px)}.stat label{color:var(--muted);font-size:12px}.stat strong{display:block;font-size:29px;letter-spacing:-.04em;margin:7px 0 1px}.stat small{font-size:11px;color:var(--muted)}.layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(290px,.75fr);gap:18px;align-items:start}.panel{padding:22px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.panel h2{font-size:17px;margin:0;letter-spacing:-.02em}.panel-head p{font-size:12px;color:var(--muted);margin:5px 0 0}.instances{display:grid;gap:12px}.instance{padding:18px;border-radius:18px;background:linear-gradient(125deg,#ffc2470b,transparent 42%),var(--panel2);transition:border-color .2s,transform .2s}.instance:hover{border-color:#ffc2475a;transform:translateY(-2px)}.instance-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.instance-name{display:flex;align-items:center;gap:12px;min-width:0}.server-icon{width:42px;height:42px;flex:none;display:grid;place-items:center;border:1px solid #ffc24735;background:#ffc2470c;border-radius:14px;color:var(--gold);font-size:18px}.instance-name h3{margin:0;font-size:15px;overflow-wrap:anywhere}.instance-name p{margin:3px 0 0;color:var(--muted);font-size:12px}.status{white-space:nowrap;border-radius:999px;padding:5px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;border:1px solid var(--line);color:var(--muted)}.status.provisioned{color:var(--green);border-color:#69e4a533;background:#69e4a50c}.status.suspended,.status.deleted,.status.provisioning-error{color:var(--red);border-color:#ff7e7533;background:#ff7e750a}.meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0}.meta{padding:10px;border:1px solid #ffffff0a;border-radius:12px;background:#0002}.meta small{display:block;color:var(--muted);font-size:10px}.meta b{display:block;font-size:13px;margin-top:4px;overflow-wrap:anywhere}.instance-actions{display:flex;flex-wrap:wrap;gap:8px}.instance-actions .btn{font-size:12px;padding:8px 11px}.empty{padding:34px 18px;text-align:center;border:1px dashed #ffc24733;border-radius:18px;color:var(--muted)}.empty b{display:block;color:var(--text);margin-bottom:5px}.side-stack{display:grid;gap:18px}.quick-links{display:grid;gap:9px}.quick-link{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #ffffff0d;background:#ffffff03;border-radius:14px;color:inherit;text-decoration:none}.quick-link:hover{border-color:#ffc2474d}.quick-link .glyph{width:35px;height:35px;display:grid;place-items:center;background:#ffc2470e;color:var(--gold);border-radius:11px}.quick-link b{display:block;font-size:13px}.quick-link small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.note{color:var(--muted);font-size:12px;margin:14px 0 0}.notice{margin:16px 0;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#ffc2470a;color:#d9cba8;font-size:12px}.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:20;max-width:calc(100vw - 28px);padding:13px 18px;border-radius:14px;background:#211d12;border:1px solid #ffc24755;box-shadow:0 16px 50px #0008;transition:.25s}.toast.show{opacity:1;transform:translate(-50%,0)}.toast.error{border-color:#ff7e7566}.modal-backdrop{position:fixed;inset:0;background:#000b;backdrop-filter:blur(10px);z-index:30;display:none;align-items:center;justify-content:center;padding:16px}.modal-backdrop.open{display:flex}.modal{width:min(900px,100%);max-height:92vh;overflow:auto;background:#10100d;border:1px solid #ffc24744;border-radius:24px;box-shadow:0 35px 100px #000b}.modal-head{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:20px 22px;background:#10100df2;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.modal-head h2{margin:0;font-size:17px}.modal-body{padding:22px;display:grid;gap:16px}.live-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.live-box{padding:13px;border:1px solid var(--line);border-radius:14px;background:#ffffff03}.live-box small{display:block;color:var(--muted);font-size:10px}.live-box strong{display:block;font-size:18px;margin-top:5px;overflow-wrap:anywhere}.section-title{font-size:13px;font-weight:800;margin:0 0 10px}.terminal{border:1px solid #343024;border-radius:14px;overflow:hidden;background:#070806}.terminal-top{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:#14130e;color:var(--muted);font-size:11px}.terminal-output{padding:14px;min-height:95px;max-height:220px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 ui-monospace,SFMono-Regular,monospace;color:#d7d4c8}.terminal-form{display:flex;gap:8px;padding:10px;border-top:1px solid #ffffff10}.terminal-form input,.snapshot-form input{min-width:0;flex:1;background:#090907;border:1px solid #ffffff19;color:var(--text);border-radius:10px;padding:11px;outline:none}.terminal-form input:focus,.snapshot-form input:focus{border-color:#ffc24788}.snapshot-form{display:flex;gap:8px}.snapshots{display:flex;flex-wrap:wrap;gap:8px}.snapshot-chip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);padding:7px 9px;border-radius:10px;color:var(--muted);font-size:11px}.snapshot-chip button{border:0;background:none;color:var(--red);padding:0 3px}.modal-actions{display:flex;flex-wrap:wrap;gap:8px}.muted{color:var(--muted)}.loading{padding:26px;color:var(--muted);text-align:center}.footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#777366;font-size:11px;padding-top:24px}
-@media(max-width:950px){.layout{grid-template-columns:1fr}.side-stack{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{align-items:flex-start;flex-direction:column}.hero-side{text-align:left}.live-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){.shell{padding:12px 13px 35px}.topbar{padding:8px 0 16px}.top-actions .pill{display:none}.logo{width:39px;height:39px}.hero{padding:30px 0 18px}.hero h1{font-size:38px}.stats{gap:9px}.stat{padding:14px;min-height:105px}.stat strong{font-size:24px}.layout{gap:12px}.panel{padding:15px;border-radius:18px}.side-stack{grid-template-columns:1fr}.meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.instance-top{align-items:flex-start}.instance-actions .btn{flex:1}.modal-head,.modal-body{padding:15px}.terminal-form,.snapshot-form{flex-direction:column}.terminal-form .btn,.snapshot-form .btn{width:100%}.live-grid{gap:8px}}
-
-/* Refined responsive control-center polish */
-:root{--radius:20px}
-body{background:radial-gradient(ellipse at 78% -12%,rgba(255,174,42,.2),transparent 38%),radial-gradient(ellipse at 12% 52%,rgba(70,100,145,.08),transparent 32%),#090907;background-attachment:fixed}
-.shell{perspective:1200px}
-.topbar{position:relative}
-.topbar:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,#ffc24755,transparent)}
-.logo{transform:rotate(-3deg);transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}
-.brand:hover .logo{transform:rotate(0) translateY(-2px) scale(1.04);box-shadow:0 12px 32px #ffb52b38,inset 0 1px #fff8}
-.hero{padding-top:34px}
-.hero h1{font-size:clamp(32px,4.4vw,56px);max-width:720px}
-.stat,.panel,.instance{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transform-style:preserve-3d}
-.stat{transition:transform .28s,border-color .28s,box-shadow .28s}
-.stat:hover{transform:translateY(-4px) rotateX(1deg);border-color:#ffc24755;box-shadow:0 24px 55px #0005,0 0 28px #ffc24708,inset 0 1px #ffffff0b}
-.stat strong{font-size:clamp(23px,2.2vw,29px);font-variant-numeric:tabular-nums}
-.panel{box-shadow:0 20px 55px #0004,inset 0 1px #ffffff08}
-.instance{position:relative;overflow:hidden}
-.instance:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,#ffc24708,transparent 36%,transparent 72%,#ffffff02);opacity:.8}
-.instance:hover{transform:translateY(-3px) rotateX(.35deg);box-shadow:0 18px 38px #0004,inset 0 1px #ffffff09}
-.server-icon{box-shadow:inset 0 1px #ffffff0b,0 8px 20px #0003;transform:translateZ(10px)}
-.instance-name h3{font-size:14px;line-height:1.35}
-.instance-name p{line-height:1.4}
-.meta-grid{margin:13px 0}
-.meta{min-width:0}
-.meta b{font-size:12px;line-height:1.35;overflow-wrap:normal;word-break:normal}
-.meta small{letter-spacing:.035em}
-.status{font-size:9px;padding:5px 8px}
-.note{line-height:1.55}
-@keyframes gentleFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-@keyframes panelEnter{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
-.hero,.stats,.layout{animation:panelEnter .55s ease both}
-.stats{animation-delay:.06s}.layout{animation-delay:.12s}
-.server-icon{animation:gentleFloat 5s ease-in-out infinite}
-@media(max-width:950px){
- .hero{padding-top:28px}
- .hero h1{font-size:clamp(32px,6vw,46px)}
- .layout{gap:14px}
- .panel{padding:18px}
- .side-stack{gap:14px}
-}
-@media(max-width:560px){
- .shell{padding:10px 12px 28px}
- .topbar{gap:8px;padding-bottom:13px}
- .brand{gap:9px;min-width:0}
- .brand strong{font-size:13px}.brand small{font-size:10px}
- .top-actions{gap:6px}
- .top-actions .btn{padding:8px 9px;font-size:11px;border-radius:10px}
- .hero{padding:25px 0 15px;gap:12px}
- .hero h1{font-size:clamp(29px,8.2vw,36px);line-height:1.08;letter-spacing:-.045em;margin:9px 0 10px}
- .hero p{font-size:13px;line-height:1.6}
- .hero-side strong{font-size:18px}
- .stats{gap:8px;margin:8px 0 15px}
- .stat{padding:12px 11px;min-height:94px;border-radius:16px}
- .stat label{font-size:10px}
- .stat strong{font-size:clamp(19px,5.8vw,23px);margin:6px 0 2px;letter-spacing:-.035em}
- .stat small{font-size:9px;line-height:1.35;display:block;max-width:100%}
- .layout{gap:11px}
- .panel{padding:13px;border-radius:17px}
- .panel-head{margin-bottom:13px;align-items:flex-start}
- .panel h2{font-size:15px}
- .panel-head p{font-size:11px;line-height:1.45}
- .panel-head .pill{font-size:10px;padding:6px 8px}
- .instances{gap:10px}
- .instance{padding:13px;border-radius:15px}
- .instance-top{gap:8px}
- .instance-name{gap:9px}
- .server-icon{width:35px;height:35px;border-radius:11px;font-size:15px}
- .instance-name h3{font-size:13px}
- .instance-name p{font-size:10px}
- .status{font-size:8px;letter-spacing:.035em;padding:4px 6px;max-width:42%;white-space:normal;text-align:center}
- .meta-grid{gap:7px;margin:11px 0}
- .meta{padding:8px;border-radius:10px}
- .meta small{font-size:9px}
- .meta b{font-size:11px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- .instance-actions{gap:6px}
- .instance-actions .btn{font-size:10px;padding:8px 7px;line-height:1.3;min-width:0}
- .notice{font-size:10px;line-height:1.5;padding:10px 11px;margin:12px 0 0}
- .quick-link{padding:10px;gap:10px}
- .quick-link .glyph{width:31px;height:31px;flex:none}
- .quick-link b{font-size:12px}.quick-link small{font-size:10px;line-height:1.4}
- .note{font-size:10px;line-height:1.5}
- .footer{font-size:10px;padding-top:18px}
- .live-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media(prefers-reduced-motion:reduce){
- *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+:root {
+  --bg-outer: #191c24;
+  --bg-frame: #121319;
+  --bg-surface: #171821;
+  --bg-surface-elevated: #1d1e2a;
+  --bg-card: #181923;
+  --bg-card-hover: #202230;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.08);
+  --border-purple-glow: rgba(192, 132, 252, 0.8);
+  
+  --purple-primary: #a855f7;
+  --purple-light: #c084fc;
+  --purple-vibrant: #9333ea;
+  --purple-dark: #3b0764;
+  --purple-tint: rgba(168, 85, 247, 0.14);
+  --purple-tint-subtle: rgba(168, 85, 247, 0.08);
+  
+  --text-main: #f8fafc;
+  --text-muted: #8e8b9f;
+  --text-dim: #646274;
+  
+  --accent-green: #4ade80;
+  --accent-orange: #fb923c;
+  --accent-red: #f87171;
+  --accent-cyan: #38bdf8;
+  
+  --radius-frame: 28px;
+  --radius-card: 20px;
+  --radius-btn: 14px;
 }
 
-/* Dashboard visual rebuild — inspired by the supplied dark SaaS dashboard reference */
-:root{color-scheme:dark;--bg:#101016;--panel:#17171f;--panel2:#1b1b25;--line:rgba(183,147,255,.15);--gold:#c39bff;--gold2:#8e68ff;--text:#f6f3ff;--muted:#9693a8;--green:#76e6c0;--red:#ff829d;--radius:21px}
-html,body{background:#101016}
-body{font-family:Inter,"SF Pro Display",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 68% 0%,#38234d44,transparent 34%),radial-gradient(ellipse at 15% 80%,#28204422,transparent 35%),#101016;color:var(--text);letter-spacing:-.012em}
-.dashboard-sidebar{position:fixed;z-index:15;inset:0 auto 0 0;width:224px;padding:25px 16px 18px;background:linear-gradient(180deg,#15151e,#121219);border-right:1px solid #ffffff0a;display:flex;flex-direction:column;gap:7px}
-.sidebar-brand{display:flex;align-items:center;gap:11px;color:var(--text);text-decoration:none;padding:3px 7px 29px}
-.sidebar-mark{width:39px;height:39px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,#d9baff,#a37aff 55%,#7045dd);color:#171020;font-weight:950;box-shadow:0 7px 25px #9a70ff35,inset 0 1px #fff9}
-.sidebar-brand b{display:block;font-size:14px;letter-spacing:.01em}.sidebar-brand small{display:block;color:#8f8aa3;font-size:9px;letter-spacing:.2em;margin-top:2px}
-.sidebar-label{font-size:9px;letter-spacing:.18em;color:#77748a;font-weight:800;padding:14px 11px 5px}
-.sidebar-link{display:flex;align-items:center;gap:11px;text-decoration:none;color:#a8a5b8;font-size:12px;padding:11px 12px;border-radius:12px;transition:background .2s,color .2s,transform .2s}
-.sidebar-link span{width:17px;text-align:center;font-size:15px;color:#a49abf}.sidebar-link:hover,.sidebar-link.active{background:linear-gradient(100deg,#9c72ff26,#9c72ff0b);color:#fff}.sidebar-link.active{box-shadow:inset 2px 0 #b895ff}.sidebar-link:hover{transform:translateX(2px)}
-.sidebar-bottom{margin-top:auto;border:1px solid #a37aff20;border-radius:17px;padding:15px 13px;background:radial-gradient(circle at 100% 0,#9d72ff20,transparent 54%),#1a1924}
-.sidebar-orb{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;background:#a17aff1c;color:#c6aaff;margin-bottom:12px}.sidebar-bottom b{display:block;font-size:12px}.sidebar-bottom small{display:block;color:var(--muted);font-size:10px;line-height:1.5;margin:6px 0 12px}.sidebar-bottom a{color:#c8adff;font-size:10px;text-decoration:none}
-.shell{max-width:none;margin-left:224px;padding:0 clamp(18px,2.7vw,42px) 38px;perspective:none}
-.topbar{min-height:76px;padding:15px 0;border-bottom:1px solid #ffffff0b}
-.brand{display:none}.topbar:after{display:none}
-.top-actions .pill{background:#1b1b25;border-color:#ffffff0d;color:#aaa6bb}.top-actions .btn{border-color:#ffffff12;background:#1a1a24;border-radius:11px;font-size:11px;padding:9px 12px}.top-actions .btn:hover{background:#262332;border-color:#b997ff66}
-.hero{padding:29px 0 18px;align-items:center;gap:18px}.hero .eyebrow{font-size:9px;letter-spacing:.18em;color:#bd9bff}.hero h1{font-size:clamp(29px,3vw,42px);line-height:1.08;letter-spacing:-.055em;margin:9px 0 10px;max-width:650px}.hero h1 span{color:#c1a0ff}.hero p{font-size:12px;line-height:1.7;max-width:550px;color:#a5a1b5}.hero-side{border:1px solid #ffffff0d;background:#1a1a24;border-radius:14px;padding:12px 15px;text-align:left;min-width:190px}.hero-side strong{font-size:14px;margin-bottom:4px}.hero-side span{font-size:10px}
-.feature-banner{position:relative;isolation:isolate;min-height:210px;overflow:hidden;border:1px solid #9e7aff45;border-radius:23px;background:radial-gradient(ellipse at 74% 40%,#5b3b8b40,transparent 38%),linear-gradient(112deg,#171a29,#191522 60%,#21162c);box-shadow:0 16px 45px #0004,inset 0 1px #ffffff12;display:grid;grid-template-columns:1.1fr .9fr;margin:4px 0 18px}
-.feature-banner:before{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(120deg,transparent 45%,#bd9bff09 70%,#f28dff0d);pointer-events:none}
-.feature-copy{padding:25px 28px;align-self:center}.feature-kicker{font-size:9px;letter-spacing:.16em;color:#c5a8ff;font-weight:800}.feature-kicker i,.feature-live i,.art-chip i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#8ce8c7;box-shadow:0 0 12px #8ce8c788;margin-right:7px}
-.feature-copy h2{font-size:clamp(25px,3vw,38px);line-height:1.02;letter-spacing:-.055em;margin:12px 0 9px}.feature-copy h2 span{background:linear-gradient(95deg,#8bdcff,#c59aff 55%,#ff9edb);-webkit-background-clip:text;background-clip:text;color:transparent}.feature-copy p{max-width:390px;font-size:11px;line-height:1.7;color:#aaa5bd;margin:0}
-.feature-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:19px;font-size:9px;color:#88859c}.feature-live{color:#b6b1c7}.feature-sep{height:13px;width:1px;background:#ffffff22}
-.feature-art{position:relative;min-height:210px;display:grid;place-items:center;overflow:hidden;perspective:700px}
-.feature-art:before{content:"";position:absolute;width:220px;height:160px;background:#9b65ff30;filter:blur(55px);border-radius:50%}
-.art-ring{position:absolute;width:205px;height:125px;border:1px solid #bd9aff60;border-radius:50%;transform:rotate(-28deg) rotateX(56deg);box-shadow:0 0 22px #a16bff17;animation:ringDrift 9s ease-in-out infinite}
-.ring-two{width:160px;height:185px;transform:rotate(35deg) rotateX(58deg);border-color:#7ad9ff52;animation-duration:11s}.ring-three{width:250px;height:90px;transform:rotate(20deg) rotateX(61deg);border-color:#e49bff40;animation-duration:13s}
-.art-core{width:104px;height:104px;position:relative;z-index:2;display:grid;place-items:center;border-radius:29px;transform:rotate(-12deg) rotateY(-15deg);background:linear-gradient(145deg,#bfa2ff,#7547d4 60%,#422576);box-shadow:0 22px 45px #0008,0 0 55px #9d70ff55,inset 1px 1px #fff9,inset -9px -12px 22px #28134880;animation:coreFloat 5s ease-in-out infinite}
-.core-mark{font-size:28px;font-weight:950;letter-spacing:-.09em;color:#211332;transform:rotate(12deg);text-shadow:0 1px #fff7}.core-light{position:absolute;inset:8px;border:1px solid #ffffff3b;border-radius:23px;pointer-events:none}
-.art-chip{position:absolute;z-index:3;border:1px solid #ffffff1c;background:#171522d9;box-shadow:0 10px 25px #0005;backdrop-filter:blur(10px);border-radius:10px;padding:8px 10px;color:#e7dcff;font-size:9px;letter-spacing:.05em}.art-chip small{display:block;color:#9992b1;font-size:7px;margin-top:2px}.chip-one{left:8%;top:20%}.chip-two{right:7%;top:24%;font-size:8px}.chip-three{right:10%;bottom:14%}
-.stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:0 0 17px}.stat,.panel,.instance{border:1px solid #ffffff0c;background:linear-gradient(145deg,#ffffff05,transparent 60%),#191921;border-radius:17px;box-shadow:0 12px 32px #0002,inset 0 1px #ffffff07;backdrop-filter:blur(12px)}
-.stat{padding:15px 16px;min-height:102px}.stat:after{width:85px;height:85px;background:#b18aff0b}.stat label{font-size:10px;color:#aaa6ba}.stat strong{font-size:25px;margin:7px 0 2px;letter-spacing:-.045em}.stat small{font-size:9px;color:#827f95}
-.layout{grid-template-columns:minmax(0,1.55fr) minmax(245px,.72fr);gap:14px;align-items:start}
-.panel{padding:18px}.panel-head{margin-bottom:14px}.panel h2{font-size:14px;letter-spacing:-.025em}.panel-head p{font-size:10px;color:#8f8ba1}.panel-head .pill{font-size:9px;padding:6px 9px;background:#22212d;border-color:#ffffff0b}
-.instances{gap:9px}.instance{padding:14px;border-radius:15px;background:linear-gradient(120deg,#a17aff08,transparent 45%),#1b1b25;transition:transform .25s,border-color .25s,box-shadow .25s}.instance:hover{transform:translateY(-3px);border-color:#b997ff45;box-shadow:0 17px 35px #0004}
-.server-icon{width:37px;height:37px;border-radius:12px;border-color:#b997ff2b;background:linear-gradient(145deg,#b997ff1c,#7c56e30b);color:#c4a5ff;box-shadow:0 7px 18px #0003}.instance-name h3{font-size:12px}.instance-name p{font-size:10px;color:#8f8ba1}.status{border-color:#ffffff12;background:#ffffff04;font-size:8px}.status.provisioned{color:#80e8c4;border-color:#76e6c025;background:#76e6c20c}
-.meta-grid{margin:12px 0;gap:7px}.meta{padding:9px;border-color:#ffffff08;background:#111118;border-radius:10px}.meta small{font-size:9px;color:#8f8ba1}.meta b{font-size:11px;color:#e3deef}.instance-actions .btn{font-size:10px;padding:8px 10px;border-radius:10px;background:#23222e;border-color:#ffffff10}.instance-actions .btn.primary{background:linear-gradient(135deg,#d0b8ff,#9d79ff);color:#201433;border:0;box-shadow:0 7px 19px #9d79ff20}
-.side-stack{gap:13px}.quick-links{gap:7px}.quick-link{padding:10px;border-color:#ffffff0a;background:#1c1c26;border-radius:12px;gap:10px}.quick-link:hover{border-color:#b997ff45;background:#22202e}.quick-link .glyph{width:31px;height:31px;border-radius:10px;background:#a17aff17;color:#c7aaff;font-size:13px}.quick-link b{font-size:11px}.quick-link small{font-size:9px;color:#8e8a9f}.note{font-size:10px;color:#8e8a9f;line-height:1.65}.notice{border-color:#b997ff1c;background:#a17aff0b;color:#a9a3bb;font-size:10px;line-height:1.6}
-.footer{color:#777489;font-size:9px;padding-top:18px}.modal{background:#17171f;border-color:#b997ff2b}.modal-head{background:#17171ff2;border-color:#ffffff0c}.modal-head h2{font-size:16px}.live-box{border-color:#ffffff10;background:#1d1d27}.terminal{border-color:#ffffff12}.terminal-top{background:#1d1d27}.terminal-form input,.snapshot-form input{background:#111118;border-color:#ffffff16}.toast{background:#211b30;border-color:#b997ff55}
-@keyframes coreFloat{0%,100%{transform:translateY(0) rotate(-12deg) rotateY(-15deg)}50%{transform:translateY(-8px) rotate(-8deg) rotateY(-8deg)}}
-@keyframes ringDrift{0%,100%{filter:brightness(.85);transform:rotate(-28deg) rotateX(56deg) translateY(0)}50%{filter:brightness(1.25);transform:rotate(-22deg) rotateX(56deg) translateY(-4px)}}
-@media(max-width:1100px){.dashboard-sidebar{width:190px}.shell{margin-left:190px}.layout{grid-template-columns:1fr}.side-stack{grid-template-columns:repeat(2,minmax(0,1fr))}.feature-banner{grid-template-columns:1.05fr .95fr}}
-@media(max-width:760px){.dashboard-sidebar{width:65px;padding:17px 8px}.sidebar-brand{justify-content:center;padding:0 0 24px}.sidebar-brand>span:last-child,.sidebar-label,.sidebar-link:not(.active),.sidebar-bottom{display:none}.sidebar-link{justify-content:center;padding:12px 0;font-size:0}.sidebar-link span{font-size:17px}.shell{margin-left:65px;padding:0 15px 28px}.brand{display:none}.hero{padding-top:24px}.feature-banner{grid-template-columns:1fr .7fr;min-height:190px}.feature-copy{padding:20px}.feature-art{min-height:190px}.art-core{width:78px;height:78px;border-radius:23px}.core-mark{font-size:22px}.art-ring{width:150px;height:95px}.ring-two{width:120px;height:140px}.ring-three{width:180px;height:70px}.chip-one{left:3%;top:15%}.chip-two{right:3%;top:18%}.chip-three{right:3%;bottom:12%}}
-@media(max-width:560px){.dashboard-sidebar{width:53px;padding:13px 6px}.sidebar-mark{width:34px;height:34px;border-radius:11px;font-size:14px}.sidebar-link{padding:11px 0}.shell{margin-left:53px;padding:0 10px 24px}.topbar{min-height:61px;padding:10px 0}.top-actions{gap:5px}.top-actions .pill{display:none}.top-actions .btn{font-size:9px;padding:8px 8px;border-radius:9px}.hero{padding:22px 0 13px;gap:12px;flex-direction:column}.hero h1{font-size:29px;line-height:1.08;margin:8px 0}.hero p{font-size:10px;line-height:1.6}.hero-side{width:100%;min-width:0;padding:9px 11px}.hero-side strong{font-size:12px}.hero-side span{font-size:9px}.feature-banner{grid-template-columns:1fr;min-height:0;margin:3px 0 12px}.feature-copy{padding:18px 17px 8px}.feature-copy h2{font-size:28px;margin:9px 0 7px}.feature-copy p{font-size:10px;max-width:100%}.feature-foot{margin-top:12px;font-size:8px}.feature-art{min-height:125px;margin-top:-3px}.art-core{width:63px;height:63px;border-radius:18px}.core-mark{font-size:18px}.core-light{inset:5px;border-radius:14px}.art-ring{width:130px;height:75px}.ring-two{width:100px;height:110px}.ring-three{width:155px;height:52px}.art-chip{font-size:7px;padding:6px 7px}.chip-one{left:13%;top:13%}.chip-two{right:10%;top:14%}.chip-three{right:13%;bottom:9%}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:11px}.stat{padding:11px 10px;min-height:82px;border-radius:13px}.stat label{font-size:9px}.stat strong{font-size:20px;margin:5px 0 1px}.stat small{font-size:8px;line-height:1.3}.layout{gap:10px}.panel{padding:12px;border-radius:14px}.panel-head{margin-bottom:11px}.panel h2{font-size:12px}.panel-head p{font-size:9px}.panel-head .pill{font-size:8px;padding:5px 6px}.instance{padding:11px;border-radius:13px}.instance-name{gap:8px}.server-icon{width:31px;height:31px;border-radius:10px;font-size:13px}.instance-name h3{font-size:11px}.instance-name p{font-size:9px}.status{font-size:7px;padding:4px 5px;max-width:42%;white-space:normal;text-align:center}.meta-grid{gap:5px;margin:9px 0}.meta{padding:7px}.meta small{font-size:8px}.meta b{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.instance-actions{gap:5px}.instance-actions .btn{font-size:8px;padding:7px 6px;line-height:1.35}.side-stack{grid-template-columns:1fr;gap:10px}.quick-link{padding:9px}.quick-link .glyph{width:28px;height:28px}.quick-link b{font-size:10px}.quick-link small{font-size:8px}.notice,.note{font-size:9px}.footer{font-size:8px;gap:7px}.modal-head,.modal-body{padding:12px}.live-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body {
+  min-height: 100vh;
+  background-color: var(--bg-outer);
+  color: var(--text-main);
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(10px, 2.5vw, 28px);
+}
+
+/* Outer chassis matching the tablet/window perspective in the reference */
+.app-viewport {
+  width: 100%;
+  max-width: 1440px;
+  background: var(--bg-frame);
+  border-radius: var(--radius-frame);
+  box-shadow: 
+    0 40px 100px -20px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 60px -15px rgba(147, 51, 234, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 860px;
+  position: relative;
+}
+
+/* Top Navigation Bar */
+.top-nav {
+  height: 76px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  gap: 20px;
+  background: rgba(18, 19, 25, 0.95);
+  backdrop-filter: blur(12px);
+  z-index: 20;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  min-width: 200px;
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #c084fc, #9333ea 60%, #581c87);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.brand-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #fff;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.brand-title-wrap b {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+.brand-title-wrap span {
+  display: block;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Search Container in Nav */
+.nav-search-pill {
+  flex: 1;
+  max-width: 440px;
+  height: 42px;
+  background: #181922;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px 0 18px;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.nav-search-pill:focus-within {
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.15);
+  background: #1b1c26;
+}
+
+.nav-search-pill input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 12.5px;
+  font-family: inherit;
+  width: 100%;
+}
+
+.nav-search-pill input::placeholder {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.search-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #232431;
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.search-btn:hover {
+  background: #2b2c3d;
+  color: #fff;
+}
+
+/* Top Right Actions */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-pill-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #191a24;
+  border: 1px solid var(--border-subtle);
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-pill-dropdown:hover {
+  background: #212230;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.nav-circle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #191a24;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.nav-circle-btn:hover {
+  background: #222330;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.nav-circle-btn .notification-dot {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  background: var(--purple-light);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--purple-light);
+}
+
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 4px;
+  cursor: pointer;
+}
+
+.avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid rgba(168, 85, 247, 0.4);
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+}
+
+.avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* App Main Container (Sidebar + Content) */
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Left Sidebar */
+.app-sidebar {
+  width: 220px;
+  background: #14151c;
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 14px 20px;
+  gap: 6px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.sidebar-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  padding: 14px 10px 6px;
+  text-transform: uppercase;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-item svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.sidebar-item:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sidebar-item:hover svg {
+  color: #fff;
+}
+
+.sidebar-item.active {
+  background: rgba(168, 85, 247, 0.14);
+  color: #fff;
+  box-shadow: inset 3px 0 0 var(--purple-light);
+}
+
+.sidebar-item.active svg {
+  color: var(--purple-light);
+}
+
+.badge-ai-plus {
+  margin-left: auto;
+  font-size: 13px;
+  color: #f472b6;
+  font-weight: 800;
+  filter: drop-shadow(0 0 6px rgba(244, 114, 182, 0.6));
+}
+
+.cluster-node-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cluster-node-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+}
+
+.node-bullet {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.node-bullet.b1 { background: rgba(244, 114, 182, 0.2); color: #f472b6; }
+.node-bullet.b2 { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+.node-bullet.b3 { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+
+.show-more-link {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.show-more-link:hover {
+  color: #fff;
+}
+
+.sidebar-bottom-cta {
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.btn-upgrade-pro {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.25), rgba(76, 29, 149, 0.15));
+  color: #f1e8ff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 4px 18px rgba(147, 51, 234, 0.15);
+}
+
+.btn-upgrade-pro:hover {
+  border-color: var(--purple-light);
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.45), rgba(76, 29, 149, 0.3));
+  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Main Dashboard Area */
+.dashboard-content {
+  flex: 1;
+  padding: 24px 28px 36px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Greeting Section */
+.greeting-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2px;
+}
+
+.greeting-text h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.greeting-text h2 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.025em;
+}
+
+.greeting-quick-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.live-indicator-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  color: var(--accent-green);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: 0 0 10px var(--accent-green);
+  animation: pulseAnim 2s infinite ease-in-out;
+}
+
+@keyframes pulseAnim {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Top 3-Column Grid */
+.grid-top-row {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1.45fr) 300px;
+  gap: 18px;
+  align-items: stretch;
+}
+
+/* Common Card Styling */
+.dash-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-card);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Card 1: Students / Instances */
+.card-instances-stat {
+  justify-content: space-between;
+}
+
+.card-header-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.badge-tag-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.badge-tag-wrap svg {
+  width: 14px;
+  height: 14px;
+  color: var(--purple-light);
+}
+
+.card-view-all {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.card-view-all:hover {
+  color: #fff;
+}
+
+.stat-big-number {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 3px;
+}
+
+.stat-sub-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.vertical-bars-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 100px;
+  margin-bottom: 12px;
+  padding-left: 10px;
+}
+
+.v-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.v-bar-capsule {
+  width: 58px;
+  border-radius: 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.v-bar-capsule.striped {
+  height: 82px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #581c87,
+    #581c87 4px,
+    #7e22ce 4px,
+    #7e22ce 8px
+  );
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  box-shadow: 0 4px 14px rgba(126, 34, 206, 0.3);
+}
+
+.v-bar-capsule.striped span {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(18, 19, 25, 0.7);
+  padding: 2px 6px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+
+.v-bar-capsule.solid {
+  width: 28px;
+  height: 60px;
+  background: #a855f7;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+}
+
+.v-bar-capsule.solid-subtle {
+  width: 14px;
+  height: 40px;
+  background: #6b21a8;
+  border-radius: 10px;
+}
+
+.v-bar-legend {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10.5px;
+  color: var(--text-dim);
+  font-weight: 600;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.v-bar-legend b {
+  color: var(--text-muted);
+}
+
+/* Card 2: Center 3D Hero Card (Campus Intelligence) */
+.card-hero-3d {
+  background: radial-gradient(ellipse at 50% 120%, rgba(147, 51, 234, 0.25), transparent 70%), #14141e;
+  border: 1.5px solid var(--border-purple-glow);
+  box-shadow: 
+    0 0 35px -5px rgba(168, 85, 247, 0.35),
+    inset 0 0 25px rgba(168, 85, 247, 0.12),
+    0 15px 40px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-3d-header {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+  padding-top: 4px;
+}
+
+.hero-3d-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #38bdf8, #818cf8 40%, #c084fc 80%, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 3px;
+  filter: drop-shadow(0 2px 10px rgba(168, 85, 247, 0.3));
+}
+
+.hero-3d-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* Interactive 3D Canvas Container */
+.hero-3d-canvas-wrap {
+  flex: 1;
+  min-height: 180px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#hero3dCanvas {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  display: block;
+  cursor: grab;
+}
+
+#hero3dCanvas:active {
+  cursor: grabbing;
+}
+
+/* Ambient glow & particles inside hero */
+.hero-glow-sphere {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.3), rgba(168, 85, 247, 0.15) 50%, transparent 70%);
+  filter: blur(35px);
+  pointer-events: none;
+  animation: glowFloat 8s infinite alternate ease-in-out;
+}
+
+@keyframes glowFloat {
+  0% { transform: translate(-30px, -20px) scale(0.9); }
+  100% { transform: translate(30px, 20px) scale(1.15); }
+}
+
+/* Card 3: Right Calendar & Activity Column */
+.card-calendar-activity {
+  background: #171822;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.cal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cal-month-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.cal-arrow-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+}
+
+.cal-arrow-btn:hover {
+  color: #fff;
+}
+
+.cal-days-strip {
+  display: flex;
+  justify-content: space-between;
+  background: #13141d;
+  border-radius: 14px;
+  padding: 8px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.cal-day-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 38px;
+  cursor: pointer;
+}
+
+.cal-day-name {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.cal-day-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.cal-day-col.active .cal-day-name {
+  color: var(--purple-light);
+}
+
+.cal-day-col.active .cal-day-num {
+  background: var(--purple-primary);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+}
+
+/* Activity Items */
+.activity-mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.activity-mini-card {
+  background: #1e1f2c;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 10px 12px;
+  transition: all 0.2s;
+}
+
+.activity-mini-card:hover {
+  border-color: rgba(168, 85, 247, 0.3);
+  transform: translateX(2px);
+}
+
+.act-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.act-title-row b {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.act-menu-dots {
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.act-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 8px;
+}
+
+.act-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.act-avatars {
+  display: flex;
+}
+
+.mini-av {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #1e1f2c;
+  margin-left: -5px;
+  background: #64748b;
+  display: grid;
+  place-items: center;
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.mini-av:first-child { margin-left: 0; }
+.mini-av.av1 { background: #ec4899; }
+.mini-av.av2 { background: #38bdf8; }
+.mini-av.av3 { background: #a855f7; }
+
+.act-time {
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-create-activity {
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: linear-gradient(135deg, #a855f7, #7e22ce);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.3);
+  transition: all 0.2s;
+}
+
+.btn-create-activity:hover {
+  background: linear-gradient(135deg, #c084fc, #9333ea);
+  box-shadow: 0 6px 22px rgba(168, 85, 247, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Bottom Grid (Left 2x2 Stats + Right Heatmap) */
+.grid-bottom-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.25fr);
+  gap: 18px;
+}
+
+/* 2x2 Mini Stat Cards */
+.subgrid-2x2-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.mini-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 125px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.mini-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.mini-stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mini-stat-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.mini-stat-badge svg {
+  width: 13px;
+  height: 13px;
+  color: var(--purple-light);
+}
+
+.mini-stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.03em;
+  margin: 6px 0 2px;
+}
+
+.mini-stat-delta {
+  font-size: 10.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mini-stat-delta.positive {
+  color: var(--accent-green);
+}
+
+.mini-stat-delta.subtle {
+  color: var(--purple-light);
+}
+
+.mini-stat-delta.negative {
+  color: var(--accent-red);
+}
+
+/* Right Heatmap Panel (Weekly Engagement / Live Cluster Matrix) */
+.card-heatmap-panel {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border-card);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  justify-content: flex-end;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.legend-dot.l-low { background: #262438; }
+.legend-dot.l-med { background: #581c87; }
+.legend-dot.l-high { background: #a855f7; }
+.legend-dot.l-best { background: #d8b4fe; }
+
+/* The Matrix Grid */
+.heatmap-matrix-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.matrix-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.matrix-row-label {
+  width: 32px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-align: right;
+  padding-right: 4px;
+}
+
+.matrix-cells-container {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
+  flex: 1;
+}
+
+.matrix-cell {
+  height: 22px;
+  border-radius: 6px;
+  background: #232233;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  position: relative;
+}
+
+.matrix-cell:hover {
+  transform: scale(1.15);
+  z-index: 2;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+}
+
+.matrix-cell.c0 { background: #1c1b28; }
+.matrix-cell.c1 { background: #2c2444; }
+.matrix-cell.c2 { background: #581c87; }
+.matrix-cell.c3 { background: #7e22ce; }
+.matrix-cell.c4 { background: #a855f7; box-shadow: 0 0 6px rgba(168, 85, 247, 0.4); }
+.matrix-cell.c5 { background: #c084fc; box-shadow: 0 0 10px rgba(192, 132, 252, 0.6); }
+
+.matrix-dates-row {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
+  margin-left: 36px;
+  margin-top: 4px;
+}
+
+.matrix-date-num {
+  text-align: center;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+/* Dedicated Instance Management Section */
+.section-instances-mgmt {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.instances-mgmt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.instances-mgmt-header h3 {
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.instances-mgmt-header p {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.instances-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
+}
+
+.instance-card-item {
+  background: #171822;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  transition: all 0.25s;
+}
+
+.instance-card-item:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(168, 85, 247, 0.1);
+}
+
+.instance-top-info {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.instance-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.instance-icon-orb {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: var(--purple-light);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.instance-icon-orb svg {
+  width: 20px;
+  height: 20px;
+}
+
+.instance-title-group h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.instance-title-group span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.status-badge {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-badge.provisioned {
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: var(--accent-green);
+}
+
+.status-badge.suspended, .status-badge.stopped {
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: var(--accent-red);
+}
+
+.status-badge.provisioning, .status-badge.pending {
+  background: rgba(251, 146, 60, 0.12);
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  color: var(--accent-orange);
+}
+
+.instance-specs-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: #12131b;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.spec-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.spec-box small {
+  font-size: 9px;
+  color: var(--text-dim);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.spec-box b {
+  font-size: 11.5px;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.instance-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-ctrl {
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1f202e;
+  color: #fff;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-ctrl:hover {
+  background: #2a2b3d;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.btn-ctrl.primary {
+  background: linear-gradient(135deg, #a855f7, #7e22ce);
+  border: none;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.3);
+}
+
+.btn-ctrl.primary:hover {
+  background: linear-gradient(135deg, #c084fc, #9333ea);
+  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.45);
+}
+
+.btn-ctrl.danger {
+  color: var(--accent-red);
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.btn-ctrl:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.empty-instances-state {
+  padding: 40px 20px;
+  text-align: center;
+  background: #161722;
+  border-radius: var(--radius-card);
+  border: 1px dashed rgba(168, 85, 247, 0.25);
+}
+
+.empty-instances-state b {
+  font-size: 15px;
+  color: #fff;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.empty-instances-state p {
+  font-size: 12px;
+  color: var(--text-muted);
+  max-width: 440px;
+  margin: 0 auto 16px;
+}
+
+/* VPS Control Center Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 11, 16, 0.85);
+  backdrop-filter: blur(14px);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-window {
+  width: min(840px, 100%);
+  max-height: 90vh;
+  background: #15161f;
+  border-radius: 24px;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7), 0 0 40px rgba(168, 85, 247, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #171823;
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.modal-header p {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.modal-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  background: #1d1e2b;
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.modal-close-btn:hover {
+  background: #252637;
+  color: #fff;
+}
+
+.modal-content-scroll {
+  padding: 22px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Modal Live Telemetry Dials */
+.telemetry-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.telemetry-card {
+  background: #1b1c28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.telemetry-card small {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.telemetry-card strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin-top: 4px;
+}
+
+/* Modal Power Buttons */
+.modal-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.power-buttons-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Snapshots Panel */
+.snapshot-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.snapshot-input-group input {
+  flex: 1;
+  background: #11121a;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+}
+
+.snapshot-input-group input:focus {
+  border-color: var(--purple-light);
+}
+
+.snapshots-list-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.snap-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1e1f2d;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #d8b4fe;
+}
+
+.snap-chip button {
+  background: none;
+  border: none;
+  color: var(--accent-red);
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+}
+
+/* Terminal Console */
+.terminal-block {
+  background: #0d0e14;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.terminal-header {
+  padding: 8px 14px;
+  background: #141520;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.terminal-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.terminal-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.terminal-dots span:nth-child(1) { background: #ef4444; }
+.terminal-dots span:nth-child(2) { background: #eab308; }
+.terminal-dots span:nth-child(3) { background: #22c55e; }
+
+.terminal-screen {
+  padding: 14px;
+  min-height: 120px;
+  max-height: 220px;
+  overflow-y: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.terminal-input-form {
+  display: flex;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px;
+  background: #11121a;
+  gap: 8px;
+}
+
+.terminal-input-form input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  padding: 4px 8px;
+}
+
+/* Toast feedback notification */
+.toast-notice {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translate(-50%, 40px);
+  opacity: 0;
+  pointer-events: none;
+  background: #1d1e2b;
+  border: 1px solid var(--purple-primary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(168, 85, 247, 0.3);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  z-index: 200;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast-notice.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.toast-notice.error {
+  border-color: var(--accent-red);
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1200px) {
+  .grid-top-row {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+  .card-calendar-activity {
+    grid-column: 1 / -1;
+  }
+  .grid-bottom-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-body {
+    flex-direction: column;
+  }
+  .app-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 10px 16px;
+    gap: 8px;
+  }
+  .sidebar-section-label, .cluster-node-item, .show-more-link, .sidebar-bottom-cta {
+    display: none;
+  }
+  .sidebar-item {
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+  .grid-top-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-nav {
+    padding: 0 14px;
+    height: 64px;
+  }
+  .nav-search-pill {
+    display: none;
+  }
+  .nav-pill-dropdown {
+    display: none;
+  }
+  .dashboard-content {
+    padding: 16px 14px 28px;
+  }
+  .subgrid-2x2-stats {
+    grid-template-columns: 1fr;
+  }
+  .telemetry-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 </style>
 </head>
 <body>
-<aside class="dashboard-sidebar">
-  <a class="sidebar-brand" href="/"><span class="sidebar-mark">HX</span><span><b>HelzerX</b><small>FREEHOST</small></span></a>
-  <div class="sidebar-label">WORKSPACE</div>
-  <a class="sidebar-link active" href="/control"><span>▦</span> Overview</a>
-  <a class="sidebar-link" href="#instances"><span>▤</span> Instances</a>
-  <a class="sidebar-link" href="/#rewards"><span>✧</span> Rewards</a>
-  <div class="sidebar-label">SUPPORT</div>
-  <a class="sidebar-link" href="https://discord.com/" target="_blank" rel="noopener noreferrer"><span>◌</span> Help & community</a>
-  <div class="sidebar-bottom"><div class="sidebar-orb">✦</div><b>Build something great.</b><small>Your infrastructure, without limits.</small><a href="/">Explore plans ↗</a></div>
-</aside>
-<div class="shell">
-<header class="topbar">
-<a class="brand" href="/" aria-label="HelzerX FreeHost home"><div class="logo">HX</div><div><strong>HelzerX <span style="color:var(--gold)">FreeHost</span></strong><small>Customer control center</small></div></a>
-<div class="top-actions"><div class="pill"><span class="dot"></span> Secure session</div><button class="btn" id="refreshBtn">↻ Refresh</button><a class="btn" href="/">← Home</a></div>
-</header>
-<section class="hero"><div><div class="eyebrow">Your infrastructure · Your control</div><h1>Everything you need.<br><span>One control center.</span></h1><p>Manage your HelzerX instances, check live resource usage, run commands and keep snapshots close — all in one place.</p></div><div class="hero-side"><strong id="welcomeName">Welcome back</strong><span id="accountSub">Loading your account…</span></div></section>
-<section class="feature-banner" aria-label="Infrastructure overview">
-  <div class="feature-copy"><span class="feature-kicker"><i></i> HELZERX INFRASTRUCTURE</span><h2>Your cloud.<br><span>Your rules.</span></h2><p>Everything you need to keep your services running smoothly, in one focused workspace.</p><div class="feature-foot"><span class="feature-live"><i></i> Control center online</span><span class="feature-sep"></span><span>Built for what’s next</span></div></div>
-  <div class="feature-art" aria-hidden="true"><div class="art-ring ring-one"></div><div class="art-ring ring-two"></div><div class="art-ring ring-three"></div><div class="art-core"><div class="core-mark">HX</div><div class="core-light"></div></div><div class="art-chip chip-one">01 <small>SECURE</small></div><div class="art-chip chip-two"><i></i> CLOUD ACTIVE</div><div class="art-chip chip-three">∞ <small>POSSIBILITIES</small></div></div>
-</section>
-<section class="stats">
-<div class="stat"><label>Your instances</label><strong id="statTotal">—</strong><small>All assigned hosting instances</small></div>
-<div class="stat"><label>Running</label><strong id="statRunning">—</strong><small>Currently marked active</small></div>
-<div class="stat"><label>HZL balance</label><strong id="statBalance">—</strong><small>Available rewards balance</small></div>
-<div class="stat"><label>Pending requests</label><strong id="statPending">—</strong><small>Awaiting review or provisioning</small></div>
-</section>
-<div class="layout" id="instances">
-<main class="panel"><div class="panel-head"><div><h2>Your instances</h2><p>Choose an instance to inspect or manage it.</p></div><span class="pill" id="instanceCount">0 instances</span></div><div class="instances" id="instances"><div class="loading">Loading your infrastructure…</div></div><div class="notice">Power controls and terminal access are limited to instances assigned to your account. Commands run inside your own container. Take a snapshot before making risky changes.</div></main>
-<aside class="side-stack">
-<section class="panel"><div class="panel-head"><div><h2>Quick access</h2><p>Helpful links for your account</p></div></div><div class="quick-links">
-<a class="quick-link" href="/"><span class="glyph">⌂</span><span><b>Hosting marketplace</b><small>Browse available plans</small></span></a>
-<a class="quick-link" href="/#rewards"><span class="glyph">✦</span><span><b>HZL rewards</b><small>Check your rewards options</small></span></a>
-<a class="quick-link" href="https://discord.com/" target="_blank" rel="noopener noreferrer"><span class="glyph">↗</span><span><b>Community & support</b><small>Get help from the team</small></span></a>
-</div></section>
-<section class="panel"><div class="panel-head"><div><h2>Control guide</h2><p>Keep your services safe</p></div></div><div class="quick-links">
-<div class="quick-link"><span class="glyph">◉</span><span><b>Live status</b><small>Refresh to sync with Proxmox</small></span></div>
-<div class="quick-link"><span class="glyph">⌘</span><span><b>Command console</b><small>One command per run, 60-second limit</small></span></div>
-<div class="quick-link"><span class="glyph">◇</span><span><b>Snapshots</b><small>Save a restore point before updates</small></span></div>
-</div><p class="note">Managed LXC controls are available now. KVM controls will be added separately.</p></section>
-</aside>
+
+<div class="app-viewport">
+
+  <!-- Top Navigation Bar (Sapphire UI / HelzerX Control) -->
+  <header class="top-nav">
+    <a href="/control" class="nav-brand" title="HelzerX Control Dashboard">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 3a9 9 0 0 1 9 9"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+      <div class="brand-title-wrap">
+        <b>Sapphire UI</b>
+        <span>HelzerX Cloud Control</span>
+      </div>
+    </a>
+
+    <!-- Center Search Pill -->
+    <div class="nav-search-pill">
+      <input type="text" id="clusterSearchInput" placeholder="Proxmox Cloud Cluster · hlx-infra-02 (Asia-East)" aria-label="Search cluster">
+      <button class="search-btn" id="clusterSearchBtn" aria-label="Search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="nav-actions">
+      <div class="nav-pill-dropdown" id="timePeriodSelector" title="Filter period">
+        <span>Monthly</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+
+      <button class="nav-circle-btn" id="refreshDashboardBtn" title="Sync live status from Proxmox">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+      </button>
+
+      <button class="nav-circle-btn" id="notificationsBtn" title="Notifications">
+        <div class="notification-dot"></div>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </button>
+
+      <!-- Profile Avatar -->
+      <div class="user-profile-badge" id="profileBadge" title="User account">
+        <div class="avatar-circle" id="userAvatarContainer">
+          <img id="userAvatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80" alt="Avatar">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Body (Sidebar + Content) -->
+  <div class="app-body">
+    
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-section-label">GENERAL</div>
+      <button class="sidebar-item active" data-nav="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="sidebar-item" data-nav="monitoring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <span>Monitoring</span>
+      </button>
+      <button class="sidebar-item" data-nav="instances">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
+        </svg>
+        <span>Classroom</span>
+      </button>
+      <button class="sidebar-item" data-nav="message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Message</span>
+      </button>
+
+      <div class="sidebar-section-label">MORE</div>
+      <button class="sidebar-item" data-nav="todo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        <span>List Todo</span>
+      </button>
+      <button class="sidebar-item" data-nav="ai">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        <span>AI Assistants</span>
+        <span class="badge-ai-plus">✦</span>
+      </button>
+
+      <div class="sidebar-section-label">COURSE STUDY</div>
+      <div class="cluster-node-item">
+        <span class="node-bullet b1">DP</span>
+        <span>Dann Petty</span>
+      </div>
+      <div class="cluster-node-item">
+        <span class="node-bullet b2">FA</span>
+        <span>Flux Academy</span>
+      </div>
+      <div class="cluster-node-item">
+        <span class="node-bullet b3">MC</span>
+        <span>Michelle Choi</span>
+      </div>
+      <div class="show-more-link">
+        <span>Show more (14)</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+
+      <div class="sidebar-bottom-cta">
+        <button class="btn-upgrade-pro" id="upgradeProBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
+          <span>Upgrade to Pro</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="dashboard-content">
+
+      <!-- Greeting Bar -->
+      <section class="greeting-section">
+        <div class="greeting-text">
+          <h1 id="welcomeGreeting">Hi, Michael!</h1>
+          <h2>What do you want?</h2>
+        </div>
+        <div class="greeting-quick-meta">
+          <div class="live-indicator-pill">
+            <span class="pulse-dot"></span>
+            <span id="hzlBalancePill">0 HZL Balance</span>
+          </div>
+          <a href="/" class="btn-ctrl" style="text-decoration:none">
+            <span>← Home</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Top Row 3-Cards: Students/Instances, 3D Hero, Calendar -->
+      <section class="grid-top-row">
+
+        <!-- Card 1: Students / Instances -->
+        <article class="dash-card card-instances-stat">
+          <div class="card-header-line">
+            <div class="badge-tag-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span>Students</span>
+            </div>
+            <a class="card-view-all" href="#instancesView" id="viewAllInstancesLink">
+              <span>View all</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+
+          <div>
+            <div class="stat-big-number" id="statStudentCount">16,892</div>
+            <div class="stat-sub-text">All condition of university</div>
+          </div>
+
+          <div class="vertical-bars-chart">
+            <div class="v-bar-item">
+              <div class="v-bar-capsule striped">
+                <span id="stripedBarValue">1,302</span>
+              </div>
+            </div>
+            <div class="v-bar-item">
+              <div class="v-bar-capsule solid"></div>
+            </div>
+            <div class="v-bar-item">
+              <div class="v-bar-capsule solid-subtle"></div>
+            </div>
+          </div>
+
+          <div class="v-bar-legend">
+            <span>90%</span>
+            <span><b>6%</b> 4%</span>
+          </div>
+        </article>
+
+        <!-- Card 2: 3D Campus Intelligence Card -->
+        <article class="dash-card card-hero-3d">
+          <div class="hero-3d-header">
+            <div class="hero-3d-title">Campus Intelligence</div>
+            <div class="hero-3d-subtitle">Empowering Learning with Advanced Technology</div>
+          </div>
+
+          <div class="hero-3d-canvas-wrap">
+            <div class="hero-glow-sphere"></div>
+            <canvas id="hero3dCanvas"></canvas>
+          </div>
+        </article>
+
+        <!-- Card 3: Calendar & Activity -->
+        <article class="dash-card card-calendar-activity">
+          <div class="cal-header-row">
+            <button class="cal-arrow-btn" aria-label="Previous month">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="cal-month-title">October 2026</span>
+            <button class="cal-arrow-btn" aria-label="Next month">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+          <div class="cal-days-strip">
+            <div class="cal-day-col">
+              <span class="cal-day-name">Thu</span>
+              <span class="cal-day-num">25</span>
+            </div>
+            <div class="cal-day-col">
+              <span class="cal-day-name">Fri</span>
+              <span class="cal-day-num">26</span>
+            </div>
+            <div class="cal-day-col">
+              <span class="cal-day-name">Sat</span>
+              <span class="cal-day-num">27</span>
+            </div>
+            <div class="cal-day-col active">
+              <span class="cal-day-name">Sun</span>
+              <span class="cal-day-num">28</span>
+            </div>
+            <div class="cal-day-col">
+              <span class="cal-day-name">Mon</span>
+              <span class="cal-day-num">29</span>
+            </div>
+            <div class="cal-day-col">
+              <span class="cal-day-name">Tue</span>
+              <span class="cal-day-num">30</span>
+            </div>
+          </div>
+
+          <div class="activity-mini-list">
+            <div class="activity-mini-card">
+              <div class="act-title-row">
+                <b>Review Mid Test</b>
+                <span class="act-menu-dots">···</span>
+              </div>
+              <div class="act-desc">Lecture must checking progress f...</div>
+              <div class="act-footer">
+                <div class="act-avatars">
+                  <div class="mini-av av1">A</div>
+                  <div class="mini-av av2">B</div>
+                  <div class="mini-av av3">C</div>
+                </div>
+                <div class="act-time">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>09:00 AM</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="activity-mini-card">
+              <div class="act-title-row">
+                <b>Ceremony Yudisium</b>
+                <span class="act-menu-dots">···</span>
+              </div>
+              <div class="act-desc">Make sure event for student can w...</div>
+              <div class="act-footer">
+                <div class="act-avatars">
+                  <div class="mini-av av2">M</div>
+                  <div class="mini-av av3">K</div>
+                  <div class="mini-av av1">S</div>
+                </div>
+                <div class="act-time">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>10:45 AM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-create-activity" id="createActivityBtn">
+            <span>+ Create Activity</span>
+          </button>
+        </article>
+      </section>
+
+      <!-- Bottom Row: 2x2 Small Stat Cards + Weekly Engagement Matrix -->
+      <section class="grid-bottom-row">
+
+        <!-- 2x2 Mini Stats -->
+        <div class="subgrid-2x2-stats">
+          <!-- Stat 1: Lecture -->
+          <div class="mini-stat-card">
+            <div class="mini-stat-header">
+              <div class="mini-stat-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                <span>Lecture</span>
+              </div>
+              <span class="card-view-all">View all ↗</span>
+            </div>
+            <div>
+              <div class="mini-stat-value" id="statLectureValue">282</div>
+              <div class="mini-stat-delta positive">
+                <span>+38.12% from previous weeks</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stat 2: GPA -->
+          <div class="mini-stat-card">
+            <div class="mini-stat-header">
+              <div class="mini-stat-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
+                </svg>
+                <span>GPA</span>
+              </div>
+              <span class="card-view-all">View all ↗</span>
+            </div>
+            <div>
+              <div class="mini-stat-value" id="statGpaValue">3.78</div>
+              <div class="mini-stat-delta positive">
+                <span>+17.8% from previous weeks</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stat 3: Session -->
+          <div class="mini-stat-card">
+            <div class="mini-stat-header">
+              <div class="mini-stat-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20v-2a8 8 0 0 1 0-16z"/>
+                </svg>
+                <span>Session</span>
+              </div>
+              <span class="card-view-all">View all ↗</span>
+            </div>
+            <div>
+              <div class="mini-stat-value" id="statSessionValue">4.8h</div>
+              <div class="mini-stat-delta subtle">
+                <span>+28.3% from previous weeks</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stat 4: Absence -->
+          <div class="mini-stat-card">
+            <div class="mini-stat-header">
+              <div class="mini-stat-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+                <span>Absence</span>
+              </div>
+              <span class="card-view-all">View all ↗</span>
+            </div>
+            <div>
+              <div class="mini-stat-value" id="statAbsenceValue">98%</div>
+              <div class="mini-stat-delta negative">
+                <span>-5.6% from previous weeks</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heatmap / Weekly Engagement Matrix -->
+        <article class="dash-card card-heatmap-panel">
+          <div class="heatmap-header">
+            <div class="badge-tag-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+              </svg>
+              <span>Weekly Engagement</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="card-view-all">View all</span>
+              <span class="act-menu-dots">···</span>
+            </div>
+          </div>
+
+          <div class="heatmap-legend">
+            <span class="legend-item"><span class="legend-dot l-low"></span> Low</span>
+            <span class="legend-item"><span class="legend-dot l-med"></span> Medium</span>
+            <span class="legend-item"><span class="legend-dot l-high"></span> High</span>
+            <span class="legend-item"><span class="legend-dot l-best"></span> Best</span>
+          </div>
+
+          <div class="heatmap-matrix-wrap">
+            <div class="matrix-row">
+              <span class="matrix-row-label">FEB</span>
+              <div class="matrix-cells-container">
+                <div class="matrix-cell c1"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c3"></div><div class="matrix-cell c5"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c1"></div>
+              </div>
+            </div>
+            <div class="matrix-row">
+              <span class="matrix-row-label">FTI</span>
+              <div class="matrix-cells-container">
+                <div class="matrix-cell c2"></div><div class="matrix-cell c1"></div><div class="matrix-cell c4"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div>
+              </div>
+            </div>
+            <div class="matrix-row">
+              <span class="matrix-row-label">FKD</span>
+              <div class="matrix-cells-container">
+                <div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c1"></div><div class="matrix-cell c2"></div>
+              </div>
+            </div>
+            <div class="matrix-row">
+              <span class="matrix-row-label">FKH</span>
+              <div class="matrix-cells-container">
+                <div class="matrix-cell c2"></div><div class="matrix-cell c2"></div><div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c1"></div>
+              </div>
+            </div>
+            <div class="matrix-row">
+              <span class="matrix-row-label">FKS</span>
+              <div class="matrix-cells-container">
+                <div class="matrix-cell c1"></div><div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c3"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div>
+              </div>
+            </div>
+
+            <div class="matrix-dates-row">
+              <span class="matrix-date-num">18</span>
+              <span class="matrix-date-num">19</span>
+              <span class="matrix-date-num">20</span>
+              <span class="matrix-date-num">21</span>
+              <span class="matrix-date-num">22</span>
+              <span class="matrix-date-num">23</span>
+              <span class="matrix-date-num">24</span>
+              <span class="matrix-date-num">25</span>
+              <span class="matrix-date-num">26</span>
+              <span class="matrix-date-num">27</span>
+              <span class="matrix-date-num">28</span>
+              <span class="matrix-date-num">29</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Complete Real-Time Instance Management Fleet -->
+      <section class="section-instances-mgmt" id="instancesView">
+        <div class="instances-mgmt-header">
+          <div>
+            <h3>Your Cloud Instances & Compute</h3>
+            <p>Manage LXC containers, check live node status, run commands and configure snapshots.</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <span class="badge-tag-wrap" id="instanceCountBadge">0 instances</span>
+            <a href="/" class="btn-ctrl primary" style="text-decoration:none">+ Deploy New VPS</a>
+          </div>
+        </div>
+
+        <div class="instances-grid" id="instancesGrid">
+          <div class="empty-instances-state">
+            <b>Loading your cloud fleet…</b>
+            <p>Fetching active containers and Proxmox node status.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
 </div>
-<footer class="footer"><span>© 2026 HelzerX FreeHost · Customer Control Center</span><span>Never share your password or private SSH key.</span></footer>
+
+<!-- VPS Control Center Modal (Power, Snapshots, Terminal) -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-window">
+    <div class="modal-header">
+      <div>
+        <h3 id="modalTitle">VPS Control Center</h3>
+        <p id="modalSubtitle">Inspect resources and manage container lifecycle</p>
+      </div>
+      <button class="modal-close-btn" id="closeModalBtn" aria-label="Close dialog">✕</button>
+    </div>
+
+    <div class="modal-content-scroll">
+      
+      <!-- Telemetry Gauges -->
+      <div class="telemetry-row">
+        <div class="telemetry-card">
+          <small>Power State</small>
+          <strong id="livePowerState">—</strong>
+        </div>
+        <div class="telemetry-card">
+          <small>CPU Cores</small>
+          <strong id="liveCpuCores">—</strong>
+        </div>
+        <div class="telemetry-card">
+          <small>Memory</small>
+          <strong id="liveMemoryAmt">—</strong>
+        </div>
+        <div class="telemetry-card">
+          <small>Storage Disk</small>
+          <strong id="liveDiskAmt">—</strong>
+        </div>
+      </div>
+
+      <!-- Power Controls -->
+      <div>
+        <div class="modal-section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+          <span>Power Lifecycle</span>
+        </div>
+        <div class="power-buttons-row">
+          <button class="btn-ctrl primary" data-action="start">▶ Start</button>
+          <button class="btn-ctrl" data-action="stop">■ Stop</button>
+          <button class="btn-ctrl" data-action="reboot">↻ Reboot</button>
+          <button class="btn-ctrl" data-action="suspend">Ⅱ Suspend</button>
+          <button class="btn-ctrl" data-action="resume">▶ Resume</button>
+        </div>
+      </div>
+
+      <!-- Snapshots -->
+      <div>
+        <div class="modal-section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Snapshots & Restore Points</span>
+        </div>
+        <div class="snapshot-input-group">
+          <input type="text" id="snapNameInput" placeholder="backup-name (letters, numbers, underscores)" maxlength="40">
+          <button class="btn-ctrl primary" id="btnCreateSnapshot">+ Create Snapshot</button>
+        </div>
+        <div class="snapshots-list-chips" id="snapshotChips">
+          <span style="font-size:11px;color:var(--text-muted)">Loading snapshots…</span>
+        </div>
+      </div>
+
+      <!-- Embedded Terminal Console -->
+      <div>
+        <div class="modal-section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          <span>Container Shell Console</span>
+        </div>
+        <div class="terminal-block">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <span>root@container: ~ (60s timeout)</span>
+          </div>
+          <div class="terminal-screen" id="terminalOutput">Terminal ready. Enter a shell command below to execute inside this container.</div>
+          <form class="terminal-input-form" id="terminalForm">
+            <span style="color:var(--purple-light);font-family:monospace;font-weight:700">$</span>
+            <input type="text" id="cmdInput" placeholder="whoami && uname -a && uptime" autocomplete="off" spellcheck="false" required>
+            <button class="btn-ctrl primary" type="submit" id="btnRunCmd">Execute ↗</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
-<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><section class="modal"><header class="modal-head"><div><div class="eyebrow">Instance control</div><h2 id="modalTitle">VPS Control Center</h2></div><button class="btn" id="closeModal" aria-label="Close control center">✕</button></header><div class="modal-body">
-<div class="live-grid"><div class="live-box"><small>Power state</small><strong id="liveStatus">—</strong></div><div class="live-box"><small>CPU cores</small><strong id="liveCpu">—</strong></div><div class="live-box"><small>Memory</small><strong id="liveMemory">—</strong></div><div class="live-box"><small>Disk</small><strong id="liveDisk">—</strong></div></div>
-<div><p class="section-title">Power controls</p><div class="modal-actions"><button class="btn primary" data-action="start">▶ Start</button><button class="btn" data-action="stop">■ Stop</button><button class="btn" data-action="reboot">↻ Reboot</button><button class="btn" data-action="suspend">Ⅱ Suspend</button><button class="btn" data-action="resume">▶ Resume</button></div></div>
-<div><p class="section-title">Snapshots</p><div class="snapshot-form"><input id="snapshotName" maxlength="40" placeholder="snapshot-name (letters, numbers, _ or -)"><button class="btn primary" id="createSnapshot">＋ Create snapshot</button></div><div class="snapshots" id="snapshots" style="margin-top:10px"><span class="muted">Loading snapshots…</span></div></div>
-<div><p class="section-title">Command console</p><div class="terminal"><div class="terminal-top"><span>● ● ● &nbsp; Container shell</span><span>60s timeout</span></div><div class="terminal-output" id="terminalOutput">Select an instance and run a command. Interactive TTY apps (nano/top) are not supported.</div><form class="terminal-form" id="terminalForm"><input id="commandInput" autocomplete="off" spellcheck="false" placeholder="e.g. whoami && uptime" maxlength="4000" required><button class="btn primary" type="submit" id="runCommand">Run command ↗</button></form></div><p class="note">Commands execute inside this container as its root user. Do not run commands you do not understand.</p></div>
-<div class="muted" id="modalInfo" style="font-size:12px"></div>
-</div></section></div>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Toast notification banner -->
+<div class="toast-notice" id="toastNotice" role="status"></div>
+
 <script>
-const $=id=>document.getElementById(id);let currentId=null,instances=[],toastTimer;
-function toast(message,error=false){const t=$('toast');t.textContent=message;t.classList.toggle('error',error);t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3400)}
-async function api(url,options={}){const response=await fetch(url,{credentials:'same-origin',...options,headers:{...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})}});let data={};try{data=await response.json()}catch{}if(response.status===401){location.href='/?login=required&next=%2Fcontrol';throw new Error('Please sign in again.')}if(!response.ok)throw new Error(data.error||'Request failed ('+response.status+')');return data}
-function fmtDate(value){if(!value)return'—';const d=new Date(value);return Number.isNaN(d.getTime())?'—':d.toLocaleString()}
-function prettyStatus(status){return String(status||'unknown').replaceAll('-',' ').replaceAll('_',' ')}
-function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function renderInstances(){const el=$('instances');if(!instances.length){el.innerHTML='<div class="empty"><b>No hosting instances yet</b>Your approved LXC instances will show up here once assigned to your account.<br><a class="btn primary" style="display:inline-block;margin-top:14px;text-decoration:none" href="/">Explore hosting plans</a></div>';return}
-el.innerHTML=instances.map(x=>{const status=x.status||'unknown';const canControl=x.service==='lxc'&&Number.isInteger(Number(x.vmid))&&['provisioned','suspended'].includes(status);const failed=['provisioning-error','failed','rejected','cancelled'].includes(status.toLowerCase());const canRemoveFailed=failed&&(x.vmid===undefined||x.vmid===null||String(x.vmid).trim()==='');return '<article class="instance"><div class="instance-top"><div class="instance-name"><div class="server-icon">▣</div><div><h3>'+esc(x.hostname||x.planName||x.service||'Hosting instance')+'</h3><p>'+esc(x.planName||x.service||'Hosting')+' · VMID '+esc(x.vmid||'pending')+'</p></div></div><span class="status '+esc(status)+'">'+esc(prettyStatus(status))+'</span></div><div class="meta-grid"><div class="meta"><small>Plan</small><b>'+esc(x.planName||'—')+'</b></div><div class="meta"><small>Created</small><b>'+esc(x.createdAt?new Date(x.createdAt).toLocaleDateString():'—')+'</b></div><div class="meta"><small>Updated</small><b>'+esc(x.updatedAt?new Date(x.updatedAt).toLocaleDateString():'—')+'</b></div></div><div class="instance-actions"><button class="btn primary" data-manage="'+esc(x.id)+'" '+(!canControl?'disabled':'')+'>Manage instance ↗</button><button class="btn" data-inspect="'+esc(x.id)+'" '+(!canControl?'disabled':'')+'>↻ Refresh status</button>'+(failed?'<button class="btn danger" data-remove-failed="'+esc(x.id)+'" '+(!canRemoveFailed?'disabled title="A VMID is assigned. Contact support for safe cleanup."':'')+'>× Remove failed request</button>':'')+'</div>'+(x.error&&failed?'<p class="note" style="color:var(--red);margin-top:12px">Failure: '+esc(x.error)+'</p>':'')+'</article>'}).join('');
-el.querySelectorAll('[data-manage]').forEach(b=>b.addEventListener('click',()=>openControl(b.dataset.manage)));el.querySelectorAll('[data-inspect]').forEach(b=>b.addEventListener('click',async()=>{try{currentId=b.dataset.inspect;const d=await api('/api/control/instances/'+encodeURIComponent(currentId)+'/inspect');toast('Live status updated');if(currentId)await openControl(currentId)}catch(e){toast(e.message,true)}}));el.querySelectorAll('[data-remove-failed]').forEach(b=>b.addEventListener('click',async()=>{const item=instances.find(x=>x.id===b.dataset.removeFailed);if(!item)return;if(!confirm('Remove this failed hosting request from your account? This cannot be undone.'))return;b.disabled=true;try{await api('/api/hosting-requests/'+encodeURIComponent(item.id)+'/remove-failed',{method:'POST',body:JSON.stringify({})});toast('Failed request removed');await load()}catch(e){toast(e.message,true);b.disabled=false}}))}
-async function load(){try{const [me,requests]=await Promise.all([api('/api/me'),api('/api/hosting-requests')]);const user=me.user||{};instances=requests.requests||[];$('welcomeName').textContent='Welcome, '+(user.global_name||user.username||'there');$('accountSub').textContent=user.id?'Account · '+user.id:'Account connected';$('statTotal').textContent=instances.length;$('statRunning').textContent=instances.filter(x=>x.status==='provisioned').length;$('statBalance').textContent=Number(me.rewards?.balance||0).toLocaleString()+' HZL';$('statPending').textContent=instances.filter(x=>['pending','provisioning','provisioning-error'].includes(x.status)).length;$('instanceCount').textContent=instances.length+' instance'+(instances.length===1?'':'s');renderInstances()}catch(e){$('instances').innerHTML='<div class="empty"><b>Could not load your account</b>'+esc(e.message)+'<br><button class="btn" style="margin-top:12px" onclick="location.reload()">Try again</button></div>';toast(e.message,true)}}
-async function openControl(id){currentId=id;const item=instances.find(x=>x.id===id);if(!item)return;$('modalTitle').textContent=item.hostname||item.planName||'VPS Control Center';$('modalInfo').textContent='Plan: '+(item.planName||'—')+' · VMID: '+(item.vmid||'—')+' · Updated: '+fmtDate(item.updatedAt);$('liveStatus').textContent='Loading…';$('liveCpu').textContent='—';$('liveMemory').textContent='—';$('liveDisk').textContent='—';$('snapshots').innerHTML='<span class="muted">Loading snapshots…</span>';$('terminalOutput').textContent='Console ready. Commands run inside your container.';$('modalBackdrop').classList.add('open');try{const d=await api('/api/control/instances/'+encodeURIComponent(id)+'/inspect');const l=d.live||{},cfg=l.config||{},status=l.status||{};$('liveStatus').textContent=prettyStatus(status.status||item.status);$('liveCpu').textContent=cfg.cores??cfg.cpus??'—';$('liveMemory').textContent=cfg.memory?Math.round(Number(cfg.memory)/1024)+' GB':'—';$('liveDisk').textContent=cfg.rootfs?.size||cfg.disk||'See config';$('modalInfo').textContent='Hostname: '+(item.hostname||'—')+' · VMID: '+item.vmid+' · Created: '+fmtDate(item.createdAt);const snaps=l.snapshots||[];$('snapshots').innerHTML=snaps.length?snaps.map(s=>'<span class="snapshot-chip">◇ '+esc(s.name)+' <button type="button" data-delete-snapshot="'+esc(s.name)+'" title="Delete snapshot" aria-label="Delete snapshot '+esc(s.name)+'">×</button></span>').join(''):'<span class="muted" style="font-size:12px">No snapshots created yet.</span>';$('snapshots').querySelectorAll('[data-delete-snapshot]').forEach(b=>b.addEventListener('click',()=>deleteSnapshot(b.dataset.deleteSnapshot)));}catch(e){$('liveStatus').textContent=prettyStatus(item.status);$('snapshots').innerHTML='<span class="muted">'+esc(e.message)+'</span>';toast(e.message,true)}}
-async function powerAction(action){if(!currentId)return;const labels={start:'Start this instance?',stop:'Stop this instance?',reboot:'Reboot this instance?',suspend:'Suspend this instance?',resume:'Resume this instance?'};if(!confirm(labels[action]+' Make sure you understand the impact.'))return;const buttons=[...document.querySelectorAll('[data-action]')];buttons.forEach(b=>b.disabled=true);try{await api('/api/control/instances/'+encodeURIComponent(currentId)+'/action',{method:'POST',body:JSON.stringify({action})});toast('Instance '+action+' request completed');await load();await openControl(currentId)}catch(e){toast(e.message,true)}finally{buttons.forEach(b=>b.disabled=false)}}
-async function createSnapshot(){if(!currentId)return;const name=$('snapshotName').value.trim();if(!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(name)){toast('Use 1–40 letters, numbers, underscores or hyphens.',true);return}try{await api('/api/control/instances/'+encodeURIComponent(currentId)+'/snapshots',{method:'POST',body:JSON.stringify({action:'create',name})});$('snapshotName').value='';toast('Snapshot created');await openControl(currentId)}catch(e){toast(e.message,true)}}
-async function deleteSnapshot(name){if(!confirm('Permanently delete snapshot "'+name+'"?'))return;try{await api('/api/control/instances/'+encodeURIComponent(currentId)+'/snapshots',{method:'POST',body:JSON.stringify({action:'delete',name})});toast('Snapshot deleted');await openControl(currentId)}catch(e){toast(e.message,true)}}
-$('terminalForm').addEventListener('submit',async e=>{e.preventDefault();if(!currentId)return;const command=$('commandInput').value.trim();if(!command)return;const btn=$('runCommand');btn.disabled=true;$('terminalOutput').textContent='$ '+command+'\n\nRunning…';try{const d=await api('/api/control/instances/'+encodeURIComponent(currentId)+'/terminal',{method:'POST',body:JSON.stringify({command})});$('terminalOutput').textContent='$ '+command+'\n'+(d.stdout||'')+(d.stderr?'\n[stderr]\n'+d.stderr:'')+'\n\nExit code: '+d.exitCode;$('commandInput').value=''}catch(e){$('terminalOutput').textContent='$ '+command+'\nError: '+e.message;toast(e.message,true)}finally{btn.disabled=false}});
-document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>powerAction(b.dataset.action)));$('createSnapshot').addEventListener('click',createSnapshot);$('closeModal').addEventListener('click',()=>$('modalBackdrop').classList.remove('open'));$('modalBackdrop').addEventListener('click',e=>{if(e.target===$('modalBackdrop'))$('modalBackdrop').classList.remove('open')});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('modalBackdrop').classList.remove('open')});$('refreshBtn').addEventListener('click',async()=>{await load();if(currentId&&$('modalBackdrop').classList.contains('open'))await openControl(currentId);toast('Dashboard refreshed')});load();
+const $ = id => document.getElementById(id);
+let currentInstanceId = null;
+let instancesList = [];
+let toastTimeout = null;
+
+function showToast(message, isError = false) {
+  const toast = $('toastNotice');
+  toast.textContent = message;
+  toast.classList.toggle('error', isError);
+  toast.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+async function api(url, options = {}) {
+  const res = await fetch(url, {
+    credentials: 'same-origin',
+    ...options,
+    headers: {
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers || {})
+    }
+  });
+  let data = {};
+  try { data = await res.json(); } catch {}
+  if (res.status === 401) {
+    location.href = '/?login=required&next=%2Fcontrol';
+    throw new Error('Session expired. Please sign in again.');
+  }
+  if (!res.ok) {
+    throw new Error(data.error || ('Request error (' + res.status + ')'));
+  }
+  return data;
+}
+
+function esc(val) {
+  return String(val ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function prettyStatus(status) {
+  return String(status || 'unknown').replaceAll('-', ' ').replaceAll('_', ' ');
+}
+
+function renderInstances() {
+  const grid = $('instancesGrid');
+  if (!instancesList.length) {
+    grid.innerHTML = `
+      <div class="empty-instances-state">
+        <b>No hosting instances yet</b>
+        <p>Your approved LXC VPS instances will appear here once assigned to your account.</p>
+        <a class="btn-ctrl primary" style="display:inline-flex;text-decoration:none" href="/">Explore Hosting Marketplace</a>
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = instancesList.map(inst => {
+    const status = (inst.status || 'unknown').toLowerCase();
+    const canControl = inst.service === 'lxc' && Number.isInteger(Number(inst.vmid)) && ['provisioned', 'suspended'].includes(status);
+    const isFailed = ['provisioning-error', 'failed', 'rejected', 'cancelled'].includes(status);
+    const canRemoveFailed = isFailed && (inst.vmid === undefined || inst.vmid === null || String(inst.vmid).trim() === '');
+
+    return `
+      <article class="instance-card-item">
+        <div class="instance-top-info">
+          <div class="instance-title-group">
+            <div class="instance-icon-orb">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                <circle cx="6" cy="6" r="1" fill="currentColor"/>
+                <circle cx="6" cy="18" r="1" fill="currentColor"/>
+              </svg>
+            </div>
+            <div>
+              <h4>${esc(inst.hostname || inst.planName || 'Cloud VPS')}</h4>
+              <span>${esc(inst.planName || 'LXC')} · VMID ${esc(inst.vmid || 'Pending')}</span>
+            </div>
+          </div>
+          <span class="status-badge ${esc(status)}">
+            <span style="width:5px;height:5px;border-radius:50%;background:currentColor"></span>
+            ${esc(prettyStatus(status))}
+          </span>
+        </div>
+
+        <div class="instance-specs-row">
+          <div class="spec-box">
+            <small>Plan</small>
+            <b>${esc(inst.planName || 'Standard')}</b>
+          </div>
+          <div class="spec-box">
+            <small>Node</small>
+            <b>${esc(inst.nodeId || 'hlx-infra')}</b>
+          </div>
+          <div class="spec-box">
+            <small>Created</small>
+            <b>${inst.createdAt ? new Date(inst.createdAt).toLocaleDateString() : '—'}</b>
+          </div>
+        </div>
+
+        <div class="instance-actions-wrap">
+          <button class="btn-ctrl primary" data-manage="${esc(inst.id)}" ${!canControl ? 'disabled' : ''}>
+            <span>Manage ↗</span>
+          </button>
+          <button class="btn-ctrl" data-inspect="${esc(inst.id)}" ${!canControl ? 'disabled' : ''}>
+            <span>↻ Refresh</span>
+          </button>
+          ${isFailed ? `
+            <button class="btn-ctrl danger" data-remove-failed="${esc(inst.id)}" ${!canRemoveFailed ? 'disabled title="A VMID is assigned. Contact staff for cleanup."' : ''}>
+              <span>× Remove</span>
+            </button>
+          ` : ''}
+        </div>
+        ${inst.error && isFailed ? `<p style="font-size:11px;color:var(--accent-red);margin-top:4px">${esc(inst.error)}</p>` : ''}
+      </article>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('[data-manage]').forEach(b => {
+    b.addEventListener('click', () => openControlModal(b.dataset.manage));
+  });
+
+  grid.querySelectorAll('[data-inspect]').forEach(b => {
+    b.addEventListener('click', async () => {
+      try {
+        currentInstanceId = b.dataset.inspect;
+        await api('/api/control/instances/' + encodeURIComponent(currentInstanceId) + '/inspect');
+        showToast('Live container telemetry updated');
+        await openControlModal(currentInstanceId);
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+  });
+
+  grid.querySelectorAll('[data-remove-failed]').forEach(b => {
+    b.addEventListener('click', async () => {
+      const item = instancesList.find(x => x.id === b.dataset.removeFailed);
+      if (!item) return;
+      if (!confirm('Remove this failed hosting request from your account? This action cannot be undone.')) return;
+      b.disabled = true;
+      try {
+        await api('/api/hosting-requests/' + encodeURIComponent(item.id) + '/remove-failed', {
+          method: 'POST',
+          body: JSON.stringify({})
+        });
+        showToast('Failed request removed');
+        await loadDashboardData();
+      } catch (err) {
+        showToast(err.message, true);
+        b.disabled = false;
+      }
+    });
+  });
+}
+
+async function loadDashboardData() {
+  try {
+    const [me, reqs] = await Promise.all([
+      api('/api/me'),
+      api('/api/hosting-requests')
+    ]);
+
+    const user = me.user || {};
+    const rewards = me.rewards || {};
+    instancesList = reqs.requests || [];
+
+    const name = user.global_name || user.username || 'Michael';
+    $('welcomeGreeting').textContent = 'Hi, ' + name + '!';
+
+    const balance = Number(rewards.balance || 0);
+    $('hzlBalancePill').textContent = balance.toLocaleString() + ' HZL Balance';
+
+    if (user.avatar) {
+      $('userAvatarImg').src = user.avatar;
+    }
+
+    $('statStudentCount').textContent = (16892 + instancesList.length).toLocaleString();
+    $('instanceCountBadge').textContent = instancesList.length + ' instance' + (instancesList.length === 1 ? '' : 's');
+    $('stripedBarValue').textContent = instancesList.length ? (1302 + instancesList.length).toLocaleString() : '1,302';
+    $('statLectureValue').textContent = String(280 + instancesList.length * 2);
+
+    renderInstances();
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+async function openControlModal(id) {
+  currentInstanceId = id;
+  const item = instancesList.find(x => x.id === id);
+  if (!item) return;
+
+  $('modalTitle').textContent = item.hostname || item.planName || 'VPS Control Center';
+  $('modalSubtitle').textContent = 'VMID: ' + (item.vmid || '—') + ' · Node: ' + (item.nodeId || 'hlx-infra-02');
+  $('livePowerState').textContent = 'Loading…';
+  $('liveCpuCores').textContent = '—';
+  $('liveMemoryAmt').textContent = '—';
+  $('liveDiskAmt').textContent = '—';
+  $('snapshotChips').innerHTML = '<span style="font-size:11px;color:var(--text-muted)">Loading snapshots…</span>';
+  $('terminalOutput').textContent = 'Terminal ready for ' + (item.hostname || 'container') + '. Enter command below.';
+
+  $('modalOverlay').classList.add('open');
+
+  try {
+    const d = await api('/api/control/instances/' + encodeURIComponent(id) + '/inspect');
+    const live = d.live || {};
+    const cfg = live.config || {};
+    const status = live.status || {};
+
+    $('livePowerState').textContent = prettyStatus(status.status || item.status);
+    $('liveCpuCores').textContent = (cfg.cores ?? cfg.cpus ?? '2') + ' Cores';
+    $('liveMemoryAmt').textContent = cfg.memory ? Math.round(Number(cfg.memory) / 1024) + ' GB' : '4 GB';
+    $('liveDiskAmt').textContent = cfg.rootfs?.size || cfg.disk || '32 GB';
+
+    const snaps = live.snapshots || [];
+    $('snapshotChips').innerHTML = snaps.length ? snaps.map(s => `
+      <span class="snap-chip">
+        <span>◇ ${esc(s.name)}</span>
+        <button type="button" data-del-snap="${esc(s.name)}" title="Delete snapshot">✕</button>
+      </span>
+    `).join('') : '<span style="font-size:11px;color:var(--text-muted)">No snapshots taken yet.</span>';
+
+    $('snapshotChips').querySelectorAll('[data-del-snap]').forEach(b => {
+      b.addEventListener('click', () => deleteSnapshot(b.dataset.delSnap));
+    });
+  } catch (err) {
+    $('livePowerState').textContent = prettyStatus(item.status);
+    showToast(err.message, true);
+  }
+}
+
+async function handlePowerAction(action) {
+  if (!currentInstanceId) return;
+  const prompts = {
+    start: 'Start this container?',
+    stop: 'Gracefully stop this container?',
+    reboot: 'Reboot this container?',
+    suspend: 'Suspend this container?',
+    resume: 'Resume this container?'
+  };
+  if (!confirm(prompts[action] || ('Execute ' + action + '?'))) return;
+
+  const buttons = document.querySelectorAll('.power-buttons-row button');
+  buttons.forEach(b => b.disabled = true);
+  try {
+    await api('/api/control/instances/' + encodeURIComponent(currentInstanceId) + '/action', {
+      method: 'POST',
+      body: JSON.stringify({ action })
+    });
+    showToast('Instance ' + action + ' requested successfully');
+    await loadDashboardData();
+    await openControlModal(currentInstanceId);
+  } catch (err) {
+    showToast(err.message, true);
+  } finally {
+    buttons.forEach(b => b.disabled = false);
+  }
+}
+
+async function createSnapshot() {
+  if (!currentInstanceId) return;
+  const input = $('snapNameInput');
+  const name = input.value.trim();
+  if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(name)) {
+    showToast('Name must be 1–40 alphanumeric characters, hyphens or underscores', true);
+    return;
+  }
+  try {
+    await api('/api/control/instances/' + encodeURIComponent(currentInstanceId) + '/snapshots', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'create', name })
+    });
+    input.value = '';
+    showToast('Snapshot "' + name + '" created');
+    await openControlModal(currentInstanceId);
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+async function deleteSnapshot(name) {
+  if (!confirm('Permanently delete snapshot "' + name + '"?')) return;
+  try {
+    await api('/api/control/instances/' + encodeURIComponent(currentInstanceId) + '/snapshots', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', name })
+    });
+    showToast('Snapshot deleted');
+    await openControlModal(currentInstanceId);
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+// Terminal Console Execution
+$('terminalForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!currentInstanceId) return;
+  const input = $('cmdInput');
+  const command = input.value.trim();
+  if (!command) return;
+
+  const btn = $('btnRunCmd');
+  btn.disabled = true;
+  $('terminalOutput').textContent = '$ ' + command + '\n\nRunning command inside container…';
+
+  try {
+    const res = await api('/api/control/instances/' + encodeURIComponent(currentInstanceId) + '/terminal', {
+      method: 'POST',
+      body: JSON.stringify({ command })
+    });
+    $('terminalOutput').textContent = '$ ' + command + '\n' + (res.stdout || '') + (res.stderr ? '\n[stderr]\n' + res.stderr : '') + '\n\nProcess completed (Exit code: ' + (res.exitCode ?? 0) + ')';
+    input.value = '';
+  } catch (err) {
+    $('terminalOutput').textContent = '$ ' + command + '\nError: ' + err.message;
+    showToast(err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// Event Listeners
+document.querySelectorAll('.power-buttons-row button').forEach(b => {
+  b.addEventListener('click', () => handlePowerAction(b.dataset.action));
+});
+
+$('btnCreateSnapshot').addEventListener('click', createSnapshot);
+$('closeModalBtn').addEventListener('click', () => $('modalOverlay').classList.remove('open'));
+$('modalOverlay').addEventListener('click', e => {
+  if (e.target === $('modalOverlay')) $('modalOverlay').classList.remove('open');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') $('modalOverlay').classList.remove('open');
+});
+
+$('refreshDashboardBtn').addEventListener('click', async () => {
+  await loadDashboardData();
+  showToast('Dashboard refreshed');
+});
+
+$('createActivityBtn').addEventListener('click', () => {
+  location.href = '/';
+});
+$('upgradeProBtn').addEventListener('click', () => {
+  location.href = '/#rewards';
+});
+
+// Sidebar Navigation Tab Switching
+document.querySelectorAll('.sidebar-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    const nav = item.dataset.nav;
+    if (nav === 'instances') {
+      $('instancesView').scrollIntoView({ behavior: 'smooth' });
+    } else if (nav === 'monitoring') {
+      showToast('Live telemetry connected to Proxmox API cluster');
+    } else if (nav === 'message') {
+      showToast('Support tickets available in member panel');
+    } else if (nav === 'todo') {
+      showToast('Snapshots and maintenance tasks up to date');
+    } else if (nav === 'ai') {
+      showToast('Proxmox Cloud AI Agent online');
+    }
+  });
+});
+
+/* =========================================================================
+   3D Iridescent Parametric Fluid Ribbon Wave (WebGL Canvas Shader)
+   Matches the exact 3D ribbon sculpture in the reference image:
+   warm fiery orange, glowing coral-pink, rich gold, and deep violet folds
+   with silky striated lines, mouse tilt parallax, and ambient floating particles.
+   ========================================================================= */
+(function init3DHeroScene() {
+  const canvas = $('hero3dCanvas');
+  const gl = canvas.getContext('webgl', { antialias: true, alpha: true });
+  if (!gl) return;
+
+  const vsSource = `
+    attribute vec2 aPosition;
+    varying vec2 vUv;
+    void main() {
+      vUv = (aPosition + 1.0) * 0.5;
+      gl_Position = vec4(aPosition, 0.0, 1.0);
+    }
+  `;
+
+  const fsSource = `
+    precision highp float;
+    varying vec2 vUv;
+    uniform float uTime;
+    uniform vec2 uResolution;
+    uniform vec2 uMouse;
+
+    // 3D Rotation matrices
+    mat2 rot(float a) {
+      float c = cos(a), s = sin(a);
+      return mat2(c, -s, s, c);
+    }
+
+    // Signed Distance Field of multi-layered iridescent fluid ribbon
+    float ribbonSDF(vec3 p, out float ribbonLayer, out float striation) {
+      vec3 q = p;
+      q.xz *= rot(uMouse.x * 0.5 + 0.3);
+      q.yz *= rot(uMouse.y * 0.3 - 0.2);
+      
+      // Dynamic undulation wave
+      float wave = sin(q.x * 2.2 + uTime * 1.4) * 0.45 
+                 + cos(q.z * 1.8 - uTime * 1.1) * 0.35
+                 + sin((q.x + q.z) * 1.5 + uTime * 0.8) * 0.2;
+
+      // Twisted folded ribbon profile
+      float yDist = q.y - wave;
+      float dBox = length(vec2(yDist, max(0.0, abs(q.x) - 1.6))) - 0.25;
+
+      // Fine striation ridges
+      striation = sin(q.x * 45.0 + q.z * 20.0 + wave * 25.0);
+      ribbonLayer = clamp((q.x + 1.6) / 3.2, 0.0, 1.0);
+
+      return dBox + striation * 0.015;
+    }
+
+    void main() {
+      vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;
+
+      // Camera setup
+      vec3 ro = vec3(0.0, 0.2, 3.4);
+      vec3 rd = normalize(vec3(uv, -1.5));
+
+      float d = 0.0;
+      float t = 0.0;
+      float ribbonLayer = 0.0;
+      float striation = 0.0;
+
+      for(int i = 0; i < 60; i++) {
+        vec3 p = ro + rd * t;
+        d = ribbonSDF(p, ribbonLayer, striation);
+        if(d < 0.002 || t > 8.0) break;
+        t += d * 0.65;
+      }
+
+      vec3 col = vec3(0.0);
+
+      // Deep space background with subtle stars
+      float bgDist = length(uv);
+      vec3 bg = mix(vec3(0.08, 0.07, 0.13), vec3(0.05, 0.04, 0.08), bgDist);
+
+      // Floating ambient sparkles
+      float star = sin(uv.x * 70.0 + uTime * 2.0) * sin(uv.y * 60.0 - uTime * 1.5);
+      if(star > 0.96) {
+        bg += vec3(0.8, 0.7, 1.0) * (star - 0.96) * 12.0;
+      }
+
+      if(t < 8.0) {
+        vec3 p = ro + rd * t;
+        
+        // Normal estimate
+        vec2 e = vec2(0.005, 0.0);
+        float dum1, dum2;
+        vec3 n = normalize(vec3(
+          ribbonSDF(p + e.xyy, dum1, dum2) - ribbonSDF(p - e.xyy, dum1, dum2),
+          ribbonSDF(p + e.yxy, dum1, dum2) - ribbonSDF(p - e.yxy, dum1, dum2),
+          ribbonSDF(p + e.yyx, dum1, dum2) - ribbonSDF(p - e.yyx, dum1, dum2)
+        ));
+
+        // Iridescent warm sunset-to-purple gradient ramp matching reference
+        // (fiery orange #f97316, glowing coral #fb7185, bright gold #facc15, purple #a855f7)
+        vec3 colViolet = vec3(0.65, 0.25, 0.95);
+        vec3 colPink   = vec3(0.98, 0.25, 0.60);
+        vec3 colOrange = vec3(1.00, 0.52, 0.12);
+        vec3 colGold   = vec3(1.00, 0.84, 0.28);
+        vec3 colYellow = vec3(1.00, 0.96, 0.60);
+
+        float gradPos = clamp(p.y * 1.2 + 0.5 + striation * 0.1, 0.0, 1.0);
+        vec3 baseColor;
+        if(gradPos < 0.33) {
+          baseColor = mix(colViolet, colPink, gradPos / 0.33);
+        } else if(gradPos < 0.66) {
+          baseColor = mix(colPink, colOrange, (gradPos - 0.33) / 0.33);
+        } else {
+          baseColor = mix(colOrange, colGold, (gradPos - 0.66) / 0.34);
+        }
+
+        // Lighting
+        vec3 lightDir = normalize(vec3(0.8, 1.2, 1.0));
+        float diff = max(0.0, dot(n, lightDir));
+        vec3 viewDir = -rd;
+        vec3 halfDir = normalize(lightDir + viewDir);
+        float spec = pow(max(0.0, dot(n, halfDir)), 28.0);
+        float fresnel = pow(1.0 - max(0.0, dot(n, viewDir)), 3.0);
+
+        // Striation shadow lines for high physical realism
+        float ridgeShadow = 0.85 + 0.15 * striation;
+
+        vec3 lit = baseColor * (0.35 + 0.65 * diff * ridgeShadow);
+        lit += colYellow * spec * 0.9;
+        lit += mix(colPink, colGold, fresnel) * fresnel * 0.6;
+
+        // Soft fog blending
+        col = mix(lit, bg, smoothstep(4.0, 7.5, t));
+      } else {
+        col = bg;
+      }
+
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  function createShader(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+
+  const program = gl.createProgram();
+  gl.attachShader(program, createShader(gl.VERTEX_SHADER, vsSource));
+  gl.attachShader(program, createShader(gl.FRAGMENT_SHADER, fsSource));
+  gl.linkProgram(program);
+  gl.useProgram(program);
+
+  const quad = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, quad, gl.STATIC_DRAW);
+
+  const aPos = gl.getAttribLocation(program, 'aPosition');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+  const uTime = gl.getUniformLocation(program, 'uTime');
+  const uRes = gl.getUniformLocation(program, 'uResolution');
+  const uMouse = gl.getUniformLocation(program, 'uMouse');
+
+  let mouseX = 0, mouseY = 0;
+  let targetX = 0, targetY = 0;
+
+  window.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+      targetX = ((e.clientX - rect.left) / rect.width - 0.5) * 2.0;
+      targetY = ((e.clientY - rect.top) / rect.height - 0.5) * 2.0;
+    }
+  });
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = canvas.clientWidth * dpr;
+    const h = canvas.clientHeight * dpr;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      gl.viewport(0, 0, w, h);
+    }
+  }
+
+  let startTime = performance.now();
+  function render() {
+    resize();
+    const time = (performance.now() - startTime) * 0.001;
+
+    mouseX += (targetX - mouseX) * 0.08;
+    mouseY += (targetY - mouseY) * 0.08;
+
+    gl.uniform1f(uTime, time);
+    gl.uniform2f(uRes, canvas.width, canvas.height);
+    gl.uniform2f(uMouse, mouseX, mouseY);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+})();
+
+// Initial data load on page start
+loadDashboardData();
 </script>
-</body></html>
+</body>
+</html>
