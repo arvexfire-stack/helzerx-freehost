@@ -2826,7 +2826,19 @@ function renderInstances() {
 
   // Bind actions
   document.querySelectorAll('[data-manage]').forEach(b => {
-    b.addEventListener('click', () => openControlModal(b.dataset.manage));
+    b.addEventListener('click', async event => {
+      event.preventDefault();
+      const instanceId = String(b.dataset.manage || '');
+      if (!instanceId) {
+        showToast('This VPS button is missing its instance ID. Refresh the dashboard.', true);
+        return;
+      }
+      try {
+        await openControlModal(instanceId);
+      } catch (err) {
+        showToast(err.message || 'Could not open VPS management.', true);
+      }
+    });
   });
 
   document.querySelectorAll('[data-inspect]').forEach(b => {
@@ -3027,10 +3039,25 @@ async function hxLaunchConsole(kind){
   socket.addEventListener('message',event=>{if(!hxTerminal)return;try{if(typeof event.data==='string')hxTerminal.write(event.data);else hxTerminal.write(new TextDecoder().decode(event.data))}catch{}});
   socket.addEventListener('error',()=>{hxConsoleStatus(statusId,'Terminal connection failed. Check Proxmox API access and TLS certificate settings.',true)});
   socket.addEventListener('close',event=>{if(hxTerminal)hxTerminal.write('\r\n\x1b[31m[Console disconnected]\x1b[0m\r\n');if(hxTerminalSocket===socket)hxTerminalSocket=null;if(event.code!==1000)hxConsoleStatus(statusId,'Console disconnected. Close it and launch a new session.',true)});
-  hxTerminal.onData(data=>{if(socket.readyState===WebSocket.OPEN)socket.send(new TextEncoder().encode(data))});
-  // The Proxmox termproxy PTY size is set when its ticket is created; do not inject resize escape sequences into the user's shell input.
-  const resizeObserver=new ResizeObserver(()=>{try{hxTerminalFit?.fit()}catch{}});
+  const sendTermproxyInput = data => {
+    if (socket.readyState !== WebSocket.OPEN) return;
+    const byteLength = new TextEncoder().encode(data).length;
+    socket.send('0:' + byteLength + ':' + data);
+  };
+  const sendTermproxyResize = () => {
+    if (socket.readyState !== WebSocket.OPEN || !hxTerminal) return;
+    try {
+      hxTerminalFit?.fit();
+      socket.send('1:' + hxTerminal.cols + ':' + hxTerminal.rows + ':');
+    } catch {}
+  };
+  hxTerminal.onData(sendTermproxyInput);
+  // Proxmox termproxy uses its packet protocol for input, resize, and keepalive messages.
+  socket.addEventListener('open', sendTermproxyResize);
+  const resizeObserver=new ResizeObserver(sendTermproxyResize);
   resizeObserver.observe(mount);socket.addEventListener('close',()=>resizeObserver.disconnect(),{once:true});
+  const termproxyKeepalive=setInterval(()=>{if(socket.readyState===WebSocket.OPEN)socket.send('2')},30000);
+  socket.addEventListener('close',()=>clearInterval(termproxyKeepalive),{once:true});
   hxConsoleStatus(statusId,'Connecting to Proxmox terminal…');
  }catch(err){const message=err.message||'Console service unavailable.';hxConsoleStatus(statusId,message,true);showToast(message,true);const error=$('hxTerminalError');if(error){error.textContent=message;error.hidden=false;} }
  finally{if(button)button.disabled=false;}
@@ -3051,8 +3078,11 @@ $('hxRefreshLive')?.addEventListener('click',hxRefreshMetrics);
 
 async function openControlModal(id) {
   currentInstanceId = id;
-  const item = instancesList.find(x => x.id === id);
-  if (!item) return;
+  const item = instancesList.find(x => String(x.id) === String(id));
+  if (!item) {
+    showToast('Could not find this VPS in the current list. Refresh the dashboard and try again.', true);
+    return;
+  }
 
   $('modalTitle').textContent = item.hostname || item.planName || 'VPS Control Center';
   $('modalSubtitle').textContent = 'VMID: ' + (item.vmid || '—') + ' · Node: ' + (item.nodeId || 'Unknown node');
