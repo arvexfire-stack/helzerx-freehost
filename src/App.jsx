@@ -588,56 +588,23 @@ export default function App() {
             </section>
           )}
 
-          {/* TAB 3: INVITE & REFERRAL HUB */}
+          {/* TAB 3: DISCORD COMMUNITY HUB */}
           {activeTab === 'invites' && (
             <section className="rewards-section" id="invites">
               <div className="services-head">
                 <div>
-                  <div className="section-label">Community Expansion</div>
-                  <h2 className="services-title">Personal Referral Program</h2>
-                  <p className="services-sub">Share your referral link with builders and server owners. Once registered, HZL rewards are automatically attributed to your account.</p>
+                  <div className="section-label">HelzerX Community</div>
+                  <h2 className="services-title">Join Our Discord</h2>
+                  <p className="services-sub">Join the official HelzerX community for announcements, community discussions and support. To invite your own friends, join the server first and create your personal invite from Discord.</p>
                 </div>
               </div>
-
-              <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-lg)', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  Your Unique Referral URL
-                </span>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <input 
-                    type="text" 
-                    readOnly 
-                    value={invite?.referralUrl || `${window.location.origin}/?ref=${me.id}`} 
-                    style={{ flex: 1, minWidth: '280px', background: '#09090c', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', color: '#fff', fontFamily: 'var(--font-mono)', fontSize: '13px' }}
-                  />
-                  <button className="btn-pill primary" onClick={copyInviteLink}>
-                    <Copy size={13} /> Copy Link
-                  </button>
-                </div>
-                <div style={{ display: 'flex', gap: '24px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                  <span>Verified: <b style={{ color: '#fff' }}>{invite?.verifiedInvites || 0}</b></span>
-                  <span>Pending review: <b style={{ color: 'var(--accent-gold)' }}>{invite?.pendingInvites || 0}</b></span>
-                </div>
-              </div>
-
-              <div className="section-label" style={{ marginTop: '16px' }}>Invite Milestone Schedule</div>
-              <div className="tiers-grid">
-                {(rewards?.inviteTiers || defaultInviteTiers).map(([count, amount]) => {
-                  const achieved = (invite?.verifiedInvites || 0) >= count;
-                  return (
-                    <article className={`tier-card ${achieved ? 'featured' : ''}`} key={count}>
-                      <div className="tier-header">
-                        <span className="tier-badge">TIER {count}</span>
-                        {achieved && <span style={{ color: '#2ecc71', fontSize: '11px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> Achieved</span>}
-                      </div>
-                      <div className="tier-amount">
-                        <span className="tier-number">{money(amount)}</span>
-                        <span className="tier-unit">HZL</span>
-                      </div>
-                      <p className="tier-desc">Awarded after {count} verified genuine members join via your referral link.</p>
-                    </article>
-                  );
-                })}
+              <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-lg)', padding: '32px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Official community</div>
+                <h3 style={{ margin: 0, color: '#fff', fontSize: '24px' }}>HelzerX Discord Server</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: 1.7 }}>Click below to join. This page does not generate personal referral links or Discord invites for you.</p>
+                <a className="btn-pill primary" href="https://discord.gg/UhqrFyVvr" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>Join Discord Community</a>
+                <div style={{ color: 'var(--text-muted)', fontSize: '13px', lineHeight: 1.6 }}>After joining, open the server menu in Discord and choose <b style={{ color: '#fff' }}>Invite People</b> to create your own invite link (if you have permission).</div>
+                <a href="/support" style={{ color: 'var(--accent-gold)', fontWeight: 700 }}>Need help? Open Support Center →</a>
               </div>
             </section>
           )}
