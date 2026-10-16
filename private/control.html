@@ -3021,7 +3021,7 @@ async function hxRefreshMetrics() {
   hxSetText('hxNetIn',Number.isFinite(Number(s.netin))?hxBytes(s.netin):'—');hxSetText('hxNetOut',Number.isFinite(Number(s.netout))?hxBytes(s.netout):'—');
   hxSetText('hxResCores',cores);hxSetText('hxResMemory',memory);hxSetText('hxResDisk',rootfs);hxSetText('hxResSwap',swap);hxSetText('hxResCpu',cpuPct===null?'Unavailable':cpuPct.toFixed(1)+'%');hxSetText('hxResMem',memPct===null?'Unavailable':hxBytes(memUsed)+' / '+hxBytes(memMax));hxSetText('hxResNetIn',Number.isFinite(Number(s.netin))?hxBytes(s.netin):'Unavailable');hxSetText('hxResNetOut',Number.isFinite(Number(s.netout))?hxBytes(s.netout):'Unavailable');
   hxSetText('hxConfigJson',JSON.stringify({status:s,config:cfg,metricsAvailable:{cpu:cpuPct!==null,memory:memPct!==null,disk:diskPct!==null,networkIn:Number.isFinite(Number(s.netin)),networkOut:Number.isFinite(Number(s.netout))}},null,2));
-  const snap=$('snapshotChips');if(snap)$('hxSnapshotMirror').textContent=snap.textContent||'Snapshot list is not available.';
+  const snap=$('snapshotChips'),mirror=$('hxSnapshotMirror');if(snap&&mirror)mirror.textContent=snap.textContent||'Snapshot list is not available.';
  } catch(err){hxSetText('hxLastUpdated','Live metrics unavailable');showToast(err.message,true);}
  finally {if(btn)btn.disabled=false;}
 }
@@ -3125,7 +3125,6 @@ async function openControlModal(id) {
   $('liveMemoryAmt').textContent = '—';
   $('liveDiskAmt').textContent = '—';
   $('snapshotChips').innerHTML = '<span style="font-size:11px;color:var(--text-muted)">Loading snapshots…</span>';
-  $('terminalOutput').textContent = 'Terminal ready for ' + (item.hostname || 'container') + '. Enter command below.';
 
   $('modalOverlay').classList.add('open');
   hxStartMetricPolling();
@@ -3222,32 +3221,7 @@ async function deleteSnapshot(name) {
   }
 }
 
-// Modal Terminal Form
-$('terminalForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  if (!currentInstanceId) return;
-  const input = $('cmdInput');
-  const command = input.value.trim();
-  if (!command) return;
-
-  const btn = $('btnRunCmd');
-  btn.disabled = true;
-  $('terminalOutput').textContent = '$ ' + command + '\n\nRunning command inside container…';
-
-  try {
-    const res = await api('/api/control/instances/' + encodeURIComponent(currentInstanceId) + '/terminal', {
-      method: 'POST',
-      body: JSON.stringify({ command })
-    });
-    $('terminalOutput').textContent = '$ ' + command + '\n' + (res.stdout || '') + (res.stderr ? '\n[stderr]\n' + res.stderr : '') + '\n\nProcess completed (Exit code: ' + (res.exitCode ?? 0) + ')';
-    input.value = '';
-  } catch (err) {
-    $('terminalOutput').textContent = '$ ' + command + '\nError: ' + err.message;
-    showToast(err.message, true);
-  } finally {
-    btn.disabled = false;
-  }
-});
+// Legacy modal terminal form removed; the current console uses the Xterm.js workspace.
 
 // Standalone View Terminal
 async function runPreset(cmd) {
@@ -3321,7 +3295,7 @@ $('refreshDashboardBtn').addEventListener('click', async () => {
   showToast('Account and instance records refreshed');
 });
 
-$('createActivityBtn').addEventListener('click', () => {
+$('createActivityBtn')?.addEventListener('click', () => {
   showToast('Differential snapshot trigger initialized');
   switchView('instances');
 });
