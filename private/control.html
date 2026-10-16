@@ -3060,47 +3060,28 @@ async function hxLaunchConsole(kind){
  if(kind==='novnc'){hxConsoleStatus('hxNoVncStatus','noVNC requires a QEMU/KVM VM; this VPS is an LXC container.',true);return;}
  const statusId='hxXtermStatus',button=$('hxLaunchXterm');
  if(!currentInstanceId){hxConsoleStatus(statusId,'Open a VPS first.',true);return;}
- if(typeof window.Terminal!=='function'||!window.FitAddon?.FitAddon){hxConsoleStatus(statusId,'Xterm.js could not load. Check the browser connection and refresh.',true);return;}
- if(button)button.disabled=true;hxConsoleStatus(statusId,'Requesting a secure console session…');
+ if(button)button.disabled=true;
+ hxConsoleStatus(statusId,'Preparing the native Proxmox Xterm.js console…');
  hxStopTerminal();
+ const wrap=$('hxConsoleFrameWrap');if(wrap)wrap.hidden=true;
+ // Open synchronously during the click so mobile browsers do not block the new tab.
+ const consoleTab=window.open('about:blank','_blank');
  try{
   const endpoint='/api/control/instances/'+encodeURIComponent(currentInstanceId)+'/console/xterm';
   const d=await api(endpoint,{method:'POST',body:JSON.stringify({})});
-  if(!d.url)throw new Error('The server did not return a console ticket.');
-  const wrap=$('hxConsoleFrameWrap'),mount=$('hxTerminalMount'),placeholder=$('hxConsolePlaceholder');
-  $('hxConsoleFrameTitle').textContent='Xterm.js — '+($('modalTitle')?.textContent||'VPS');
-  wrap.hidden=false;mount.hidden=false;placeholder.hidden=true;
-  hxTerminal=new window.Terminal({cursorBlink:true,convertEol:true,scrollback:5000,allowProposedApi:true,fontFamily:"'JetBrains Mono', monospace",fontSize:13,theme:{background:'#07080d',foreground:'#e8e4f5',cursor:'#c084fc',selectionBackground:'#a855f755'}});
-  hxTerminalFit=new window.FitAddon.FitAddon();hxTerminal.loadAddon(hxTerminalFit);hxTerminal.open(mount);
-  requestAnimationFrame(()=>{try{hxTerminalFit.fit()}catch{}hxTerminal.focus()});
-  const wsUrl=new URL(d.url,window.location.href);wsUrl.protocol=window.location.protocol==='https:'?'wss:':'ws:';
-  const socket=new WebSocket(wsUrl.toString());hxTerminalSocket=socket;socket.binaryType='arraybuffer';
-  socket.addEventListener('open',()=>{hxConsoleStatus(statusId,'Connected to the live Proxmox terminal.');try{hxTerminalFit.fit();hxTerminal.focus()}catch{}});
-  socket.addEventListener('message',event=>{if(!hxTerminal)return;try{if(typeof event.data==='string')hxTerminal.write(event.data);else hxTerminal.write(new TextDecoder().decode(event.data))}catch{}});
-  socket.addEventListener('error',()=>{hxConsoleStatus(statusId,'Terminal connection failed. Check Proxmox API access and TLS certificate settings.',true)});
-  socket.addEventListener('close',event=>{if(hxTerminal)hxTerminal.write('\r\n\x1b[31m[Console disconnected]\x1b[0m\r\n');if(hxTerminalSocket===socket)hxTerminalSocket=null;if(event.code!==1000)hxConsoleStatus(statusId,'Console disconnected. Close it and launch a new session.',true)});
-  const sendTermproxyInput = data => {
-    if (socket.readyState !== WebSocket.OPEN) return;
-    const byteLength = new TextEncoder().encode(data).length;
-    socket.send('0:' + byteLength + ':' + data);
-  };
-  const sendTermproxyResize = () => {
-    if (socket.readyState !== WebSocket.OPEN || !hxTerminal) return;
-    try {
-      hxTerminalFit?.fit();
-      socket.send('1:' + hxTerminal.cols + ':' + hxTerminal.rows + ':');
-    } catch {}
-  };
-  hxTerminal.onData(sendTermproxyInput);
-  // Proxmox termproxy uses its packet protocol for input, resize, and keepalive messages.
-  socket.addEventListener('open', sendTermproxyResize);
-  const resizeObserver=new ResizeObserver(sendTermproxyResize);
-  resizeObserver.observe(mount);socket.addEventListener('close',()=>resizeObserver.disconnect(),{once:true});
-  const termproxyKeepalive=setInterval(()=>{if(socket.readyState===WebSocket.OPEN)socket.send('2')},30000);
-  socket.addEventListener('close',()=>clearInterval(termproxyKeepalive),{once:true});
-  hxConsoleStatus(statusId,'Connecting to Proxmox terminal…');
- }catch(err){const message=err.message||'Console service unavailable.';hxConsoleStatus(statusId,message,true);showToast(message,true);const error=$('hxTerminalError');if(error){error.textContent=message;error.hidden=false;} }
- finally{if(button)button.disabled=false;}
+  if(!d.url)throw new Error('The server did not return a Proxmox console URL.');
+  hxConsoleStatus(statusId,'Opening Proxmox Xterm.js console…');
+  if(consoleTab){
+   consoleTab.opener=null;
+   consoleTab.location.replace(d.url);
+  }else{
+   window.location.assign(d.url);
+  }
+ }catch(err){
+  if(consoleTab){try{consoleTab.close()}catch{}}
+  const message=err.message||'Console service unavailable.';
+  hxConsoleStatus(statusId,message,true);showToast(message,true);
+ }finally{if(button)button.disabled=false;}
 }
 $('hxLaunchXterm')?.addEventListener('click',()=>hxLaunchConsole('xterm'));
 $('hxLaunchNoVnc')?.addEventListener('click',()=>hxLaunchConsole('novnc'));
