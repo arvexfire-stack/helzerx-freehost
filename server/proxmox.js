@@ -109,9 +109,9 @@ async function waitTask(c, upid, taskNode = c.node) {
 
 
 function templateDisplayName(volid) {
-  const file = String(volid).split('/').pop().replace(/\\.(tar\\.(gz|xz|zst)|tar)$/i, '').replace(/[_-]+/g, ' ');
+  const file = String(volid).split('/').pop().replace(/\.(tar\.(gz|xz|zst)|tar)$/i, '').replace(/[_-]+/g, ' ');
   const distro = file.match(/(ubuntu|debian|alpine|rocky|alma(?:linux)?|centos|fedora|archlinux|opensuse|kali|devuan|oraclelinux)/i)?.[1] || '';
-  const version = file.match(/(20\\d{2}\\.\\d{2}|\\d{2}\\.\\d{2}|\\d+(?:\\.\\d+)?)/)?.[1] || '';
+  const version = file.match(/(20\\d{2}\.\\d{2}|\\d{2}\.\\d{2}|\\d+(?:\.\\d+)?)/)?.[1] || '';
   const names = { ubuntu:'Ubuntu', debian:'Debian', alpine:'Alpine Linux', rocky:'Rocky Linux', alma:'AlmaLinux', almalinux:'AlmaLinux', centos:'CentOS', fedora:'Fedora', archlinux:'Arch Linux', opensuse:'openSUSE', kali:'Kali Linux', devuan:'Devuan', oraclelinux:'Oracle Linux' };
   const label = names[distro.toLowerCase()] || '';
   return (label ? label + (version ? ' ' + version : '') : file) + (label && /standard/i.test(file) ? ' Standard' : '');
@@ -127,11 +127,11 @@ export async function listLxcTemplates({ node } = {}) {
   if (!allowedNodes.includes(targetNode)) throw new Error('Selected Proxmox node is not allowlisted.');
   const stores = await api(c, 'GET', '/nodes/' + enc(targetNode) + '/storage');
   if (!Array.isArray(stores)) throw new Error('Could not list Proxmox storage for this node.');
-  const candidates = stores.filter(x => x && typeof x.storage === 'string' && x.storage && x.active !== 0 && x.enabled !== 0);
+  const candidates = stores.filter(x => x && typeof x.storage === 'string' && x.storage && (x.active === undefined || Boolean(x.active)) && (x.enabled === undefined || Boolean(x.enabled)));
   const contents = await Promise.all(candidates.map(async store => {
     try {
       const rows = await api(c, 'GET', '/nodes/' + enc(targetNode) + '/storage/' + enc(store.storage) + '/content', { content: 'vztmpl' });
-      return (Array.isArray(rows) ? rows : []).filter(row => row && typeof row.volid === 'string' && row.volid.includes(':vztmpl/') && /\\.tar\\.(?:gz|xz|zst)$/i.test(row.volid)).map(row => ({ template: row.volid, storage: store.storage, size: Number(row.size) || 0 }));
+      return (Array.isArray(rows) ? rows : []).filter(row => row && typeof row.volid === 'string' && row.volid.includes(':vztmpl/') && /\.tar\.(?:gz|xz|zst)$/i.test(row.volid)).map(row => ({ template: row.volid, storage: store.storage, size: Number(row.size) || 0 }));
     } catch { return []; }
   }));
   const configuredOs = [];
