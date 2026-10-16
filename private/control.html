@@ -2663,6 +2663,35 @@ document.addEventListener('click', event => {
   const nav = item.dataset.nav;
   if (nav) switchView(nav);
 }, true);
+
+// Bind Manage through one delegated listener, not per-card listeners. The VPS cards are
+// re-rendered after API refreshes and appear in two grids; delegation keeps every Manage
+// button working after any re-render and prevents duplicate modal opens.
+document.addEventListener('click', async event => {
+  const button = event.target instanceof Element ? event.target.closest('[data-manage]') : null;
+  if (!button) return;
+  event.preventDefault();
+  event.stopPropagation();
+
+  const instanceId = String(button.getAttribute('data-manage') || '').trim();
+  if (!instanceId) {
+    showToast('This VPS button is missing its instance ID. Refresh the dashboard.', true);
+    return;
+  }
+
+  if (button.dataset.opening === 'true') return;
+  button.dataset.opening = 'true';
+  button.setAttribute('aria-busy', 'true');
+  try {
+    await openControlModal(instanceId);
+  } catch (err) {
+    showToast(err?.message || 'Could not open VPS management. Refresh the page and try again.', true);
+  } finally {
+    delete button.dataset.opening;
+    button.removeAttribute('aria-busy');
+  }
+}, true);
+
 // Start the API load even if a non-critical initializer later throws.
 setTimeout(() => loadDashboardData(), 0);
 
@@ -2824,22 +2853,8 @@ function renderInstances() {
   dashGrid.innerHTML = cardsHtml;
   fullGrid.innerHTML = cardsHtml;
 
-  // Bind actions
-  document.querySelectorAll('[data-manage]').forEach(b => {
-    b.addEventListener('click', async event => {
-      event.preventDefault();
-      const instanceId = String(b.dataset.manage || '');
-      if (!instanceId) {
-        showToast('This VPS button is missing its instance ID. Refresh the dashboard.', true);
-        return;
-      }
-      try {
-        await openControlModal(instanceId);
-      } catch (err) {
-        showToast(err.message || 'Could not open VPS management.', true);
-      }
-    });
-  });
+  // Manage clicks are handled by the delegated document listener above.
+  // Keep per-card bindings only for actions that are specific to this rendered grid.
 
   document.querySelectorAll('[data-inspect]').forEach(b => {
     b.addEventListener('click', async () => {
