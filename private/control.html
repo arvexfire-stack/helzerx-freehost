@@ -2533,6 +2533,18 @@ html, body {
   </div>
 </div>
 
+<!-- VPS Control Center Modal (Power, Snapshots, Terminal) -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-window">
+    <div class="modal-header">
+      <div>
+        <h3 id="modalTitle">VPS Control Center</h3>
+        <p id="modalSubtitle">Inspect resources and manage container lifecycle</p>
+      </div>
+      <button class="modal-close-btn" id="closeModalBtn" aria-label="Close dialog">✕</button>
+    </div>
+
+    <div class="modal-content-scroll">
 <!-- Enhanced Proxmox-style live management workspace -->
 <div class="hx-live-workspace" id="hxLiveWorkspace">
   <div class="hx-live-toolbar">
@@ -2567,20 +2579,8 @@ html, body {
   </div><div class="hx-panel-card hx-terminal-anchor" id="hxCommandRunnerAnchor"><header><div><h4>Command runner</h4><p>Runs a single command inside this container; output is not an interactive shell.</p></div><span class="hx-source-tag">60s LIMIT</span></header><div class="hx-note">Use the existing command form below. Do not paste secrets into commands that may be recorded in audit metadata.</div></div></section>
   <section class="hx-tab-panel" data-hxpanel="snapshots"><div class="hx-panel-card"><header><div><h4>Snapshots & restore points</h4><p>Create and manage restore points for this VPS</p></div></header><p class="hx-note">Use the snapshot controls below. Restore is not enabled unless the backend explicitly supports and validates a restore operation.</p><div id="hxSnapshotMirror"></div></div></section>
   <section class="hx-tab-panel" data-hxpanel="settings"><div class="hx-panel-card"><header><div><h4>Configuration</h4><p>Live container configuration from Proxmox</p></div><span class="hx-source-tag">READ ONLY</span></header><pre class="hx-config-json" id="hxConfigJson">Loading configuration…</pre><div class="hx-reinstall-box"><div><h4>Reinstall operating system</h4><p>Reinstall is destructive. It must be backed by a dedicated server-side rebuild workflow with template allowlisting, ownership checks, task tracking and confirmation.</p></div><button type="button" class="btn-ctrl" disabled title="Reinstall backend is not implemented yet">Reinstall unavailable</button></div></div></section>
-</div>
 
-<!-- VPS Control Center Modal (Power, Snapshots, Terminal) -->
-<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-  <div class="modal-window">
-    <div class="modal-header">
-      <div>
-        <h3 id="modalTitle">VPS Control Center</h3>
-        <p id="modalSubtitle">Inspect resources and manage container lifecycle</p>
-      </div>
-      <button class="modal-close-btn" id="closeModalBtn" aria-label="Close dialog">✕</button>
-    </div>
 
-    <div class="modal-content-scroll">
       
       <!-- Telemetry Gauges -->
       <div class="telemetry-row">
