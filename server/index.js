@@ -503,6 +503,39 @@ app.post('/api/tickets/:id/messages',auth,adminMutationOrigin,(req,res)=>{
 });
 app.get('/api/tickets/:id',auth,(req,res)=>{const ticket=data.tickets.find(t=>t.id===req.params.id&&t.userId===req.session.user.id);if(!ticket)return res.status(404).json({error:'Ticket not found.'});res.set('Cache-Control','no-store');res.json({ticket})});
 
+
+// Authenticated Gemini support assistant. It provides troubleshooting guidance only;
+// it never executes Proxmox operations or receives server credentials.
+const supportChatAttempts=new Map();
+app.get('/support',auth,(_req,res)=>{
+ res.set({'Cache-Control':'private, no-store, no-cache, must-revalidate, max-age=0','X-Robots-Tag':'noindex, nofollow'});
+ res.type('html').sendFile(path.join(root,'private','support.html'),{dotfiles:'deny',cacheControl:false},err=>{if(err&&!res.headersSent)res.status(404).type('text/plain').send('Support page unavailable');});
+});
+app.post('/api/support/chat',auth,adminMutationOrigin,async(req,res)=>{
+ res.set('Cache-Control','no-store');
+ const userId=String(req.session.user.id);
+ const now=Date.now(),recent=(supportChatAttempts.get(userId)||[]).filter(t=>now-t<60000);
+ if(recent.length>=8)return res.status(429).json({error:'Please wait a minute before sending more messages.'});
+ recent.push(now);supportChatAttempts.set(userId,recent);
+ const message=String(req.body?.message||'').trim();
+ const history=Array.isArray(req.body?.history)?req.body.history.slice(-8).map(m=>({role:m?.role==='model'?'model':'user',parts:[{text:String(m?.text||'').slice(0,2500)}]})): [];
+ if(message.length<1||message.length>3000)return res.status(400).json({error:'Message must be between 1 and 3000 characters.'});
+ const key=process.env.GEMINI_API_KEY;
+ if(!key)return res.status(503).json({error:'AI support is not configured yet. You can still create a support ticket.'});
+ const model=String(process.env.GEMINI_MODEL||'gemini-2.5-flash').replace(/[^a-zA-Z0-9.-]/g,'');
+ try{
+  const response=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key),{
+   method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(25000),
+   body:JSON.stringify({systemInstruction:{parts:[{text:'You are HelzerX Hosting Support AI. Help users troubleshoot VPS, Linux LXC, SSH, networking, and dashboard issues with safe, clear step-by-step guidance. Ask for exact non-secret error messages when needed. Never request passwords, API keys, private keys, session cookies, or tokens. You cannot inspect the server or execute commands. Never claim to have fixed anything. Prefer read-only diagnostics first. Clearly warn before disruptive commands; do not recommend deleting containers or data as a first-line fix. For account-specific actions, billing, suspected security incidents, or unresolved issues, recommend creating a support ticket for human staff. Keep answers concise and practical.'}]},contents:[...history,{role:'user',parts:[{text:message}]}],generationConfig:{temperature:0.3,maxOutputTokens:900}})})
+  });
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok){console.error('[Gemini support] request failed with status',response.status);return res.status(502).json({error:'AI support is temporarily unavailable. Please create a ticket or try again later.'});}
+  const answer=payload?.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('\n').trim();
+  if(!answer)return res.status(502).json({error:'AI returned an empty response. Please try again or create a ticket.'});
+  return res.json({answer});
+ }catch(error){console.error('[Gemini support] request failed:',String(error?.message||error));return res.status(502).json({error:'Could not reach AI support. Please try again or create a ticket.'});}
+});
+
 app.get('/api/admin/overview',adminOnly,(_req,res)=>{
  const users=Object.values(data.users),requests=data.hostingRequests;
  res.json({stats:{users:users.length,activeUsers:users.filter(u=>u.status!=='suspended').length,suspendedUsers:users.filter(u=>u.status==='suspended').length,openTickets:data.tickets.filter(t=>t.status!=='closed').length,pendingHosting:requests.filter(x=>x.status==='pending').length,activeVps:requests.filter(x=>['provisioned','suspended'].includes(x.status)).length,totalHzl:users.reduce((n,u)=>n+(Number(u.balance)||0),0)},proxmox:proxmoxReadiness()});
