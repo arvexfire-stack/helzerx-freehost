@@ -111,7 +111,7 @@ async function waitTask(c, upid, taskNode = c.node) {
 function templateDisplayName(volid) {
   const file = String(volid).split('/').pop().replace(/\.(tar\.(gz|xz|zst)|tar)$/i, '').replace(/[_-]+/g, ' ');
   const distro = file.match(/(ubuntu|debian|alpine|rocky|alma(?:linux)?|centos|fedora|archlinux|opensuse|kali|devuan|oraclelinux)/i)?.[1] || '';
-  const version = file.match(/(20\\d{2}\.\\d{2}|\\d{2}\.\\d{2}|\\d+(?:\.\\d+)?)/)?.[1] || '';
+  const version = file.match(/(?:ubuntu|debian)[ -]?(20\d{2}\.\d{2}|\d{2}\.\d{2}|\d{2})/i)?.[1] || file.match(/(20\d{2}\.\d{2}|\d{2}\.\d{2}|\d+(?:\.\d+)?)/)?.[1] || '';
   const names = { ubuntu:'Ubuntu', debian:'Debian', alpine:'Alpine Linux', rocky:'Rocky Linux', alma:'AlmaLinux', almalinux:'AlmaLinux', centos:'CentOS', fedora:'Fedora', archlinux:'Arch Linux', opensuse:'openSUSE', kali:'Kali Linux', devuan:'Devuan', oraclelinux:'Oracle Linux' };
   const label = names[distro.toLowerCase()] || '';
   return (label ? label + (version ? ' ' + version : '') : file) + (label && /standard/i.test(file) ? ' Standard' : '');
