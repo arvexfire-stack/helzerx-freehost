@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import session from 'express-session';
 import crypto from 'node:crypto';
-import { provisionLxc, proxmoxReadiness, manageLxc, inspectLxc, runLxcTerminal, manageLxcSnapshot } from './proxmox.js';
+import { provisionLxc, proxmoxReadiness, manageLxc, inspectLxc, runLxcTerminal, manageLxcSnapshot, listLxcTemplates } from './proxmox.js';
 import { readState, writeState } from './database.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -259,6 +259,19 @@ function configuredVpsOs(){
  if(!Array.isArray(list)||!list.length){const template=String(process.env.PROXMOX_TEMPLATE||'').trim();if(template)list=[{id:'default',label:'Default Linux template',template,surcharge:0}];}
  return list.filter(x=>x&&typeof x.id==='string'&&/^[a-z0-9][a-z0-9_-]{0,39}$/i.test(x.id)&&typeof x.template==='string'&&x.template.trim()).map(x=>({id:x.id,label:String(x.label||x.id).slice(0,80),template:x.template.trim(),surcharge:Number.isSafeInteger(Number(x.surcharge))&&Number(x.surcharge)>=0?Number(x.surcharge):0}));
 }
+app.get('/api/hosting-templates',auth,async(req,res)=>{
+ res.set('Cache-Control','private, no-store');
+ const nodeId=String(req.query?.nodeId||process.env.PROXMOX_NODE||'');
+ if(!configuredVpsNodes().some(x=>x.id===nodeId))return res.status(400).json({error:'Selected Proxmox node is not in the server allowlist.'});
+ try{
+  const templates=await listLxcTemplates({node:nodeId});
+  return res.json({templates:templates.map(({id,label,template,storage,size,surcharge})=>({id,label,template,storage,size,surcharge}))});
+ }catch(error){
+  console.error('[hosting templates] Could not load templates for node '+nodeId+':',String(error?.message||error).slice(0,300));
+  return res.status(503).json({error:'Could not load operating systems from Proxmox. Check API permissions and template storage, then retry.'});
+ }
+});
+
 app.get('/api/hosting-options',auth,(_req,res)=>{const options=data.plans.filter(x=>x.enabled!==false);const readiness=proxmoxReadiness();res.set('Cache-Control','no-store');res.json({options:options.map(({id,service,name,cost,description,proxmox})=>({id,service,name,cost,description,...(proxmox&&typeof proxmox==='object'?{resources:{cores:Number(proxmox.cores)||0,memory:Number(proxmox.memory)||0,disk:Number(proxmox.disk)||0}}:{})})),nodes:configuredVpsNodes(),osOptions:configuredVpsOs().map(({id,label,surcharge})=>({id,label,surcharge})),provisioning:{enabled:readiness.enabled,ready:readiness.ready}})});
 
 // User-owned LXC control APIs. Every lookup is scoped to the signed-in account.
@@ -344,11 +357,14 @@ app.post('/api/hosting-requests',auth,adminMutationOrigin,async(req,res)=>{
  const rootPassword=String(req.body?.password||'');
  const nodes=configuredVpsNodes(),osOptions=configuredVpsOs();
  const selectedNode=nodes.find(x=>x.id===nodeId);
- const selectedOs=osOptions.find(x=>x.id===osId);
+ let selectedOs=osOptions.find(x=>x.id===osId);
  if(service==='lxc'){
   if(!/^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/.test(displayName)||displayName.length<2)return res.status(400).json({error:'VPS name must be 2–30 lowercase letters, numbers or hyphens.'});
   if(!selectedNode)return res.status(400).json({error:'Selected Proxmox node is not in the server allowlist.'});
-  if(!selectedOs)return res.status(400).json({error:'Selected operating system is not configured on the server.'});
+  let liveTemplates=[];
+  try{liveTemplates=await listLxcTemplates({node:nodeId});}catch(error){return res.status(503).json({error:'Unable to read OS templates from Proxmox. Check node and storage permissions.'});}
+  selectedOs=liveTemplates.find(x=>x.id===osId||x.template===osId);
+  if(!selectedOs)return res.status(400).json({error:'That OS template is no longer available on the selected Proxmox node. Refresh the OS list.'});
   if(rootPassword.length<10||rootPassword.length>128||/[\x00-\x1f\x7f]/.test(rootPassword))return res.status(400).json({error:'Root password must be 10–128 characters without control characters.'});
  }
  const effectiveCost=option.cost+(service==='lxc'?(selectedNode?.surcharge||0)+(selectedOs?.surcharge||0):0);
