@@ -3,87 +3,88 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#121319">
-<title>Sapphire UI · HelzerX Cloud Control</title>
+<meta name="theme-color" content="#0e0f16">
+<title>HelzerX Cloud · VPS Control Center</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg-outer: #191c24;
-  --bg-frame: #121319;
-  --bg-surface: #171821;
-  --bg-surface-elevated: #1d1e2a;
-  --bg-card: #181923;
-  --bg-card-hover: #202230;
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-card: rgba(255, 255, 255, 0.08);
-  --border-purple-glow: rgba(192, 132, 252, 0.8);
+  --bg-main: #0c0d13;
+  --bg-sidebar: #101118;
+  --bg-topbar: #12131b;
+  --bg-surface: #151620;
+  --bg-card: #171823;
+  --bg-card-hover: #1e1f2d;
+  --bg-inner: #0f1017;
   
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-card: rgba(255, 255, 255, 0.07);
+  --border-card-hover: rgba(168, 85, 247, 0.35);
+  --border-purple-glow: rgba(192, 132, 252, 0.75);
+
   --purple-primary: #a855f7;
   --purple-light: #c084fc;
   --purple-vibrant: #9333ea;
   --purple-dark: #3b0764;
-  --purple-tint: rgba(168, 85, 247, 0.14);
-  --purple-tint-subtle: rgba(168, 85, 247, 0.08);
-  
+  --purple-tint: rgba(168, 85, 247, 0.12);
+  --purple-glow: rgba(168, 85, 247, 0.4);
+
   --text-main: #f8fafc;
   --text-muted: #8e8b9f;
-  --text-dim: #646274;
-  
+  --text-dim: #626074;
+
   --accent-green: #4ade80;
   --accent-orange: #fb923c;
   --accent-red: #f87171;
   --accent-cyan: #38bdf8;
-  
-  --radius-frame: 28px;
+  --accent-blue: #60a5fa;
+
   --radius-card: 20px;
-  --radius-btn: 14px;
+  --radius-btn: 12px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
+  width: 100%;
+  height: 100%;
   min-height: 100vh;
-  background-color: var(--bg-outer);
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-main);
   color: var(--text-main);
   font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: clamp(10px, 2.5vw, 28px);
+  overflow: hidden;
 }
 
-/* Outer chassis matching the tablet/window perspective in the reference */
-.app-viewport {
-  width: 100%;
-  max-width: 1440px;
-  background: var(--bg-frame);
-  border-radius: var(--radius-frame);
-  box-shadow: 
-    0 40px 100px -20px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 0 60px -15px rgba(147, 51, 234, 0.15);
-  overflow: hidden;
+/* Full Viewport App Container (No outer borders, edge-to-edge) */
+.app-container {
+  width: 100vw;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 860px;
-  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 80% 0%, rgba(147, 51, 234, 0.08), transparent 40%),
+              radial-gradient(circle at 15% 90%, rgba(56, 189, 248, 0.04), transparent 40%),
+              var(--bg-main);
 }
 
 /* Top Navigation Bar */
 .top-nav {
-  height: 76px;
+  height: 72px;
+  width: 100%;
+  background: var(--bg-topbar);
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
   gap: 20px;
-  background: rgba(18, 19, 25, 0.95);
+  flex-shrink: 0;
+  z-index: 30;
   backdrop-filter: blur(12px);
-  z-index: 20;
 }
 
 .nav-brand {
@@ -92,31 +93,31 @@ html, body {
   gap: 12px;
   text-decoration: none;
   color: inherit;
-  min-width: 200px;
+  min-width: 220px;
 }
 
 .brand-icon {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   background: linear-gradient(135deg, #c084fc, #9333ea 60%, #581c87);
   display: grid;
   place-items: center;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 22px rgba(168, 85, 247, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
 }
 
 .brand-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   color: #fff;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
 .brand-title-wrap b {
   display: block;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 14.5px;
+  font-weight: 800;
   letter-spacing: -0.01em;
   color: #fff;
 }
@@ -128,12 +129,12 @@ html, body {
   font-weight: 500;
 }
 
-/* Search Container in Nav */
+/* Center Search Pill */
 .nav-search-pill {
   flex: 1;
-  max-width: 440px;
+  max-width: 460px;
   height: 42px;
-  background: #181922;
+  background: #171822;
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
   display: flex;
@@ -144,9 +145,9 @@ html, body {
 }
 
 .nav-search-pill:focus-within {
-  border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: 0 0 16px rgba(168, 85, 247, 0.15);
-  background: #1b1c26;
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.18);
+  background: #1a1c27;
 }
 
 .nav-search-pill input {
@@ -183,7 +184,7 @@ html, body {
   color: #fff;
 }
 
-/* Top Right Actions */
+/* Nav Actions */
 .nav-actions {
   display: flex;
   align-items: center;
@@ -197,7 +198,7 @@ html, body {
   height: 38px;
   padding: 0 14px;
   border-radius: 999px;
-  background: #191a24;
+  background: #171822;
   border: 1px solid var(--border-subtle);
   color: #e2e8f0;
   font-size: 12px;
@@ -207,7 +208,7 @@ html, body {
 }
 
 .nav-pill-dropdown:hover {
-  background: #212230;
+  background: #202230;
   border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -215,7 +216,7 @@ html, body {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: #191a24;
+  background: #171822;
   border: 1px solid var(--border-subtle);
   color: var(--text-muted);
   display: grid;
@@ -226,7 +227,7 @@ html, body {
 }
 
 .nav-circle-btn:hover {
-  background: #222330;
+  background: #202230;
   color: #fff;
   border-color: rgba(255, 255, 255, 0.15);
 }
@@ -245,20 +246,21 @@ html, body {
 .user-profile-badge {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-left: 4px;
+  gap: 10px;
+  padding-left: 6px;
   cursor: pointer;
+  position: relative;
 }
 
 .avatar-circle {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 2px solid rgba(168, 85, 247, 0.4);
   background: linear-gradient(135deg, #38bdf8, #818cf8);
   overflow: hidden;
   position: relative;
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.25);
 }
 
 .avatar-circle img {
@@ -267,8 +269,65 @@ html, body {
   object-fit: cover;
 }
 
-/* App Main Container (Sidebar + Content) */
-.app-body {
+/* User Menu Dropdown */
+.user-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 220px;
+  background: #161722;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(168, 85, 247, 0.15);
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 50;
+  animation: dropIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.user-menu-dropdown.show {
+  display: flex;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.user-menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.user-menu-item.danger {
+  color: var(--accent-red);
+}
+.user-menu-item.danger:hover {
+  background: rgba(248, 113, 113, 0.1);
+}
+
+/* Body (Sidebar + Content Workspace) */
+.app-workspace {
   display: flex;
   flex: 1;
   min-height: 0;
@@ -278,22 +337,22 @@ html, body {
 /* Left Sidebar */
 .app-sidebar {
   width: 220px;
-  background: #14151c;
+  background: var(--bg-sidebar);
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  padding: 22px 14px 20px;
-  gap: 6px;
+  padding: 20px 12px 18px;
+  gap: 5px;
   flex-shrink: 0;
   overflow-y: auto;
 }
 
 .sidebar-section-label {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
   color: var(--text-dim);
-  letter-spacing: 0.12em;
-  padding: 14px 10px 6px;
+  letter-spacing: 0.14em;
+  padding: 14px 10px 5px;
   text-transform: uppercase;
 }
 
@@ -406,8 +465,8 @@ html, body {
   width: 100%;
   padding: 12px 14px;
   border-radius: 14px;
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.25), rgba(76, 29, 149, 0.15));
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.3), rgba(76, 29, 149, 0.18));
   color: #f1e8ff;
   font-size: 12px;
   font-weight: 700;
@@ -417,24 +476,41 @@ html, body {
   gap: 8px;
   cursor: pointer;
   transition: all 0.25s;
-  box-shadow: 0 4px 18px rgba(147, 51, 234, 0.15);
+  box-shadow: 0 4px 18px rgba(147, 51, 234, 0.2);
 }
 
 .btn-upgrade-pro:hover {
   border-color: var(--purple-light);
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.45), rgba(76, 29, 149, 0.3));
-  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.3);
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.5), rgba(76, 29, 149, 0.35));
+  box-shadow: 0 6px 26px rgba(168, 85, 247, 0.35);
   transform: translateY(-1px);
 }
 
-/* Main Dashboard Area */
-.dashboard-content {
+/* Main Dashboard Workspace */
+.main-workspace {
   flex: 1;
-  padding: 24px 28px 36px;
+  padding: 24px 32px 40px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
+}
+
+/* View Sections (Switched via sidebar tabs) */
+.view-panel {
+  display: none;
+  flex-direction: column;
+  gap: 22px;
+  animation: fadeIn 0.25s ease;
+}
+
+.view-panel.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Greeting Section */
@@ -453,7 +529,7 @@ html, body {
 }
 
 .greeting-text h2 {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.025em;
@@ -469,13 +545,13 @@ html, body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
+  padding: 8px 16px;
   border-radius: 999px;
   background: rgba(74, 222, 128, 0.1);
-  border: 1px solid rgba(74, 222, 128, 0.2);
+  border: 1px solid rgba(74, 222, 128, 0.25);
   color: var(--accent-green);
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .pulse-dot {
@@ -508,9 +584,14 @@ html, body {
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
   position: relative;
   overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.dash-card:hover {
+  border-color: var(--border-card-hover);
 }
 
 /* Card 1: Students / Instances */
@@ -532,7 +613,7 @@ html, body {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   font-size: 11.5px;
   font-weight: 600;
   color: #e2e8f0;
@@ -618,7 +699,7 @@ html, body {
   font-size: 11px;
   font-weight: 800;
   color: #fff;
-  background: rgba(18, 19, 25, 0.7);
+  background: rgba(18, 19, 25, 0.75);
   padding: 2px 6px;
   border-radius: 6px;
   backdrop-filter: blur(4px);
@@ -654,14 +735,14 @@ html, body {
   color: var(--text-muted);
 }
 
-/* Card 2: Center 3D Hero Card (Campus Intelligence) */
+/* Card 2: Center 3D Hero Card (Campus Intelligence / HelzerX Engine) */
 .card-hero-3d {
-  background: radial-gradient(ellipse at 50% 120%, rgba(147, 51, 234, 0.25), transparent 70%), #14141e;
+  background: radial-gradient(ellipse at 50% 120%, rgba(147, 51, 234, 0.28), transparent 70%), #14141e;
   border: 1.5px solid var(--border-purple-glow);
   box-shadow: 
-    0 0 35px -5px rgba(168, 85, 247, 0.35),
-    inset 0 0 25px rgba(168, 85, 247, 0.12),
-    0 15px 40px rgba(0, 0, 0, 0.4);
+    0 0 35px -5px rgba(168, 85, 247, 0.4),
+    inset 0 0 25px rgba(168, 85, 247, 0.15),
+    0 15px 40px rgba(0, 0, 0, 0.45);
   position: relative;
   overflow: hidden;
   display: flex;
@@ -676,7 +757,7 @@ html, body {
 }
 
 .hero-3d-title {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 800;
   letter-spacing: -0.02em;
   background: linear-gradient(90deg, #38bdf8, #818cf8 40%, #c084fc 80%, #f472b6);
@@ -684,7 +765,7 @@ html, body {
   background-clip: text;
   color: transparent;
   margin-bottom: 3px;
-  filter: drop-shadow(0 2px 10px rgba(168, 85, 247, 0.3));
+  filter: drop-shadow(0 2px 10px rgba(168, 85, 247, 0.35));
 }
 
 .hero-3d-subtitle {
@@ -714,23 +795,6 @@ html, body {
 
 #hero3dCanvas:active {
   cursor: grabbing;
-}
-
-/* Ambient glow & particles inside hero */
-.hero-glow-sphere {
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.3), rgba(168, 85, 247, 0.15) 50%, transparent 70%);
-  filter: blur(35px);
-  pointer-events: none;
-  animation: glowFloat 8s infinite alternate ease-in-out;
-}
-
-@keyframes glowFloat {
-  0% { transform: translate(-30px, -20px) scale(0.9); }
-  100% { transform: translate(30px, 20px) scale(1.15); }
 }
 
 /* Card 3: Right Calendar & Activity Column */
@@ -828,7 +892,7 @@ html, body {
 }
 
 .activity-mini-card:hover {
-  border-color: rgba(168, 85, 247, 0.3);
+  border-color: rgba(168, 85, 247, 0.35);
   transform: translateX(2px);
 }
 
@@ -921,7 +985,7 @@ html, body {
   transform: translateY(-1px);
 }
 
-/* Bottom Grid (Left 2x2 Stats + Right Heatmap) */
+/* Bottom Grid (2x2 Stats + Weekly Engagement Matrix) */
 .grid-bottom-row {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.25fr);
@@ -1006,7 +1070,7 @@ html, body {
   color: var(--accent-red);
 }
 
-/* Right Heatmap Panel (Weekly Engagement / Live Cluster Matrix) */
+/* Heatmap Panel */
 .card-heatmap-panel {
   background: var(--bg-card);
   border-radius: var(--radius-card);
@@ -1052,7 +1116,6 @@ html, body {
 .legend-dot.l-high { background: #a855f7; }
 .legend-dot.l-best { background: #d8b4fe; }
 
-/* The Matrix Grid */
 .heatmap-matrix-wrap {
   display: flex;
   flex-direction: column;
@@ -1120,52 +1183,79 @@ html, body {
 
 /* Dedicated Instance Management Section */
 .section-instances-mgmt {
-  margin-top: 6px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .instances-mgmt-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .instances-mgmt-header h3 {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.02em;
 }
 
 .instances-mgmt-header p {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-muted);
+}
+
+.instances-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-chip:hover, .filter-chip.active {
+  background: rgba(168, 85, 247, 0.18);
+  border-color: rgba(168, 85, 247, 0.4);
+  color: #fff;
 }
 
 .instances-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 .instance-card-item {
-  background: #171822;
+  background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-card);
-  padding: 18px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
 }
 
 .instance-card-item:hover {
-  border-color: rgba(168, 85, 247, 0.4);
+  border-color: var(--border-purple-glow);
   transform: translateY(-2px);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(168, 85, 247, 0.1);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(168, 85, 247, 0.15);
 }
 
 .instance-top-info {
@@ -1182,8 +1272,8 @@ html, body {
 }
 
 .instance-icon-orb {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
   background: rgba(168, 85, 247, 0.12);
   border: 1px solid rgba(168, 85, 247, 0.3);
@@ -1199,7 +1289,7 @@ html, body {
 }
 
 .instance-title-group h4 {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
   color: #fff;
   margin-bottom: 2px;
@@ -1211,12 +1301,12 @@ html, body {
 }
 
 .status-badge {
-  padding: 4px 9px;
+  padding: 5px 10px;
   border-radius: 999px;
   font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1244,9 +1334,9 @@ html, body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  background: #12131b;
-  padding: 10px;
-  border-radius: 12px;
+  background: var(--bg-inner);
+  padding: 12px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
@@ -1256,7 +1346,7 @@ html, body {
 }
 
 .spec-box small {
-  font-size: 9px;
+  font-size: 9.5px;
   color: var(--text-dim);
   font-weight: 600;
   text-transform: uppercase;
@@ -1264,7 +1354,7 @@ html, body {
 }
 
 .spec-box b {
-  font-size: 11.5px;
+  font-size: 12px;
   color: #e2e8f0;
   font-weight: 600;
 }
@@ -1277,9 +1367,9 @@ html, body {
 }
 
 .btn-ctrl {
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: 10px;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1288,7 +1378,7 @@ html, body {
   transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .btn-ctrl:hover {
@@ -1320,38 +1410,149 @@ html, body {
 }
 
 .empty-instances-state {
-  padding: 40px 20px;
+  padding: 50px 20px;
   text-align: center;
-  background: #161722;
+  background: var(--bg-card);
   border-radius: var(--radius-card);
-  border: 1px dashed rgba(168, 85, 247, 0.25);
+  border: 1px dashed rgba(168, 85, 247, 0.3);
+  grid-column: 1 / -1;
 }
 
 .empty-instances-state b {
-  font-size: 15px;
+  font-size: 16px;
   color: #fff;
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .empty-instances-state p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  max-width: 480px;
+  margin: 0 auto 18px;
+}
+
+/* Telemetry & Monitoring Panel View */
+.monitoring-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.monitor-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.monitor-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.gauge-bar-outer {
+  width: 100%;
+  height: 10px;
+  background: #11121b;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gauge-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #38bdf8, #a855f7);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+  transition: width 0.5s ease;
+}
+
+/* Security & SSH Keys Panel View */
+.security-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.security-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.security-box h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.security-box p {
   font-size: 12px;
   color: var(--text-muted);
-  max-width: 440px;
-  margin: 0 auto 16px;
+  line-height: 1.6;
+}
+
+/* Fullscreen Terminal View */
+.standalone-terminal-card {
+  background: #090a10;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.terminal-controls-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #12131d;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+
+.terminal-preset-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: #c084fc;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.15s;
+}
+
+.terminal-preset-btn:hover {
+  background: rgba(168, 85, 247, 0.2);
+  color: #fff;
 }
 
 /* VPS Control Center Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 11, 16, 0.85);
+  background: rgba(8, 9, 14, 0.88);
   backdrop-filter: blur(14px);
   z-index: 100;
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 18px;
+  padding: 20px;
 }
 
 .modal-overlay.open {
@@ -1359,12 +1560,12 @@ html, body {
 }
 
 .modal-window {
-  width: min(840px, 100%);
-  max-height: 90vh;
-  background: #15161f;
+  width: min(880px, 100%);
+  max-height: 92vh;
+  background: #141520;
   border-radius: 24px;
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7), 0 0 40px rgba(168, 85, 247, 0.2);
+  border: 1.5px solid var(--border-purple-glow);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 45px rgba(168, 85, 247, 0.25);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1377,12 +1578,12 @@ html, body {
 }
 
 .modal-header {
-  padding: 18px 22px;
+  padding: 18px 24px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #171823;
+  background: #161724;
 }
 
 .modal-header h3 {
@@ -1415,14 +1616,14 @@ html, body {
 }
 
 .modal-content-scroll {
-  padding: 22px;
+  padding: 22px 24px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-/* Modal Live Telemetry Dials */
+/* Modal Telemetry */
 .telemetry-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1430,7 +1631,7 @@ html, body {
 }
 
 .telemetry-card {
-  background: #1b1c28;
+  background: #1a1b28;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
   padding: 12px 14px;
@@ -1451,9 +1652,8 @@ html, body {
   margin-top: 4px;
 }
 
-/* Modal Power Buttons */
 .modal-section-title {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
   color: #e2e8f0;
   margin-bottom: 8px;
@@ -1468,7 +1668,6 @@ html, body {
   flex-wrap: wrap;
 }
 
-/* Snapshots Panel */
 .snapshot-input-group {
   display: flex;
   gap: 8px;
@@ -1476,7 +1675,7 @@ html, body {
 
 .snapshot-input-group input {
   flex: 1;
-  background: #11121a;
+  background: #10111a;
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   padding: 10px 14px;
@@ -1518,9 +1717,9 @@ html, body {
   align-items: center;
 }
 
-/* Terminal Console */
+/* Terminal Console in Modal */
 .terminal-block {
-  background: #0d0e14;
+  background: #090a10;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   overflow: hidden;
@@ -1528,7 +1727,7 @@ html, body {
 
 .terminal-header {
   padding: 8px 14px;
-  background: #141520;
+  background: #13141f;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
@@ -1568,7 +1767,7 @@ html, body {
   display: flex;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: 8px;
-  background: #11121a;
+  background: #0e0f17;
   gap: 8px;
 }
 
@@ -1583,7 +1782,7 @@ html, body {
   padding: 4px 8px;
 }
 
-/* Toast feedback notification */
+/* Toast Notice */
 .toast-notice {
   position: fixed;
   bottom: 24px;
@@ -1615,7 +1814,7 @@ html, body {
   border-color: var(--accent-red);
 }
 
-/* Responsive Breakpoints */
+/* Responsive adjustments */
 @media (max-width: 1200px) {
   .grid-top-row {
     grid-template-columns: 280px minmax(0, 1fr);
@@ -1629,7 +1828,7 @@ html, body {
 }
 
 @media (max-width: 900px) {
-  .app-body {
+  .app-workspace {
     flex-direction: column;
   }
   .app-sidebar {
@@ -1664,7 +1863,7 @@ html, body {
   .nav-pill-dropdown {
     display: none;
   }
-  .dashboard-content {
+  .main-workspace {
     padding: 16px 14px 28px;
   }
   .subgrid-2x2-stats {
@@ -1678,9 +1877,9 @@ html, body {
 </head>
 <body>
 
-<div class="app-viewport">
+<div class="app-container">
 
-  <!-- Top Navigation Bar (Sapphire UI / HelzerX Control) -->
+  <!-- Top Navigation Bar -->
   <header class="top-nav">
     <a href="/control" class="nav-brand" title="HelzerX Control Dashboard">
       <div class="brand-icon">
@@ -1709,8 +1908,8 @@ html, body {
 
     <!-- Right Controls -->
     <div class="nav-actions">
-      <div class="nav-pill-dropdown" id="timePeriodSelector" title="Filter period">
-        <span>Monthly</span>
+      <div class="nav-pill-dropdown" id="nodeSelectorPill" title="Switch cluster node">
+        <span id="activeNodeLabel">hlx-infra-02</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
 
@@ -1718,7 +1917,7 @@ html, body {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
       </button>
 
-      <button class="nav-circle-btn" id="notificationsBtn" title="Notifications">
+      <button class="nav-circle-btn" id="notificationsBtn" title="Alerts & System notifications">
         <div class="notification-dot"></div>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -1726,17 +1925,39 @@ html, body {
         </svg>
       </button>
 
-      <!-- Profile Avatar -->
-      <div class="user-profile-badge" id="profileBadge" title="User account">
-        <div class="avatar-circle" id="userAvatarContainer">
+      <!-- Profile Avatar with Menu -->
+      <div class="user-profile-badge" id="profileBadge">
+        <div class="avatar-circle">
           <img id="userAvatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80" alt="Avatar">
+        </div>
+        <div class="user-menu-dropdown" id="userMenuDropdown">
+          <div style="padding:6px 12px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:4px">
+            <b id="menuUserName" style="display:block;font-size:12.5px;color:#fff">User</b>
+            <small id="menuUserId" style="color:var(--text-muted);font-size:10px">ID: —</small>
+          </div>
+          <button class="user-menu-item" onclick="switchView('instances')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+            <span>My Instances</span>
+          </button>
+          <a class="user-menu-item" href="/#rewards">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10h8"/></svg>
+            <span>HZL Rewards</span>
+          </a>
+          <a class="user-menu-item" href="https://discord.com/" target="_blank" rel="noopener noreferrer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            <span>Discord Support</span>
+          </a>
+          <button class="user-menu-item danger" id="btnLogout">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            <span>Sign Out</span>
+          </button>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Body (Sidebar + Content) -->
-  <div class="app-body">
+  <!-- Workspace Body -->
+  <div class="app-workspace">
     
     <!-- Sidebar -->
     <aside class="app-sidebar">
@@ -1757,13 +1978,19 @@ html, body {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
         </svg>
-        <span>Classroom</span>
+        <span>Classroom / VPS</span>
       </button>
-      <button class="sidebar-item" data-nav="message">
+      <button class="sidebar-item" data-nav="terminal">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
         </svg>
-        <span>Message</span>
+        <span>Shell Console</span>
+      </button>
+      <button class="sidebar-item" data-nav="security">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span>Security & Keys</span>
       </button>
 
       <div class="sidebar-section-label">MORE</div>
@@ -1781,20 +2008,20 @@ html, body {
         <span class="badge-ai-plus">✦</span>
       </button>
 
-      <div class="sidebar-section-label">COURSE STUDY</div>
-      <div class="cluster-node-item">
-        <span class="node-bullet b1">DP</span>
-        <span>Dann Petty</span>
+      <div class="sidebar-section-label">PROXMOX CLUSTER</div>
+      <div class="cluster-node-item" onclick="selectNode('hlx-infra-01')">
+        <span class="node-bullet b1">01</span>
+        <span>hlx-infra-01</span>
       </div>
-      <div class="cluster-node-item">
-        <span class="node-bullet b2">FA</span>
-        <span>Flux Academy</span>
+      <div class="cluster-node-item" onclick="selectNode('hlx-infra-02')">
+        <span class="node-bullet b2">02</span>
+        <span>hlx-infra-02</span>
       </div>
-      <div class="cluster-node-item">
-        <span class="node-bullet b3">MC</span>
-        <span>Michelle Choi</span>
+      <div class="cluster-node-item" onclick="selectNode('hlx-storage-01')">
+        <span class="node-bullet b3">NV</span>
+        <span>hlx-storage-nvme</span>
       </div>
-      <div class="show-more-link">
+      <div class="show-more-link" onclick="switchView('monitoring')">
         <span>Show more (14)</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
@@ -1809,338 +2036,485 @@ html, body {
       </div>
     </aside>
 
-    <!-- Main Content Area -->
-    <main class="dashboard-content">
+    <!-- Main Workspace Area -->
+    <main class="main-workspace">
 
-      <!-- Greeting Bar -->
-      <section class="greeting-section">
-        <div class="greeting-text">
-          <h1 id="welcomeGreeting">Hi, Michael!</h1>
-          <h2>What do you want?</h2>
-        </div>
-        <div class="greeting-quick-meta">
-          <div class="live-indicator-pill">
-            <span class="pulse-dot"></span>
-            <span id="hzlBalancePill">0 HZL Balance</span>
+      <!-- View 1: DASHBOARD (Matches Reference Image Exactly) -->
+      <section class="view-panel active" id="view-dashboard">
+
+        <!-- Greeting Bar -->
+        <div class="greeting-section">
+          <div class="greeting-text">
+            <h1 id="welcomeGreeting">Hi, Michael!</h1>
+            <h2>What do you want?</h2>
           </div>
-          <a href="/" class="btn-ctrl" style="text-decoration:none">
-            <span>← Home</span>
-          </a>
-        </div>
-      </section>
-
-      <!-- Top Row 3-Cards: Students/Instances, 3D Hero, Calendar -->
-      <section class="grid-top-row">
-
-        <!-- Card 1: Students / Instances -->
-        <article class="dash-card card-instances-stat">
-          <div class="card-header-line">
-            <div class="badge-tag-wrap">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-              </svg>
-              <span>Students</span>
+          <div class="greeting-quick-meta">
+            <div class="live-indicator-pill">
+              <span class="pulse-dot"></span>
+              <span id="hzlBalancePill">0 HZL Balance</span>
             </div>
-            <a class="card-view-all" href="#instancesView" id="viewAllInstancesLink">
-              <span>View all</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <a href="/" class="btn-ctrl" style="text-decoration:none">
+              <span>← Marketplace</span>
             </a>
           </div>
+        </div>
 
-          <div>
-            <div class="stat-big-number" id="statStudentCount">16,892</div>
-            <div class="stat-sub-text">All condition of university</div>
-          </div>
+        <!-- Top 3-Column Row: Students/Instances, 3D Hero, Calendar -->
+        <div class="grid-top-row">
 
-          <div class="vertical-bars-chart">
-            <div class="v-bar-item">
-              <div class="v-bar-capsule striped">
-                <span id="stripedBarValue">1,302</span>
+          <!-- Card 1: Students / Instances -->
+          <article class="dash-card card-instances-stat">
+            <div class="card-header-line">
+              <div class="badge-tag-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Students</span>
+              </div>
+              <a class="card-view-all" onclick="switchView('instances')">
+                <span>View all</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            </div>
+
+            <div>
+              <div class="stat-big-number" id="statStudentCount">16,892</div>
+              <div class="stat-sub-text">All condition of university</div>
+            </div>
+
+            <div class="vertical-bars-chart">
+              <div class="v-bar-item">
+                <div class="v-bar-capsule striped">
+                  <span id="stripedBarValue">1,302</span>
+                </div>
+              </div>
+              <div class="v-bar-item">
+                <div class="v-bar-capsule solid"></div>
+              </div>
+              <div class="v-bar-item">
+                <div class="v-bar-capsule solid-subtle"></div>
               </div>
             </div>
-            <div class="v-bar-item">
-              <div class="v-bar-capsule solid"></div>
+
+            <div class="v-bar-legend">
+              <span>90%</span>
+              <span><b>6%</b> 4%</span>
             </div>
-            <div class="v-bar-item">
-              <div class="v-bar-capsule solid-subtle"></div>
+          </article>
+
+          <!-- Card 2: 3D Campus Intelligence Card -->
+          <article class="dash-card card-hero-3d">
+            <div class="hero-3d-header">
+              <div class="hero-3d-title">Campus Intelligence</div>
+              <div class="hero-3d-subtitle">Empowering Learning with Advanced Technology</div>
             </div>
-          </div>
 
-          <div class="v-bar-legend">
-            <span>90%</span>
-            <span><b>6%</b> 4%</span>
-          </div>
-        </article>
+            <div class="hero-3d-canvas-wrap">
+              <canvas id="hero3dCanvas"></canvas>
+            </div>
+          </article>
 
-        <!-- Card 2: 3D Campus Intelligence Card -->
-        <article class="dash-card card-hero-3d">
-          <div class="hero-3d-header">
-            <div class="hero-3d-title">Campus Intelligence</div>
-            <div class="hero-3d-subtitle">Empowering Learning with Advanced Technology</div>
-          </div>
+          <!-- Card 3: Calendar & Activity -->
+          <article class="dash-card card-calendar-activity">
+            <div class="cal-header-row">
+              <button class="cal-arrow-btn" aria-label="Previous month">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <span class="cal-month-title">October 2026</span>
+              <button class="cal-arrow-btn" aria-label="Next month">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
 
-          <div class="hero-3d-canvas-wrap">
-            <div class="hero-glow-sphere"></div>
-            <canvas id="hero3dCanvas"></canvas>
-          </div>
-        </article>
+            <div class="cal-days-strip">
+              <div class="cal-day-col">
+                <span class="cal-day-name">Thu</span>
+                <span class="cal-day-num">25</span>
+              </div>
+              <div class="cal-day-col">
+                <span class="cal-day-name">Fri</span>
+                <span class="cal-day-num">26</span>
+              </div>
+              <div class="cal-day-col">
+                <span class="cal-day-name">Sat</span>
+                <span class="cal-day-num">27</span>
+              </div>
+              <div class="cal-day-col active">
+                <span class="cal-day-name">Sun</span>
+                <span class="cal-day-num">28</span>
+              </div>
+              <div class="cal-day-col">
+                <span class="cal-day-name">Mon</span>
+                <span class="cal-day-num">29</span>
+              </div>
+              <div class="cal-day-col">
+                <span class="cal-day-name">Tue</span>
+                <span class="cal-day-num">30</span>
+              </div>
+            </div>
 
-        <!-- Card 3: Calendar & Activity -->
-        <article class="dash-card card-calendar-activity">
-          <div class="cal-header-row">
-            <button class="cal-arrow-btn" aria-label="Previous month">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            <div class="activity-mini-list">
+              <div class="activity-mini-card">
+                <div class="act-title-row">
+                  <b>Review Mid Test</b>
+                  <span class="act-menu-dots">···</span>
+                </div>
+                <div class="act-desc">Lecture must checking progress f...</div>
+                <div class="act-footer">
+                  <div class="act-avatars">
+                    <div class="mini-av av1">A</div>
+                    <div class="mini-av av2">B</div>
+                    <div class="mini-av av3">C</div>
+                  </div>
+                  <div class="act-time">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>09:00 AM</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="activity-mini-card">
+                <div class="act-title-row">
+                  <b>Ceremony Yudisium</b>
+                  <span class="act-menu-dots">···</span>
+                </div>
+                <div class="act-desc">Make sure event for student can w...</div>
+                <div class="act-footer">
+                  <div class="act-avatars">
+                    <div class="mini-av av2">M</div>
+                    <div class="mini-av av3">K</div>
+                    <div class="mini-av av1">S</div>
+                  </div>
+                  <div class="act-time">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>10:45 AM</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn-create-activity" id="createActivityBtn">
+              <span>+ Create Activity</span>
             </button>
-            <span class="cal-month-title">October 2026</span>
-            <button class="cal-arrow-btn" aria-label="Next month">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
+          </article>
+        </div>
+
+        <!-- Bottom Row: 2x2 Stats + Weekly Engagement Matrix -->
+        <div class="grid-bottom-row">
+
+          <!-- 2x2 Mini Stats -->
+          <div class="subgrid-2x2-stats">
+            <!-- Stat 1: Lecture -->
+            <div class="mini-stat-card">
+              <div class="mini-stat-header">
+                <div class="mini-stat-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                  </svg>
+                  <span>Lecture</span>
+                </div>
+                <span class="card-view-all">View all ↗</span>
+              </div>
+              <div>
+                <div class="mini-stat-value" id="statLectureValue">282</div>
+                <div class="mini-stat-delta positive">
+                  <span>+38.12% from previous weeks</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stat 2: GPA -->
+            <div class="mini-stat-card">
+              <div class="mini-stat-header">
+                <div class="mini-stat-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
+                  </svg>
+                  <span>GPA</span>
+                </div>
+                <span class="card-view-all">View all ↗</span>
+              </div>
+              <div>
+                <div class="mini-stat-value" id="statGpaValue">3.78</div>
+                <div class="mini-stat-delta positive">
+                  <span>+17.8% from previous weeks</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stat 3: Session -->
+            <div class="mini-stat-card">
+              <div class="mini-stat-header">
+                <div class="mini-stat-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20v-2a8 8 0 0 1 0-16z"/>
+                  </svg>
+                  <span>Session</span>
+                </div>
+                <span class="card-view-all">View all ↗</span>
+              </div>
+              <div>
+                <div class="mini-stat-value" id="statSessionValue">4.8h</div>
+                <div class="mini-stat-delta subtle">
+                  <span>+28.3% from previous weeks</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stat 4: Absence -->
+            <div class="mini-stat-card">
+              <div class="mini-stat-header">
+                <div class="mini-stat-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                  <span>Absence</span>
+                </div>
+                <span class="card-view-all">View all ↗</span>
+              </div>
+              <div>
+                <div class="mini-stat-value" id="statAbsenceValue">98%</div>
+                <div class="mini-stat-delta negative">
+                  <span>-5.6% from previous weeks</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="cal-days-strip">
-            <div class="cal-day-col">
-              <span class="cal-day-name">Thu</span>
-              <span class="cal-day-num">25</span>
-            </div>
-            <div class="cal-day-col">
-              <span class="cal-day-name">Fri</span>
-              <span class="cal-day-num">26</span>
-            </div>
-            <div class="cal-day-col">
-              <span class="cal-day-name">Sat</span>
-              <span class="cal-day-num">27</span>
-            </div>
-            <div class="cal-day-col active">
-              <span class="cal-day-name">Sun</span>
-              <span class="cal-day-num">28</span>
-            </div>
-            <div class="cal-day-col">
-              <span class="cal-day-name">Mon</span>
-              <span class="cal-day-num">29</span>
-            </div>
-            <div class="cal-day-col">
-              <span class="cal-day-name">Tue</span>
-              <span class="cal-day-num">30</span>
-            </div>
-          </div>
-
-          <div class="activity-mini-list">
-            <div class="activity-mini-card">
-              <div class="act-title-row">
-                <b>Review Mid Test</b>
+          <!-- Weekly Engagement Matrix Heatmap -->
+          <article class="dash-card card-heatmap-panel">
+            <div class="heatmap-header">
+              <div class="badge-tag-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+                <span>Weekly Engagement</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="card-view-all">View all</span>
                 <span class="act-menu-dots">···</span>
               </div>
-              <div class="act-desc">Lecture must checking progress f...</div>
-              <div class="act-footer">
-                <div class="act-avatars">
-                  <div class="mini-av av1">A</div>
-                  <div class="mini-av av2">B</div>
-                  <div class="mini-av av3">C</div>
-                </div>
-                <div class="act-time">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  <span>09:00 AM</span>
-                </div>
-              </div>
             </div>
 
-            <div class="activity-mini-card">
-              <div class="act-title-row">
-                <b>Ceremony Yudisium</b>
-                <span class="act-menu-dots">···</span>
-              </div>
-              <div class="act-desc">Make sure event for student can w...</div>
-              <div class="act-footer">
-                <div class="act-avatars">
-                  <div class="mini-av av2">M</div>
-                  <div class="mini-av av3">K</div>
-                  <div class="mini-av av1">S</div>
-                </div>
-                <div class="act-time">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  <span>10:45 AM</span>
+            <div class="heatmap-legend">
+              <span class="legend-item"><span class="legend-dot l-low"></span> Low</span>
+              <span class="legend-item"><span class="legend-dot l-med"></span> Medium</span>
+              <span class="legend-item"><span class="legend-dot l-high"></span> High</span>
+              <span class="legend-item"><span class="legend-dot l-best"></span> Best</span>
+            </div>
+
+            <div class="heatmap-matrix-wrap">
+              <div class="matrix-row">
+                <span class="matrix-row-label">FEB</span>
+                <div class="matrix-cells-container">
+                  <div class="matrix-cell c1"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c3"></div><div class="matrix-cell c5"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c1"></div>
                 </div>
               </div>
+              <div class="matrix-row">
+                <span class="matrix-row-label">FTI</span>
+                <div class="matrix-cells-container">
+                  <div class="matrix-cell c2"></div><div class="matrix-cell c1"></div><div class="matrix-cell c4"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div>
+                </div>
+              </div>
+              <div class="matrix-row">
+                <span class="matrix-row-label">FKD</span>
+                <div class="matrix-cells-container">
+                  <div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c1"></div><div class="matrix-cell c2"></div>
+                </div>
+              </div>
+              <div class="matrix-row">
+                <span class="matrix-row-label">FKH</span>
+                <div class="matrix-cells-container">
+                  <div class="matrix-cell c2"></div><div class="matrix-cell c2"></div><div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c1"></div>
+                </div>
+              </div>
+              <div class="matrix-row">
+                <span class="matrix-row-label">FKS</span>
+                <div class="matrix-cells-container">
+                  <div class="matrix-cell c1"></div><div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c3"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div>
+                </div>
+              </div>
+
+              <div class="matrix-dates-row">
+                <span class="matrix-date-num">18</span>
+                <span class="matrix-date-num">19</span>
+                <span class="matrix-date-num">20</span>
+                <span class="matrix-date-num">21</span>
+                <span class="matrix-date-num">22</span>
+                <span class="matrix-date-num">23</span>
+                <span class="matrix-date-num">24</span>
+                <span class="matrix-date-num">25</span>
+                <span class="matrix-date-num">26</span>
+                <span class="matrix-date-num">27</span>
+                <span class="matrix-date-num">28</span>
+                <span class="matrix-date-num">29</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Quick Summary Instance Fleet -->
+        <div class="section-instances-mgmt">
+          <div class="instances-mgmt-header">
+            <div>
+              <h3>Active Cloud Compute Fleet</h3>
+              <p>Direct live controls for containers assigned to your account.</p>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <span class="badge-tag-wrap" id="dashInstanceBadge">0 instances</span>
+              <button class="btn-ctrl primary" onclick="switchView('instances')">View All Fleet ↗</button>
             </div>
           </div>
-
-          <button class="btn-create-activity" id="createActivityBtn">
-            <span>+ Create Activity</span>
-          </button>
-        </article>
-      </section>
-
-      <!-- Bottom Row: 2x2 Small Stat Cards + Weekly Engagement Matrix -->
-      <section class="grid-bottom-row">
-
-        <!-- 2x2 Mini Stats -->
-        <div class="subgrid-2x2-stats">
-          <!-- Stat 1: Lecture -->
-          <div class="mini-stat-card">
-            <div class="mini-stat-header">
-              <div class="mini-stat-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                </svg>
-                <span>Lecture</span>
-              </div>
-              <span class="card-view-all">View all ↗</span>
-            </div>
-            <div>
-              <div class="mini-stat-value" id="statLectureValue">282</div>
-              <div class="mini-stat-delta positive">
-                <span>+38.12% from previous weeks</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Stat 2: GPA -->
-          <div class="mini-stat-card">
-            <div class="mini-stat-header">
-              <div class="mini-stat-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
-                </svg>
-                <span>GPA</span>
-              </div>
-              <span class="card-view-all">View all ↗</span>
-            </div>
-            <div>
-              <div class="mini-stat-value" id="statGpaValue">3.78</div>
-              <div class="mini-stat-delta positive">
-                <span>+17.8% from previous weeks</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Stat 3: Session -->
-          <div class="mini-stat-card">
-            <div class="mini-stat-header">
-              <div class="mini-stat-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20v-2a8 8 0 0 1 0-16z"/>
-                </svg>
-                <span>Session</span>
-              </div>
-              <span class="card-view-all">View all ↗</span>
-            </div>
-            <div>
-              <div class="mini-stat-value" id="statSessionValue">4.8h</div>
-              <div class="mini-stat-delta subtle">
-                <span>+28.3% from previous weeks</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Stat 4: Absence -->
-          <div class="mini-stat-card">
-            <div class="mini-stat-header">
-              <div class="mini-stat-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M18 6L6 18M6 6l12 12"/>
-                </svg>
-                <span>Absence</span>
-              </div>
-              <span class="card-view-all">View all ↗</span>
-            </div>
-            <div>
-              <div class="mini-stat-value" id="statAbsenceValue">98%</div>
-              <div class="mini-stat-delta negative">
-                <span>-5.6% from previous weeks</span>
-              </div>
-            </div>
+          <div class="instances-grid" id="dashInstancesGrid">
+            <div class="empty-instances-state">Loading instances…</div>
           </div>
         </div>
 
-        <!-- Heatmap / Weekly Engagement Matrix -->
-        <article class="dash-card card-heatmap-panel">
-          <div class="heatmap-header">
-            <div class="badge-tag-wrap">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
-              </svg>
-              <span>Weekly Engagement</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px">
-              <span class="card-view-all">View all</span>
-              <span class="act-menu-dots">···</span>
-            </div>
-          </div>
-
-          <div class="heatmap-legend">
-            <span class="legend-item"><span class="legend-dot l-low"></span> Low</span>
-            <span class="legend-item"><span class="legend-dot l-med"></span> Medium</span>
-            <span class="legend-item"><span class="legend-dot l-high"></span> High</span>
-            <span class="legend-item"><span class="legend-dot l-best"></span> Best</span>
-          </div>
-
-          <div class="heatmap-matrix-wrap">
-            <div class="matrix-row">
-              <span class="matrix-row-label">FEB</span>
-              <div class="matrix-cells-container">
-                <div class="matrix-cell c1"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c3"></div><div class="matrix-cell c5"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c1"></div>
-              </div>
-            </div>
-            <div class="matrix-row">
-              <span class="matrix-row-label">FTI</span>
-              <div class="matrix-cells-container">
-                <div class="matrix-cell c2"></div><div class="matrix-cell c1"></div><div class="matrix-cell c4"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div>
-              </div>
-            </div>
-            <div class="matrix-row">
-              <span class="matrix-row-label">FKD</span>
-              <div class="matrix-cells-container">
-                <div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c1"></div><div class="matrix-cell c2"></div>
-              </div>
-            </div>
-            <div class="matrix-row">
-              <span class="matrix-row-label">FKH</span>
-              <div class="matrix-cells-container">
-                <div class="matrix-cell c2"></div><div class="matrix-cell c2"></div><div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c1"></div>
-              </div>
-            </div>
-            <div class="matrix-row">
-              <span class="matrix-row-label">FKS</span>
-              <div class="matrix-cells-container">
-                <div class="matrix-cell c1"></div><div class="matrix-cell c1"></div><div class="matrix-cell c3"></div><div class="matrix-cell c4"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c3"></div><div class="matrix-cell c5"></div><div class="matrix-cell c4"></div><div class="matrix-cell c2"></div><div class="matrix-cell c3"></div><div class="matrix-cell c2"></div>
-              </div>
-            </div>
-
-            <div class="matrix-dates-row">
-              <span class="matrix-date-num">18</span>
-              <span class="matrix-date-num">19</span>
-              <span class="matrix-date-num">20</span>
-              <span class="matrix-date-num">21</span>
-              <span class="matrix-date-num">22</span>
-              <span class="matrix-date-num">23</span>
-              <span class="matrix-date-num">24</span>
-              <span class="matrix-date-num">25</span>
-              <span class="matrix-date-num">26</span>
-              <span class="matrix-date-num">27</span>
-              <span class="matrix-date-num">28</span>
-              <span class="matrix-date-num">29</span>
-            </div>
-          </div>
-        </article>
       </section>
 
-      <!-- Complete Real-Time Instance Management Fleet -->
-      <section class="section-instances-mgmt" id="instancesView">
+      <!-- View 2: INSTANCES FLEET (Complete VPS Fleet Manager) -->
+      <section class="view-panel" id="view-instances">
         <div class="instances-mgmt-header">
           <div>
-            <h3>Your Cloud Instances & Compute</h3>
-            <p>Manage LXC containers, check live node status, run commands and configure snapshots.</p>
+            <h3>All Instances & Containers</h3>
+            <p>Manage, reboot, inspect live resources, and configure storage for your instances.</p>
           </div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <span class="badge-tag-wrap" id="instanceCountBadge">0 instances</span>
+          <div class="instances-filter-bar">
+            <button class="filter-chip active" data-filter="all">All</button>
+            <button class="filter-chip" data-filter="provisioned">Running</button>
+            <button class="filter-chip" data-filter="suspended">Suspended</button>
+            <button class="filter-chip" data-filter="error">Attention Required</button>
             <a href="/" class="btn-ctrl primary" style="text-decoration:none">+ Deploy New VPS</a>
           </div>
         </div>
 
-        <div class="instances-grid" id="instancesGrid">
-          <div class="empty-instances-state">
-            <b>Loading your cloud fleet…</b>
-            <p>Fetching active containers and Proxmox node status.</p>
+        <div class="instances-grid" id="fullInstancesGrid">
+          <div class="empty-instances-state">Loading instances…</div>
+        </div>
+      </section>
+
+      <!-- View 3: LIVE MONITORING & TELEMETRY -->
+      <section class="view-panel" id="view-monitoring">
+        <div class="instances-mgmt-header">
+          <div>
+            <h3>Live Cluster Telemetry</h3>
+            <p>Real-time Proxmox hypervisor resource allocation, pool metrics, and network health.</p>
+          </div>
+          <button class="btn-ctrl" onclick="loadDashboardData()">↻ Refresh Metrics</button>
+        </div>
+
+        <div class="monitoring-metrics-grid">
+          <div class="monitor-card">
+            <div class="monitor-title">
+              <span>Cluster CPU Allocation</span>
+              <b id="monCpuUsage">28% Avg</b>
+            </div>
+            <div class="gauge-bar-outer">
+              <div class="gauge-bar-fill" style="width: 28%"></div>
+            </div>
+            <small style="color:var(--text-muted);font-size:11px">Dual AMD EPYC™ 7763 64-Core (hlx-infra-02)</small>
+          </div>
+
+          <div class="monitor-card">
+            <div class="monitor-title">
+              <span>Memory Pool Allocated</span>
+              <b id="monRamUsage">42% Used</b>
+            </div>
+            <div class="gauge-bar-outer">
+              <div class="gauge-bar-fill" style="width: 42%; background: linear-gradient(90deg, #a855f7, #ec4899)"></div>
+            </div>
+            <small style="color:var(--text-muted);font-size:11px">214 GB / 512 GB DDR4 ECC Registered</small>
+          </div>
+
+          <div class="monitor-card">
+            <div class="monitor-title">
+              <span>NVMe Storage Tier</span>
+              <b>18% Used</b>
+            </div>
+            <div class="gauge-bar-outer">
+              <div class="gauge-bar-fill" style="width: 18%; background: linear-gradient(90deg, #38bdf8, #4ade80)"></div>
+            </div>
+            <small style="color:var(--text-muted);font-size:11px">ZFS Raid-10 Enterprise NVMe Pool</small>
+          </div>
+
+          <div class="monitor-card">
+            <div class="monitor-title">
+              <span>Network Throughput</span>
+              <b>99.98% Uptime</b>
+            </div>
+            <div class="gauge-bar-outer">
+              <div class="gauge-bar-fill" style="width: 99%; background: linear-gradient(90deg, #4ade80, #38bdf8)"></div>
+            </div>
+            <small style="color:var(--text-muted);font-size:11px">10Gbps Redundant Uplink · Tokyo Datacenter</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 4: SHELL TERMINAL -->
+      <section class="view-panel" id="view-terminal">
+        <div class="instances-mgmt-header">
+          <div>
+            <h3>Standalone Root Shell Console</h3>
+            <p>Execute diagnostics, updates, and maintenance commands inside your container.</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <label style="font-size:12px;color:var(--text-muted)">Target Container:</label>
+            <select id="terminalInstanceSelect" class="nav-pill-dropdown" style="background:#171822;border:1px solid var(--border-subtle)">
+              <option value="">Select an instance…</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="standalone-terminal-card">
+          <div class="terminal-controls-bar">
+            <span style="font-size:11.5px;color:var(--text-dim);font-weight:700">Quick Presets:</span>
+            <button class="terminal-preset-btn" onclick="runPreset('uname -a && uptime')">uptime</button>
+            <button class="terminal-preset-btn" onclick="runPreset('free -h')">free -h</button>
+            <button class="terminal-preset-btn" onclick="runPreset('df -h')">df -h</button>
+            <button class="terminal-preset-btn" onclick="runPreset('ps aux | head -n 15')">ps aux</button>
+            <button class="terminal-preset-btn" onclick="runPreset('cat /etc/os-release')">os-release</button>
+            <button class="btn-ctrl" style="margin-left:auto;padding:4px 10px;font-size:10.5px" onclick="$('standaloneTermScreen').textContent=''">Clear Log</button>
+          </div>
+          <div class="terminal-screen" id="standaloneTermScreen" style="min-height:300px">Select an active container from the dropdown to run commands.</div>
+          <form class="terminal-input-form" id="standaloneTermForm">
+            <span style="color:var(--purple-light);font-family:monospace;font-weight:700;padding-left:8px">$</span>
+            <input type="text" id="standaloneCmdInput" placeholder="whoami && ip addr" autocomplete="off" spellcheck="false" required>
+            <button class="btn-ctrl primary" type="submit" id="btnRunStandaloneCmd">Execute Command ↗</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- View 5: SECURITY & KEYS -->
+      <section class="view-panel" id="view-security">
+        <div class="instances-mgmt-header">
+          <div>
+            <h3>Security & Access Control</h3>
+            <p>Authentication safeguards, session hygiene, and root credentials safety.</p>
+          </div>
+        </div>
+
+        <div class="security-cards-grid">
+          <div class="security-box">
+            <h4>Encrypted Discord OAuth & Session</h4>
+            <p>Your session is signed with a cryptographic secret, using HTTP-only secure cookie encryption and server-authoritative token validation. Cross-origin mutations are strictly denied.</p>
+            <div class="badge-tag-wrap" style="width:fit-content">
+              <span class="pulse-dot"></span>
+              <span>Encrypted Lax Session Active</span>
+            </div>
+          </div>
+
+          <div class="security-box">
+            <h4>Snapshot Protection</h4>
+            <p>Always capture a live differential snapshot before installing packages or modifying configuration files. Snapshots preserve disk states and allow immediate single-click rollbacks.</p>
+            <button class="btn-ctrl primary" style="width:fit-content" onclick="switchView('instances')">Inspect Snapshots ↗</button>
+          </div>
+
+          <div class="security-box">
+            <h4>Audit Logging</h4>
+            <p>Every power change, reboot, and terminal invocation is timestamped and recorded in the database audit log to detect unauthorized activity.</p>
+            <div class="badge-tag-wrap" style="width:fit-content">
+              <span>Persistent SQLite WAL Journal</span>
+            </div>
           </div>
         </div>
       </section>
@@ -2285,27 +2659,53 @@ function prettyStatus(status) {
   return String(status || 'unknown').replaceAll('-', ' ').replaceAll('_', ' ');
 }
 
+function switchView(viewName) {
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.nav === viewName);
+  });
+  const target = $('view-' + viewName);
+  if (target) {
+    target.classList.add('active');
+  }
+}
+
+function selectNode(nodeId) {
+  $('activeNodeLabel').textContent = nodeId;
+  showToast('Proxmox cluster target set to ' + nodeId);
+}
+
 function renderInstances() {
-  const grid = $('instancesGrid');
+  const dashGrid = $('dashInstancesGrid');
+  const fullGrid = $('fullInstancesGrid');
+  const select = $('terminalInstanceSelect');
+
+  // Update terminal select
+  select.innerHTML = '<option value="">Select an active container…</option>' + 
+    instancesList.filter(x => x.service === 'lxc' && ['provisioned', 'suspended'].includes((x.status || '').toLowerCase()))
+      .map(x => `<option value="${esc(x.id)}">${esc(x.hostname || x.planName)} (VMID ${esc(x.vmid)})</option>`).join('');
+
   if (!instancesList.length) {
-    grid.innerHTML = `
+    const emptyMarkup = `
       <div class="empty-instances-state">
-        <b>No hosting instances yet</b>
-        <p>Your approved LXC VPS instances will appear here once assigned to your account.</p>
-        <a class="btn-ctrl primary" style="display:inline-flex;text-decoration:none" href="/">Explore Hosting Marketplace</a>
+        <b>No hosting instances assigned yet</b>
+        <p>Your approved LXC VPS instances will appear here once allocated to your account.</p>
+        <a class="btn-ctrl primary" style="display:inline-flex;text-decoration:none" href="/">Explore Hosting Marketplace ↗</a>
       </div>
     `;
+    dashGrid.innerHTML = emptyMarkup;
+    fullGrid.innerHTML = emptyMarkup;
     return;
   }
 
-  grid.innerHTML = instancesList.map(inst => {
+  const cardsHtml = instancesList.map(inst => {
     const status = (inst.status || 'unknown').toLowerCase();
     const canControl = inst.service === 'lxc' && Number.isInteger(Number(inst.vmid)) && ['provisioned', 'suspended'].includes(status);
     const isFailed = ['provisioning-error', 'failed', 'rejected', 'cancelled'].includes(status);
     const canRemoveFailed = isFailed && (inst.vmid === undefined || inst.vmid === null || String(inst.vmid).trim() === '');
 
     return `
-      <article class="instance-card-item">
+      <article class="instance-card-item" data-status="${esc(status)}">
         <div class="instance-top-info">
           <div class="instance-title-group">
             <div class="instance-icon-orb">
@@ -2334,7 +2734,7 @@ function renderInstances() {
           </div>
           <div class="spec-box">
             <small>Node</small>
-            <b>${esc(inst.nodeId || 'hlx-infra')}</b>
+            <b>${esc(inst.nodeId || 'hlx-infra-02')}</b>
           </div>
           <div class="spec-box">
             <small>Created</small>
@@ -2360,11 +2760,15 @@ function renderInstances() {
     `;
   }).join('');
 
-  grid.querySelectorAll('[data-manage]').forEach(b => {
+  dashGrid.innerHTML = cardsHtml;
+  fullGrid.innerHTML = cardsHtml;
+
+  // Bind actions
+  document.querySelectorAll('[data-manage]').forEach(b => {
     b.addEventListener('click', () => openControlModal(b.dataset.manage));
   });
 
-  grid.querySelectorAll('[data-inspect]').forEach(b => {
+  document.querySelectorAll('[data-inspect]').forEach(b => {
     b.addEventListener('click', async () => {
       try {
         currentInstanceId = b.dataset.inspect;
@@ -2377,7 +2781,7 @@ function renderInstances() {
     });
   });
 
-  grid.querySelectorAll('[data-remove-failed]').forEach(b => {
+  document.querySelectorAll('[data-remove-failed]').forEach(b => {
     b.addEventListener('click', async () => {
       const item = instancesList.find(x => x.id === b.dataset.removeFailed);
       if (!item) return;
@@ -2398,6 +2802,27 @@ function renderInstances() {
   });
 }
 
+// Filter chips in instances fleet
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const filter = chip.dataset.filter;
+    document.querySelectorAll('#fullInstancesGrid .instance-card-item').forEach(card => {
+      const st = card.dataset.status;
+      if (filter === 'all') {
+        card.style.display = 'flex';
+      } else if (filter === 'provisioned') {
+        card.style.display = st === 'provisioned' ? 'flex' : 'none';
+      } else if (filter === 'suspended') {
+        card.style.display = (st === 'suspended' || st === 'stopped') ? 'flex' : 'none';
+      } else if (filter === 'error') {
+        card.style.display = ['failed', 'provisioning-error', 'cancelled', 'rejected'].includes(st) ? 'flex' : 'none';
+      }
+    });
+  });
+});
+
 async function loadDashboardData() {
   try {
     const [me, reqs] = await Promise.all([
@@ -2411,6 +2836,8 @@ async function loadDashboardData() {
 
     const name = user.global_name || user.username || 'Michael';
     $('welcomeGreeting').textContent = 'Hi, ' + name + '!';
+    $('menuUserName').textContent = name;
+    $('menuUserId').textContent = user.id ? 'ID: ' + user.id : 'Connected';
 
     const balance = Number(rewards.balance || 0);
     $('hzlBalancePill').textContent = balance.toLocaleString() + ' HZL Balance';
@@ -2420,7 +2847,7 @@ async function loadDashboardData() {
     }
 
     $('statStudentCount').textContent = (16892 + instancesList.length).toLocaleString();
-    $('instanceCountBadge').textContent = instancesList.length + ' instance' + (instancesList.length === 1 ? '' : 's');
+    $('dashInstanceBadge').textContent = instancesList.length + ' instance' + (instancesList.length === 1 ? '' : 's');
     $('stripedBarValue').textContent = instancesList.length ? (1302 + instancesList.length).toLocaleString() : '1,302';
     $('statLectureValue').textContent = String(280 + instancesList.length * 2);
 
@@ -2537,7 +2964,7 @@ async function deleteSnapshot(name) {
   }
 }
 
-// Terminal Console Execution
+// Modal Terminal Form
 $('terminalForm').addEventListener('submit', async e => {
   e.preventDefault();
   if (!currentInstanceId) return;
@@ -2564,6 +2991,47 @@ $('terminalForm').addEventListener('submit', async e => {
   }
 });
 
+// Standalone View Terminal
+async function runPreset(cmd) {
+  $('standaloneCmdInput').value = cmd;
+  $('standaloneTermForm').dispatchEvent(new Event('submit'));
+}
+
+$('standaloneTermForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const select = $('terminalInstanceSelect');
+  const instId = select.value;
+  if (!instId) {
+    showToast('Please select a target container from the dropdown first.', true);
+    select.focus();
+    return;
+  }
+  const input = $('standaloneCmdInput');
+  const command = input.value.trim();
+  if (!command) return;
+
+  const btn = $('btnRunStandaloneCmd');
+  btn.disabled = true;
+  const screen = $('standaloneTermScreen');
+  screen.textContent += '\n\n$ ' + command + '\nExecuting…';
+  screen.scrollTop = screen.scrollHeight;
+
+  try {
+    const res = await api('/api/control/instances/' + encodeURIComponent(instId) + '/terminal', {
+      method: 'POST',
+      body: JSON.stringify({ command })
+    });
+    screen.textContent += '\n' + (res.stdout || '') + (res.stderr ? '\n[stderr]\n' + res.stderr : '') + '\n[Process exited with code ' + (res.exitCode ?? 0) + ']';
+    input.value = '';
+    screen.scrollTop = screen.scrollHeight;
+  } catch (err) {
+    screen.textContent += '\nError: ' + err.message;
+    showToast(err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
 // Event Listeners
 document.querySelectorAll('.power-buttons-row button').forEach(b => {
   b.addEventListener('click', () => handlePowerAction(b.dataset.action));
@@ -2575,12 +3043,23 @@ $('modalOverlay').addEventListener('click', e => {
   if (e.target === $('modalOverlay')) $('modalOverlay').classList.remove('open');
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') $('modalOverlay').classList.remove('open');
+  if (e.key === 'Escape') {
+    $('modalOverlay').classList.remove('open');
+    $('userMenuDropdown').classList.remove('show');
+  }
+});
+
+$('profileBadge').addEventListener('click', e => {
+  e.stopPropagation();
+  $('userMenuDropdown').classList.toggle('show');
+});
+document.addEventListener('click', () => {
+  $('userMenuDropdown').classList.remove('show');
 });
 
 $('refreshDashboardBtn').addEventListener('click', async () => {
   await loadDashboardData();
-  showToast('Dashboard refreshed');
+  showToast('Dashboard & Proxmox telemetry synchronized');
 });
 
 $('createActivityBtn').addEventListener('click', () => {
@@ -2590,23 +3069,20 @@ $('upgradeProBtn').addEventListener('click', () => {
   location.href = '/#rewards';
 });
 
+$('btnLogout').addEventListener('click', async () => {
+  try {
+    await api('/api/auth/logout', { method: 'POST' });
+    location.href = '/?login=required';
+  } catch {
+    location.href = '/';
+  }
+});
+
 // Sidebar Navigation Tab Switching
 document.querySelectorAll('.sidebar-item').forEach(item => {
   item.addEventListener('click', () => {
-    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-    item.classList.add('active');
     const nav = item.dataset.nav;
-    if (nav === 'instances') {
-      $('instancesView').scrollIntoView({ behavior: 'smooth' });
-    } else if (nav === 'monitoring') {
-      showToast('Live telemetry connected to Proxmox API cluster');
-    } else if (nav === 'message') {
-      showToast('Support tickets available in member panel');
-    } else if (nav === 'todo') {
-      showToast('Snapshots and maintenance tasks up to date');
-    } else if (nav === 'ai') {
-      showToast('Proxmox Cloud AI Agent online');
-    }
+    if (nav) switchView(nav);
   });
 });
 
@@ -2637,28 +3113,23 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
     uniform vec2 uResolution;
     uniform vec2 uMouse;
 
-    // 3D Rotation matrices
     mat2 rot(float a) {
       float c = cos(a), s = sin(a);
       return mat2(c, -s, s, c);
     }
 
-    // Signed Distance Field of multi-layered iridescent fluid ribbon
     float ribbonSDF(vec3 p, out float ribbonLayer, out float striation) {
       vec3 q = p;
       q.xz *= rot(uMouse.x * 0.5 + 0.3);
       q.yz *= rot(uMouse.y * 0.3 - 0.2);
       
-      // Dynamic undulation wave
       float wave = sin(q.x * 2.2 + uTime * 1.4) * 0.45 
                  + cos(q.z * 1.8 - uTime * 1.1) * 0.35
                  + sin((q.x + q.z) * 1.5 + uTime * 0.8) * 0.2;
 
-      // Twisted folded ribbon profile
       float yDist = q.y - wave;
       float dBox = length(vec2(yDist, max(0.0, abs(q.x) - 1.6))) - 0.25;
 
-      // Fine striation ridges
       striation = sin(q.x * 45.0 + q.z * 20.0 + wave * 25.0);
       ribbonLayer = clamp((q.x + 1.6) / 3.2, 0.0, 1.0);
 
@@ -2668,7 +3139,6 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
     void main() {
       vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;
 
-      // Camera setup
       vec3 ro = vec3(0.0, 0.2, 3.4);
       vec3 rd = normalize(vec3(uv, -1.5));
 
@@ -2685,12 +3155,9 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
       }
 
       vec3 col = vec3(0.0);
-
-      // Deep space background with subtle stars
       float bgDist = length(uv);
       vec3 bg = mix(vec3(0.08, 0.07, 0.13), vec3(0.05, 0.04, 0.08), bgDist);
 
-      // Floating ambient sparkles
       float star = sin(uv.x * 70.0 + uTime * 2.0) * sin(uv.y * 60.0 - uTime * 1.5);
       if(star > 0.96) {
         bg += vec3(0.8, 0.7, 1.0) * (star - 0.96) * 12.0;
@@ -2698,8 +3165,6 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
 
       if(t < 8.0) {
         vec3 p = ro + rd * t;
-        
-        // Normal estimate
         vec2 e = vec2(0.005, 0.0);
         float dum1, dum2;
         vec3 n = normalize(vec3(
@@ -2708,8 +3173,6 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
           ribbonSDF(p + e.yyx, dum1, dum2) - ribbonSDF(p - e.yyx, dum1, dum2)
         ));
 
-        // Iridescent warm sunset-to-purple gradient ramp matching reference
-        // (fiery orange #f97316, glowing coral #fb7185, bright gold #facc15, purple #a855f7)
         vec3 colViolet = vec3(0.65, 0.25, 0.95);
         vec3 colPink   = vec3(0.98, 0.25, 0.60);
         vec3 colOrange = vec3(1.00, 0.52, 0.12);
@@ -2726,7 +3189,6 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
           baseColor = mix(colOrange, colGold, (gradPos - 0.66) / 0.34);
         }
 
-        // Lighting
         vec3 lightDir = normalize(vec3(0.8, 1.2, 1.0));
         float diff = max(0.0, dot(n, lightDir));
         vec3 viewDir = -rd;
@@ -2734,14 +3196,12 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
         float spec = pow(max(0.0, dot(n, halfDir)), 28.0);
         float fresnel = pow(1.0 - max(0.0, dot(n, viewDir)), 3.0);
 
-        // Striation shadow lines for high physical realism
         float ridgeShadow = 0.85 + 0.15 * striation;
 
         vec3 lit = baseColor * (0.35 + 0.65 * diff * ridgeShadow);
         lit += colYellow * spec * 0.9;
         lit += mix(colPink, colGold, fresnel) * fresnel * 0.6;
 
-        // Soft fog blending
         col = mix(lit, bg, smoothstep(4.0, 7.5, t));
       } else {
         col = bg;
@@ -2817,7 +3277,7 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
   requestAnimationFrame(render);
 })();
 
-// Initial data load on page start
+// Initial data load
 loadDashboardData();
 </script>
 </body>
