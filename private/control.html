@@ -2486,6 +2486,8 @@ document.addEventListener('click', event => {
   const nav = item.dataset.nav;
   if (nav) switchView(nav);
 }, true);
+// Start the API load even if a non-critical initializer later throws.
+setTimeout(() => loadDashboardData(), 0);
 
 function showToast(message, isError = false) {
   const toast = $('toastNotice');
