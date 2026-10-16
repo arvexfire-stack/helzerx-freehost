@@ -3007,6 +3007,20 @@ async function hxLoadOsTemplates(){
   status.textContent=rows.length+' template(s) found on '+nodeId+'. Reinstall is locked until the safe rebuild backend is deployed.';
  }catch(err){select.innerHTML='<option value="">Could not load templates</option>';status.textContent=err.message||'Template lookup failed.';}
 }
+function hxMoveLegacyTerminal(){
+ const form=$('terminalForm'),anchor=$('hxCommandRunnerAnchor');
+ if(!form||!anchor||anchor.contains(form))return;
+ const block=form.closest('.terminal-block');if(!block)return;
+ const title=block.previousElementSibling;
+ if(title&&title.classList.contains('modal-section-title'))title.remove();
+ anchor.appendChild(block);
+ const label=block.querySelector('.terminal-header span:last-child');
+ if(label)label.textContent='One command per request · 60s limit';
+}
+function hxOpenSettingsTab(){
+ const b=document.querySelector('[data-hxtab="settings"]');
+ if(b){b.click();hxLoadOsTemplates();}
+}
 function hxStartMetricPolling(){clearInterval(hxMetricTimer);hxMetricHistory.cpu.length=0;hxMetricHistory.mem.length=0;hxRefreshMetrics();hxMetricTimer=setInterval(hxRefreshMetrics,15000);}
 document.querySelector('[data-hxtab="settings"]')?.addEventListener('click',hxLoadOsTemplates);
 document.querySelectorAll('[data-hxtab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-hxtab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-hxpanel]').forEach(x=>x.classList.toggle('active',x.dataset.hxpanel===b.dataset.hxtab));if(b.dataset.hxtab==='summary'){hxDrawChart('hxCpuChart','cpu');hxDrawChart('hxMemChart','mem');}}));
@@ -3028,6 +3042,7 @@ async function openControlModal(id) {
   $('terminalOutput').textContent = 'Terminal ready for ' + (item.hostname || 'container') + '. Enter command below.';
 
   $('modalOverlay').classList.add('open');
+  hxMoveLegacyTerminal();
   hxStartMetricPolling();
 
   try {
