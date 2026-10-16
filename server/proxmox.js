@@ -274,10 +274,11 @@ export async function createLxcTerminalProxy({ vmid, node, width = 120, height =
   const session = await api(c, 'POST', base + '/termproxy', { width: cols, height: rows });
   const port = Number(session?.port);
   const ticket = String(session?.ticket || '');
-  if (!Number.isInteger(port) || port < 1 || port > 65535 || !ticket || ticket.length > 2048) {
-    throw new Error('Proxmox did not return a valid short-lived terminal ticket.');
+  const user = String(session?.user || '');
+  if (!Number.isInteger(port) || port < 1 || port > 65535 || !ticket || ticket.length > 2048 || !user || user.length > 255) {
+    throw new Error('Proxmox did not return a valid short-lived terminal ticket and user.');
   }
-  return { baseUrl: c.baseUrl, node: targetNode, vmid: id, port, ticket };
+  return { baseUrl: c.baseUrl, node: targetNode, vmid: id, port, ticket, user };
 }
 
 export async function runLxcTerminal({ vmid, command, node }) {
