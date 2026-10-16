@@ -1874,6 +1874,141 @@ html, body {
   }
 }
 
+/* Premium Proxmox-style workspace: the navigation stays visible while the instance
+   inspector occupies the right-hand work area. */
+.modal-overlay {
+  position: fixed !important;
+  inset: 72px 0 0 220px !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  justify-content: flex-end !important;
+  align-items: stretch !important;
+  background: rgba(4, 5, 12, .48) !important;
+  backdrop-filter: blur(3px) saturate(1.1) !important;
+  z-index: 25 !important;
+}
+.modal-window {
+  width: min(1080px, 100%) !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  border-radius: 20px 0 0 0 !important;
+  border: 1px solid rgba(192,132,252,.38) !important;
+  border-right: 0 !important;
+  background:
+    radial-gradient(ellipse at 88% 0%, rgba(124,58,237,.16), transparent 38%),
+    linear-gradient(155deg, rgba(23,24,39,.99), rgba(12,13,21,.99)) !important;
+  box-shadow: -24px 0 80px rgba(0,0,0,.52), -1px 0 28px rgba(168,85,247,.12) !important;
+  transform: translateX(24px);
+  animation: controlDrawerIn .32s cubic-bezier(.2,.8,.2,1) forwards !important;
+}
+.modal-header {
+  background: linear-gradient(110deg, rgba(26,27,44,.98), rgba(18,19,31,.96)) !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,.15);
+}
+.modal-header h3 { font-size: 19px !important; letter-spacing: -.025em; }
+.modal-header p { font-family: 'JetBrains Mono', monospace; font-size: 11px !important; }
+.modal-content-scroll {
+  padding: 24px clamp(14px, 2.5vw, 32px) 34px !important;
+  background-image: linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.telemetry-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(36,37,57,.96), rgba(20,21,34,.96)) !important;
+  border-color: rgba(255,255,255,.09) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 12px 24px rgba(0,0,0,.18);
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+.telemetry-card::after {
+  content: "";
+  position: absolute;
+  width: 90px; height: 90px;
+  right: -48px; top: -52px;
+  border-radius: 50%;
+  background: rgba(168,85,247,.18);
+  filter: blur(15px);
+  pointer-events: none;
+}
+.telemetry-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(192,132,252,.3) !important;
+  box-shadow: 0 16px 28px rgba(0,0,0,.25), 0 0 18px rgba(168,85,247,.07);
+}
+.modal-section-title {
+  font-size: 13px !important;
+  letter-spacing: .01em;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,.065);
+}
+.power-buttons-row .btn-ctrl, .snapshot-input-group .btn-ctrl, .terminal-input-form .btn-ctrl {
+  min-height: 40px;
+  box-shadow: 0 5px 14px rgba(0,0,0,.18);
+}
+.snapshot-input-group input, .terminal-input-form input {
+  min-height: 42px;
+  background: rgba(7,8,15,.86) !important;
+  border-color: rgba(255,255,255,.1) !important;
+}
+.terminal-block {
+  border: 1px solid rgba(74,222,128,.2) !important;
+  box-shadow: 0 16px 36px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.025);
+}
+.card-hero-3d {
+  isolation: isolate;
+  transform-style: preserve-3d;
+  perspective: 1100px;
+  border-color: rgba(192,132,252,.52) !important;
+  background:
+    radial-gradient(ellipse at 50% 105%, rgba(147,51,234,.35), transparent 52%),
+    radial-gradient(ellipse at 8% 12%, rgba(56,189,248,.12), transparent 42%),
+    linear-gradient(145deg, #171725 0%, #0c0d17 56%, #171020 100%) !important;
+  box-shadow: 0 22px 55px rgba(0,0,0,.42), 0 0 34px rgba(168,85,247,.17), inset 0 1px 0 rgba(255,255,255,.09), inset 0 -30px 65px rgba(168,85,247,.08) !important;
+}
+.card-hero-3d::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(118deg, rgba(255,255,255,.075), transparent 18% 72%, rgba(192,132,252,.05)), repeating-linear-gradient(0deg, transparent 0 31px, rgba(148,163,184,.035) 32px);
+  mask-image: linear-gradient(to bottom, black, transparent 92%);
+}
+.card-hero-3d::after {
+  content: "";
+  position: absolute;
+  left: 18%; right: 18%; bottom: 8%;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(168,85,247,.6);
+  filter: blur(28px);
+  z-index: 0;
+  pointer-events: none;
+}
+.hero-3d-header { text-shadow: 0 2px 22px rgba(0,0,0,.45); }
+.hero-3d-canvas-wrap {
+  perspective: 900px;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 16px 25px rgba(0,0,0,.28));
+}
+#hero3dCanvas { z-index: 2; filter: saturate(1.2) contrast(1.08); }
+@keyframes controlDrawerIn { from { opacity: .7; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
+@media (max-width: 900px) {
+  .modal-overlay { inset: 128px 0 0 0 !important; }
+  .modal-window { width: 100% !important; border-radius: 16px 16px 0 0 !important; }
+}
+@media (max-width: 640px) {
+  .modal-overlay { inset: 120px 0 0 0 !important; }
+  .modal-window { border-radius: 14px 14px 0 0 !important; }
+  .modal-content-scroll { padding: 14px 12px 26px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-window, .telemetry-card { animation: none !important; transition: none !important; }
+}
+
+
 /* Full-height management drawer: keep the dashboard in place while managing an instance */
 .modal-overlay{justify-content:flex-end;align-items:stretch;padding:0;background:rgba(5,5,10,.72);backdrop-filter:blur(8px)}
 .modal-window{width:min(1040px,100vw);height:100dvh;max-height:100dvh;border-radius:22px 0 0 22px;display:flex;flex-direction:column;transform:translateX(28px);animation:controlDrawerIn .26s cubic-bezier(.2,.8,.2,1) forwards;overflow:hidden}
